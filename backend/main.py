@@ -10,12 +10,21 @@ class AskRequest(BaseModel):
 
 @app.post("/api/ask")
 def ask(request: AskRequest):
+
     question = request.question.strip()
 
     if not question:
-        return {"answer": "", "sources": [], "error": "質問を入力してください。"}
+        return {
+            "answer": "",
+            "sources": [],
+            "error": "質問を入力してください。"
+        }
 
     sources = mock_search(question)
     answer = mock_ai_answer(question, sources)
 
-    return {"answer": answer, "sources": sources, "error": None}
+    return {
+        "answer": answer,
+        "sources": sources,
+        "error": None
+    }
