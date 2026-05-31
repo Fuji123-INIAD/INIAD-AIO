@@ -20,8 +20,16 @@ def search(question: str):
         courses.name LIKE ?
         OR tasks.title LIKE ?
         OR tasks.description LIKE ?
+        OR ? LIKE '%' || tasks.title || '%'
+        OR ? LIKE '%' || courses.name || '%'
     LIMIT 5;
-    """, (f"%{keyword}%", f"%{keyword}%", f"%{keyword}%"))
+    """, (
+        f"%{keyword}%",
+        f"%{keyword}%",
+        f"%{keyword}%",
+        keyword,
+        keyword,
+    ))
 
     rows = cur.fetchall()
     conn.close()

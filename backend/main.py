@@ -1,14 +1,17 @@
 from fastapi import FastAPI
 from pydantic import BaseModel
+
+from ai_module import generate_answer
 from database import init_db
 from search_backend import search
-from ai_module import mock_ai_answer
 
 app = FastAPI()
 init_db()
 
+
 class AskRequest(BaseModel):
     question: str
+
 
 @app.post("/api/ask")
 def ask(request: AskRequest):
@@ -18,14 +21,23 @@ def ask(request: AskRequest):
         return {
             "answer": "",
             "sources": [],
-            "error": "質問を入力してください。"
+            "error": "質問を入力してください。",
         }
 
-    sources = search(question)
-    answer = mock_ai_answer(question, sources)
+    sources = []
+
+    try:
+        sources = search(question)
+        answer = generate_answer(question, sources)
+    except Exception as exc:
+        return {
+            "answer": "",
+            "sources": sources,
+            "error": str(exc),
+        }
 
     return {
         "answer": answer,
         "sources": sources,
-        "error": None
+        "error": None,
     }
