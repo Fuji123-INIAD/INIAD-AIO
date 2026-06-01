@@ -1,20 +1,7 @@
 ---
-domain: lecture
-classification: restricted
-status: reference
-course: "[[情報連携基礎実習Ⅰ]]"
-teacher: キャリア支援担当
-created: 2026-05-16
-updated: 2026-05-16
-tags:
-  - INIAD
-  - lecture
-  - career
-  - minutes
-  - documentation
-ai_scope: local_only
-rag_scope: local_only
-cloud_upload: false
+type: lecture
+course: 情報連携基礎実習Ⅰ
+date: 2026-05-16
 ---
 
 # キャリア講座：議事録編
