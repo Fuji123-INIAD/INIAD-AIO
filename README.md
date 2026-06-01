@@ -1,76 +1,153 @@
 # INIAD-AIO
 
-INIAD向けAIアシスタントプロジェクト
+INIAD生向けAIアシスタントプロジェクト。
 
-## 概要
-
-INIAD-AIOは、講義・課題・学内情報などを検索し、AIを通じて活用できるようにすることを目的としたプロジェクトです。
-
-将来的にはMOOCs、Slack、Toyonet-ACE、学内イベント情報などを統合し、INIAD生活全般を支援するAIアシスタントを目指します。
+講義資料・課題・大学情報をデータベース化し、自然言語で検索・質問できるシステムの開発を目指しています。
 
 ---
 
-## 現在の目標
+## 現在の状況
 
-ハッカソン向けMVPの開発
+現在はPoC（Proof of Concept）段階です。
 
-実装予定：
+実装済み機能
 
-- 講義情報検索
-- 課題情報検索
-- AIによる質問応答
+* FastAPI バックエンド
+* SQLite データベース
+* Gemini API 連携
+* 自然言語による検索
+* Web UI
+* 回答生成
+* 参照データ（Sources）表示
 
-例：
+現在の処理フロー
 
-- 「今週提出の課題は？」
-- 「CS概論Ⅰの第6回は何をやった？」
-- 「生成AIの講義は何回目？」
-
----
-
-## ロードマップ
-
-### Phase 1
-
-MOOCs情報取得
-
-### Phase 2
-
-データベース構築
-
-### Phase 3
-
-AI検索・相談機能（MVP）
-
-### Phase 4
-
-情報源拡張
-
-- Slack
-- Toyonet-ACE
-- 学内イベント
-
-### Phase 5
-
-コミュニティ知識ベース
-
-### Phase 6
-
-INIAD向け総合AIアシスタント
+```text
+質問
+↓
+SQLite検索
+↓
+Gemini回答生成
+↓
+Web UI表示
+```
 
 ---
 
-## 技術スタック（予定）
+## ディレクトリ構成
 
-- Python
-- SQLite
-- Flask
-- GitHub
-- Obsidian
-- Gemini API / OpenAI API
+```text
+INIAD-AIO/
+
+├─ backend/
+│  ├─ main.py
+│  ├─ ai_module.py
+│  ├─ database.py
+│  ├─ search_backend.py
+│  └─ aio.db
+
+├─ frontend/
+│  ├─ index.html
+│  └─ style.css
+
+├─ data/
+│  └─ Obsidian_lecture/
+
+└─ README.md
+```
 
 ---
 
-## ステータス
+## セットアップ
 
-企画・MVP設計中
+### 仮想環境有効化
+
+Windows
+
+```powershell
+.\.venv\Scripts\activate
+```
+
+### サーバー起動
+
+```powershell
+cd backend
+uvicorn main:app --reload
+```
+
+### アクセス
+
+```text
+http://127.0.0.1:8000
+```
+
+---
+
+## 現在の開発段階
+
+### v0.05
+
+実装済み
+
+* FastAPI
+* SQLite
+* Gemini API
+* Frontend UI
+* Sources表示
+* Enter送信
+* Loading表示
+
+### v0.1
+
+予定
+
+* Obsidian講義ノート投入
+* 実データによる検索
+* デモ版完成
+
+### v0.2
+
+予定
+
+* MOOCs連携
+* データ投入自動化
+
+### v0.3
+
+予定
+
+* Embedding導入
+* ベクトル検索
+
+### v0.4
+
+予定
+
+* RAG基盤構築
+
+### v1.0
+
+予定
+
+* プロダクト化
+* UI改善
+* 安定運用
+
+---
+
+## 現在の課題
+
+* Obsidianデータ投入
+* データ量不足
+* MOOCs連携
+* Embedding設計
+* メンバー募集
+
+---
+
+## ライセンス
+
+開発中
+
+```
+```
