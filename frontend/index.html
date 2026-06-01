@@ -1,1 +1,135 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>INIAD-AIO</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <main class="page">
+    <section class="hero">
+      <p class="eyebrow">INIAD Assistant</p>
+      <h1>INIAD-AIO</h1>
+      <p class="subtitle">授業や大学生活の疑問を、気軽に質問できるプロトタイプです。</p>
+    </section>
 
+    <section class="card question-card">
+      <label class="section-title" for="question">質問</label>
+      <textarea id="question" rows="8" placeholder="質問を入力してください"></textarea>
+      <div class="actions">
+        <p class="hint">Enterで送信 / Shift+Enterで改行</p>
+        <button id="sendButton" onclick="ask()">送信</button>
+      </div>
+    </section>
+
+    <section class="card answer-card">
+      <h2 class="section-title">回答</h2>
+      <pre id="answer">ここに回答が表示されます。</pre>
+      <div id="sources" class="sources"></div>
+    </section>
+  </main>
+
+  <footer>
+    INIAD-AIO Prototype
+  </footer>
+
+  <script>
+    const sendButton = document.getElementById("sendButton");
+    const questionInput = document.getElementById("question");
+    const answerArea = document.getElementById("answer");
+    const sourcesArea = document.getElementById("sources");
+
+    async function ask() {
+      const question = questionInput.value;
+
+      if (!question.trim()) {
+        answerArea.textContent = "質問を入力してください。";
+        return;
+      }
+
+      answerArea.textContent = "送信中...";
+      answerArea.classList.add("is-loading");
+      sourcesArea.textContent = "";
+      sendButton.disabled = true;
+
+      try {
+        const response = await fetch("/api/ask", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({ question: question })
+        });
+
+        const data = await response.json();
+
+        if (data.error) {
+          answerArea.textContent = "エラー: " + data.error;
+        } else {
+          answerArea.textContent = data.answer;
+        }
+
+        renderSources(data.sources);
+      } catch (error) {
+        answerArea.textContent = "通信エラー: " + error.message;
+      } finally {
+        answerArea.classList.remove("is-loading");
+        sendButton.disabled = false;
+      }
+    }
+
+    questionInput.addEventListener("keydown", function(event) {
+      if (event.key === "Enter" && !event.shiftKey) {
+        event.preventDefault();
+        ask();
+      }
+    });
+
+    function renderSources(sources) {
+      sourcesArea.textContent = "";
+
+      if (!Array.isArray(sources) || sources.length === 0) {
+        return;
+      }
+
+      const title = document.createElement("h3");
+      title.className = "sources-title";
+      title.textContent = "参照データ";
+      sourcesArea.appendChild(title);
+
+      const list = document.createElement("ol");
+      list.className = "sources-list";
+
+      sources.forEach(function(source) {
+        const item = document.createElement("li");
+        item.className = "source-item";
+
+        const heading = document.createElement("p");
+        heading.className = "source-heading";
+        heading.textContent = (source.course || "科目未設定") + " / " + (source.title || "タイトル未設定");
+
+        const type = document.createElement("p");
+        type.className = "source-meta";
+        type.textContent = "type: " + (source.type || "未設定");
+
+        const deadline = document.createElement("p");
+        deadline.className = "source-meta";
+        deadline.textContent = "deadline: " + (source.deadline || "未設定");
+
+        const content = document.createElement("p");
+        content.className = "source-content";
+        content.textContent = source.content || "内容未設定";
+
+        item.appendChild(heading);
+        item.appendChild(type);
+        item.appendChild(deadline);
+        item.appendChild(content);
+        list.appendChild(item);
+      });
+
+      sourcesArea.appendChild(list);
+    }
+  </script>
+</body>
+</html>

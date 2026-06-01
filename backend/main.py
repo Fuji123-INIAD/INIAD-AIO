@@ -1,4 +1,6 @@
+from pathlib import Path
 from fastapi import FastAPI
+from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 
 from ai_module import generate_answer
@@ -41,3 +43,13 @@ def ask(request: AskRequest):
         "sources": sources,
         "error": None,
     }
+
+FRONTEND_DIR = (
+    Path(__file__).resolve().parent.parent / "frontend"
+)
+
+app.mount(
+    "/",
+    StaticFiles(directory=str(FRONTEND_DIR), html=True),
+    name="frontend"
+)
