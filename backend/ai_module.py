@@ -49,7 +49,7 @@ def generate_answer(question, sources):
 
     client = _get_client()
     response = client.models.generate_content(
-        model="gemini-2.5-flash",
+        model="gemini-3.1-flash-lite",
         contents=prompt,
     )
 

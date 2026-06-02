@@ -45,6 +45,11 @@ def init_db():
     );
     """)
 
+    cur.execute("PRAGMA table_info(lectures);")
+    lecture_columns = {row[1] for row in cur.fetchall()}
+    if "date" not in lecture_columns:
+        cur.execute("ALTER TABLE lectures ADD COLUMN date TEXT;")
+
     cur.execute("SELECT COUNT(*) FROM courses;")
     course_count = cur.fetchone()[0]
 
