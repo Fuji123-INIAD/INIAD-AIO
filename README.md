@@ -244,3 +244,59 @@ http://127.0.0.1:8000
 
 ```
 ```
+
+---
+
+## MOOCs 取得PoC
+
+v0.2 の MOOCs 取得PoCとして、ログイン済み `storage_state` を使って `https://moocs.iniad.org/courses` の講義一覧をDOMから抽出します。INIAD++調査および `MOOCs取得調査.md` では MOOCs 内部APIを確認できていないため、このPoCはDOM依存です。今後 `MoocsSourceProvider` に発展させる前提で、Google Slides iframe / Viewer DOM を扱うことを想定しています。
+
+### 初回セットアップ
+
+```powershell
+.\.venv\Scripts\activate
+pip install -r backend\requirements.txt
+python -m playwright install chromium
+New-Item -ItemType Directory -Force data\probe
+```
+
+### 初回ログインと storage_state 作成
+
+ブラウザを開いて MOOCs にログインし、ログイン状態を `data/probe/moocs_storage_state.json` に保存します。
+
+```powershell
+python -m playwright codegen --save-storage=data/probe/moocs_storage_state.json https://moocs.iniad.org/courses
+```
+
+ログイン後、表示されたブラウザを閉じると storage_state が保存されます。`storage_state` には認証情報が含まれるため、Gitにはコミットしないでください。
+
+### 講義一覧の取得
+
+```powershell
+python backend\moocs_probe.py
+```
+
+出力先:
+
+```text
+data/probe/moocs_courses.json
+```
+
+取得件数が0件の場合はエラーとして終了します。selector は暫定で、失敗時にはページタイトル、URL、リンク候補、Google Slides / Viewer iframe の検出状況をログに出します。
+### MOOCs details metadata probe
+
+`--details` visits course top pages, lesson group pages, and lesson pages, then stores Google Slides iframe metadata in `data/probe/moocs_course_details.json`.
+
+Use persistent profile login for the most stable MOOCs session:
+
+```powershell
+python backend\moocs_probe.py --details --details-limit 1 --lesson-limit 2 --page-limit 2 --profile-dir data/probe/moocs_profile --headed --verbose
+```
+
+Limits:
+
+* `--details-limit N`: max courses to visit.
+* `--lesson-limit N`: max lesson groups per course.
+* `--page-limit N`: max lesson pages per lesson group.
+
+The details output is metadata-only. It does not store raw body text or `text_preview`.

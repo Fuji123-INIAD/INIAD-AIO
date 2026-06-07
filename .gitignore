@@ -220,3 +220,12 @@ __marimo__/
 .env
 .venv/
 __pycache__/
+
+# Local browser login state for MOOCs probing
+data/probe/*storage_state*.json
+data/probe/moocs_profile/
+
+# MOOCs probe local data
+data/probe/*.json
+data/probe/moocs_profile/
+data/probe/*storage_state*.json
