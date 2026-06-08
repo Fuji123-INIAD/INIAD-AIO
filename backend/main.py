@@ -1131,6 +1131,171 @@ def list_tasks():
         "tasks": tasks,
     }
 
+
+@app.get("/api/search")
+def search_database(q: str = ""):
+    query = q.strip()
+    if not query:
+        return {
+            "status": "error",
+            "detail": "query parameter q is required",
+        }
+
+    database_url, error = get_database_url()
+    if error:
+        return error
+
+    pattern = f"%{query}%"
+    results = []
+
+    try:
+        with psycopg.connect(database_url) as conn:
+            with conn.cursor() as cur:
+                cur.execute(
+                    """
+                    SELECT id, course_code, title
+                    FROM courses
+                    WHERE title ILIKE %s
+                       OR course_code ILIKE %s
+                    ORDER BY id
+                    LIMIT 10;
+                    """,
+                    (pattern, pattern),
+                )
+                results.extend(
+                    {
+                        "type": "course",
+                        "id": row[0],
+                        "course_code": row[1],
+                        "title": row[2],
+                    }
+                    for row in cur.fetchall()
+                )
+
+                cur.execute(
+                    """
+                    SELECT id, course_id, lecture_number, title
+                    FROM lectures
+                    WHERE title ILIKE %s
+                    ORDER BY course_id, lecture_number, id
+                    LIMIT 10;
+                    """,
+                    (pattern,),
+                )
+                results.extend(
+                    {
+                        "type": "lecture",
+                        "id": row[0],
+                        "course_id": row[1],
+                        "lecture_number": row[2],
+                        "title": row[3],
+                    }
+                    for row in cur.fetchall()
+                )
+
+                cur.execute(
+                    """
+                    SELECT pages.id, lectures.course_id, pages.lecture_id,
+                           pages.page_number, pages.title, pages.url
+                    FROM pages
+                    LEFT JOIN lectures ON lectures.id = pages.lecture_id
+                    WHERE pages.title ILIKE %s
+                    ORDER BY lectures.course_id, pages.lecture_id,
+                             pages.page_number, pages.id
+                    LIMIT 10;
+                    """,
+                    (pattern,),
+                )
+                results.extend(
+                    {
+                        "type": "page",
+                        "id": row[0],
+                        "course_id": row[1],
+                        "lecture_id": row[2],
+                        "page_number": row[3],
+                        "title": row[4],
+                        "source_url": row[5],
+                    }
+                    for row in cur.fetchall()
+                )
+
+                cur.execute(
+                    """
+                    SELECT materials.id, lectures.course_id, pages.lecture_id,
+                           materials.page_id,
+                           COALESCE(
+                               materials.raw_json->>'material_title',
+                               materials.raw_json->>'title',
+                               materials.raw_json->>'name',
+                               materials.material_type,
+                               materials.url
+                           ) AS title,
+                           materials.url
+                    FROM materials
+                    LEFT JOIN pages ON pages.id = materials.page_id
+                    LEFT JOIN lectures ON lectures.id = pages.lecture_id
+                    WHERE COALESCE(
+                              materials.raw_json->>'material_title',
+                              materials.raw_json->>'title',
+                              materials.raw_json->>'name',
+                              materials.material_type,
+                              materials.url,
+                              ''
+                          ) ILIKE %s
+                    ORDER BY lectures.course_id, pages.lecture_id,
+                             materials.page_id, materials.material_number,
+                             materials.id
+                    LIMIT 10;
+                    """,
+                    (pattern,),
+                )
+                results.extend(
+                    {
+                        "type": "material",
+                        "id": row[0],
+                        "course_id": row[1],
+                        "lecture_id": row[2],
+                        "page_id": row[3],
+                        "title": row[4],
+                        "source_url": row[5],
+                    }
+                    for row in cur.fetchall()
+                )
+
+                cur.execute(
+                    """
+                    SELECT id, course_id, lecture_id, title, source_url
+                    FROM tasks
+                    WHERE title ILIKE %s
+                    ORDER BY course_id, lecture_id, id
+                    LIMIT 10;
+                    """,
+                    (pattern,),
+                )
+                results.extend(
+                    {
+                        "type": "task",
+                        "id": row[0],
+                        "course_id": row[1],
+                        "lecture_id": row[2],
+                        "title": row[3],
+                        "source_url": row[4],
+                    }
+                    for row in cur.fetchall()
+                )
+    except Exception as exc:
+        return {
+            "status": "error",
+            "detail": str(exc),
+        }
+
+    return {
+        "status": "ok",
+        "query": query,
+        "results": results[:50],
+    }
+
+
 FRONTEND_DIR = (
     Path(__file__).resolve().parent.parent / "frontend"
 )
