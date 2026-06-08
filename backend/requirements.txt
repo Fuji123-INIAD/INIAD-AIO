@@ -3,3 +3,5 @@ uvicorn
 python-dotenv
 google-genai
 playwright
+uvicorn[standard]
+psycopg[binary]

@@ -1,0 +1,48 @@
+[
+  {
+    "course_title": "コンピュータ・サイエンス概論 I & 演習 I",
+    "course_url": "https://moocs.iniad.org/courses/2026/COT101",
+    "lessons": [
+      {
+        "lesson_title": "00-1: 受講方法について",
+        "lesson_url": "https://moocs.iniad.org/courses/2026/COT101/00-1",
+        "pages": [
+          {
+            "page_title": "受講方法について (CS概論1)",
+            "page_url": "https://moocs.iniad.org/courses/2026/COT101/00-1/01",
+            "materials": [
+              {
+                "material_type": "google_slides",
+                "material_url": "https://docs.google.com/presentation/d/e/2PACX-1vTaEnRqvFHygKNg0eO9R_t9tqdA3yKYgzIicpSBnq3ig5k5sFJ44EQgSHk_Br9NMQ/pubembed?start=false&loop=false&delayms=3000",
+                "retrieval_method": "iframe:google_slides"
+              }
+            ]
+          },
+          {
+            "page_title": "受講方法について (CS演習1)",
+            "page_url": "https://moocs.iniad.org/courses/2026/COT101/00-1/02",
+            "materials": [
+              {
+                "material_type": "google_slides",
+                "material_url": "https://docs.google.com/presentation/d/e/2PACX-1vSqzwk5tafK1mqqTZETf_3G4KjmE743RNIPSy_jFMa9_gwiKDhXQ0nmIrJ0MotspA/pubembed?start=false&loop=false&delayms=60000",
+                "retrieval_method": "iframe:google_slides"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "lesson_title": "00-3: システムガイダンス",
+        "lesson_url": "https://moocs.iniad.org/courses/2026/COT101/00-3",
+        "pages": [
+          {
+            "page_title": "課題",
+            "page_url": "https://moocs.iniad.org/courses/2026/COT101/00-3/exercise",
+            "materials": []
+          }
+        ]
+      }
+    ],
+    "fetched_at": "2026-06-07T05:32:05.818480+00:00"
+  }
+]

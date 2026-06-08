@@ -300,3 +300,68 @@ Limits:
 * `--page-limit N`: max lesson pages per lesson group.
 
 The details output is metadata-only. It does not store raw body text or `text_preview`.
+
+---
+
+## Docker / VPS minimal startup
+
+Before moving to a VPS, keep secrets out of Git and use `.env` locally.
+
+1. Start Docker Desktop.
+2. Create a local environment file:
+
+```powershell
+Copy-Item .env.example .env
+```
+
+Edit `.env` and set real values. Do not commit `.env`.
+
+Required values:
+
+```text
+POSTGRES_USER
+POSTGRES_PASSWORD
+POSTGRES_DB
+DATABASE_URL
+GEMINI_API_KEY
+```
+
+3. Build and start containers:
+
+```powershell
+docker compose up --build -d
+```
+
+4. Initialize PostgreSQL schema:
+
+```text
+http://localhost:8000/api/init-db
+```
+
+5. Import MOOCs data in order:
+
+```text
+http://localhost:8000/api/import-courses
+http://localhost:8000/api/import-lectures
+http://localhost:8000/api/import-pages
+http://localhost:8000/api/import-materials
+http://localhost:8000/api/import-tasks
+```
+
+6. Check imported tasks:
+
+```text
+http://localhost:8000/api/tasks
+```
+
+7. Stop containers:
+
+```powershell
+docker compose down
+```
+
+Notes:
+
+* `data/probe/moocs_course_details.json` is required by the current Docker import flow.
+* Local secrets and browser login state must stay out of Git.
+* PostgreSQL data is stored in the `postgres_data` Docker volume.

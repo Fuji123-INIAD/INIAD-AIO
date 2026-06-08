@@ -60,6 +60,7 @@ cover/
 local_settings.py
 db.sqlite3
 db.sqlite3-journal
+backend/aio.db
 
 # Flask stuff:
 instance/
@@ -149,6 +150,8 @@ activemq-data/
 
 # Environments
 .env
+.env.*
+!.env.example
 .envrc
 .venv
 env/
@@ -227,5 +230,6 @@ data/probe/moocs_profile/
 
 # MOOCs probe local data
 data/probe/*.json
+!data/probe/moocs_course_details.json
 data/probe/moocs_profile/
 data/probe/*storage_state*.json
