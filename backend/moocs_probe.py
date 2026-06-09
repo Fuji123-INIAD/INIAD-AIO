@@ -4,6 +4,7 @@ import argparse
 import json
 import logging
 import re
+import time
 from dataclasses import asdict, dataclass
 from datetime import datetime, timezone
 from pathlib import Path
@@ -28,6 +29,7 @@ DEFAULT_DETAILS_OUTPUT_PATH = BASE_DIR / "data" / "probe" / "moocs_course_detail
 DEFAULT_LINKS_DEBUG_OUTPUT_PATH = BASE_DIR / "data" / "probe" / "moocs_course_links_debug.json"
 DEFAULT_LESSON_DEBUG_OUTPUT_PATH = BASE_DIR / "data" / "probe" / "moocs_lesson_debug.json"
 DEFAULT_LINKS_DEBUG_COURSE_URL = "https://moocs.iniad.org/courses/2026/COT101"
+DEFAULT_CONTENT_CHECK_URL = "https://moocs.iniad.org/courses/2026/COT101/01-1/01"
 DEFAULT_PROFILE_DIR = BASE_DIR / "data" / "probe" / "moocs_profile"
 
 COURSE_CARD_SELECTOR = ".well"
@@ -183,18 +185,18 @@ def playwright_runner():
     return sync_playwright()
 
 
-def open_moocs_context(playwright, storage_state: Path, profile_dir: Path | None, headless: bool):
-    if profile_dir is not None:
-        resolved_profile_dir = profile_dir.resolve()
-        if not resolved_profile_dir.exists() and headless:
-            logging.warning(
-                "profile_dir does not exist yet: %s. Run with --headed first to log in manually.",
-                resolved_profile_dir,
+def open_moocs_context(playwright, storage_state: Path, user_data_dir: Path | None, headless: bool):
+    if user_data_dir is not None:
+        if headless:
+            raise RuntimeError(
+                "MOOCs persistent profiles must not be opened with headless=true. "
+                "Use --headed and a dedicated --user-data-dir instead."
             )
-        resolved_profile_dir.mkdir(parents=True, exist_ok=True)
-        logging.info("using persistent browser profile=%s", resolved_profile_dir)
+        resolved_user_data_dir = user_data_dir.resolve()
+        resolved_user_data_dir.mkdir(parents=True, exist_ok=True)
+        logging.info("using persistent browser user_data_dir=%s", resolved_user_data_dir)
         return playwright.chromium.launch_persistent_context(
-            user_data_dir=str(resolved_profile_dir),
+            user_data_dir=str(resolved_user_data_dir),
             headless=headless,
         )
 
@@ -214,12 +216,12 @@ def close_moocs_context(context) -> None:
             logging.debug("browser was already closed with context")
 
 
-def wait_for_manual_login_if_needed(page: Page, target_url: str, profile_dir: Path | None, headless: bool, timeout_ms: int) -> None:
-    if profile_dir is None or headless or "/signin" not in urlparse(page.url).path:
+def wait_for_manual_login_if_needed(page: Page, target_url: str, user_data_dir: Path | None, headless: bool, timeout_ms: int) -> None:
+    if user_data_dir is None or headless or "/signin" not in urlparse(page.url).path:
         return
 
     logging.warning(
-        "persistent profile is not logged in yet. Complete login in the opened browser, then press Enter here."
+        "persistent user_data_dir is not logged in yet. Complete login in the opened browser, then press Enter here."
     )
     try:
         input("MOOCs login complete? Press Enter to continue...")
@@ -232,6 +234,122 @@ def wait_for_manual_login_if_needed(page: Page, target_url: str, profile_dir: Pa
         page.wait_for_load_state("networkidle", timeout=timeout_ms)
     except PlaywrightTimeoutError:
         logging.warning("networkidle wait timed out after manual login; continuing with current DOM")
+
+
+def visit_moocs_url(
+    page: Page,
+    url: str,
+    profile_dir: Path | None,
+    headless: bool,
+    timeout_ms: int,
+    wait_for_login_input: bool = True,
+) -> dict[str, object]:
+    logging.info("opening %s", url)
+    page.goto(url, wait_until="domcontentloaded", timeout=timeout_ms)
+    try:
+        page.wait_for_load_state("networkidle", timeout=timeout_ms)
+    except PlaywrightTimeoutError:
+        logging.warning("networkidle wait timed out for url=%s; continuing with current DOM", url)
+    if wait_for_login_input:
+        wait_for_manual_login_if_needed(page, url, profile_dir, headless, timeout_ms)
+
+    current_url = page.url
+    redirected_to_signin = "/signin" in urlparse(current_url).path or "/auth/" in urlparse(current_url).path
+    content_title = ""
+    if not redirected_to_signin:
+        try:
+            content_title = extract_content_page_title(page, current_url)
+        except PlaywrightError as exc:
+            logging.debug("content title extraction failed url=%s error=%s", current_url, exc)
+
+    return {
+        "requested_url": url,
+        "current_url": current_url,
+        "ok": not redirected_to_signin,
+        "redirected_to_signin": redirected_to_signin,
+        "title": clean_document_title(page.title()),
+        "content_title": content_title,
+    }
+
+
+def check_moocs_url_access(
+    storage_state: Path,
+    profile_dir: Path | None,
+    url: str,
+    headless: bool,
+    timeout_ms: int,
+) -> dict[str, object]:
+    with playwright_runner() as playwright:
+        context = open_moocs_context(playwright, storage_state, profile_dir, headless)
+        page = context.new_page()
+        try:
+            return visit_moocs_url(page, url, profile_dir, headless, timeout_ms)
+        finally:
+            close_moocs_context(context)
+
+
+def save_storage_state_from_profile(
+    storage_state: Path,
+    profile_dir: Path,
+    check_url: str,
+    headless: bool,
+    timeout_ms: int,
+    login_wait_ms: int,
+) -> dict[str, object]:
+    with playwright_runner() as playwright:
+        context = open_moocs_context(playwright, storage_state, profile_dir, headless)
+        page = context.new_page()
+        try:
+            result = visit_moocs_url(
+                page,
+                check_url,
+                profile_dir,
+                headless,
+                timeout_ms,
+                wait_for_login_input=False,
+            )
+            if not result["ok"] and not headless and login_wait_ms > 0:
+                logging.warning(
+                    "MOOCs login is still required. Complete login in the opened browser; "
+                    "waiting up to %sms for content access.",
+                    login_wait_ms,
+                )
+                deadline = time.monotonic() + (login_wait_ms / 1000)
+                while time.monotonic() < deadline:
+                    try:
+                        page.goto(check_url, wait_until="domcontentloaded", timeout=timeout_ms)
+                        current_url = page.url
+                        if "/signin" not in urlparse(current_url).path and "/auth/" not in urlparse(current_url).path:
+                            result = visit_moocs_url(
+                                page,
+                                check_url,
+                                profile_dir,
+                                headless,
+                                timeout_ms,
+                                wait_for_login_input=False,
+                            )
+                            break
+                    except (PlaywrightTimeoutError, PlaywrightError) as exc:
+                        logging.debug("login wait check failed url=%s error=%s", check_url, exc)
+                    time.sleep(5)
+
+            if not result["ok"]:
+                logging.warning(
+                    "MOOCs login was not confirmed; refusing to save storage_state=%s",
+                    storage_state,
+                )
+                result["storage_state_saved"] = False
+                result["storage_state_path"] = str(storage_state.resolve())
+                return result
+
+            storage_state.parent.mkdir(parents=True, exist_ok=True)
+            context.storage_state(path=str(storage_state))
+            logging.info("saved storage_state=%s", storage_state.resolve())
+            result["storage_state_saved"] = True
+            result["storage_state_path"] = str(storage_state.resolve())
+            return result
+        finally:
+            close_moocs_context(context)
 
 
 def material_to_dict(material: CourseMaterialProbeRecord) -> dict[str, str]:
@@ -287,6 +405,23 @@ def load_course_records(path: Path) -> list[CourseProbeRecord]:
         )
 
     return records
+
+
+def course_code_from_url(url: str) -> str:
+    segments = path_segments(url)
+    return segments[-1] if segments else ""
+
+
+def filter_courses_by_code(records: list[CourseProbeRecord], course_code: str | None) -> list[CourseProbeRecord]:
+    if not course_code:
+        return records
+
+    normalized_course_code = course_code.strip().lower()
+    return [
+        record
+        for record in records
+        if course_code_from_url(record.course_url).lower() == normalized_course_code
+    ]
 
 
 def collect_course_link_debug(page: Page, course_url: str) -> dict[str, object]:
@@ -688,6 +823,7 @@ def probe_course_details(
     details_limit: int | None,
     lesson_limit: int | None,
     page_limit: int | None,
+    course_code: str | None = None,
 ) -> list[CourseDetailProbeRecord]:
     if not courses_input_path.exists():
         raise FileNotFoundError(
@@ -698,6 +834,11 @@ def probe_course_details(
     courses = load_course_records(courses_input_path)
     if not courses:
         raise RuntimeError(f"course input contained 0 valid records: {courses_input_path}")
+    courses = filter_courses_by_code(courses, course_code)
+    if not courses:
+        raise RuntimeError(
+            f"course input contained 0 records matching course_code={course_code!r}: {courses_input_path}"
+        )
     validate_nonnegative_limit("details-limit", details_limit)
     validate_nonnegative_limit("lesson-limit", lesson_limit)
     validate_nonnegative_limit("page-limit", page_limit)
@@ -726,7 +867,12 @@ def probe_course_details(
 
                     log_dom_diagnostics(page)
                     if "/signin" in urlparse(page.url).path:
-                        logging.warning("course redirected to signin; skipping course=%s", course.course_url)
+                        logging.warning(
+                            "course redirected to signin; skipping course=%s. "
+                            "Run with --user-data-dir %s --headed, complete MOOCs login, then retry.",
+                            course.course_url,
+                            DEFAULT_PROFILE_DIR,
+                        )
                         continue
 
                     lessons: list[CourseLessonProbeRecord] = []
@@ -759,7 +905,11 @@ def probe_course_details(
 
                             log_dom_diagnostics(page)
                             if "/signin" in urlparse(page.url).path:
-                                logging.warning("lesson group redirected to signin; skipping lesson=%s", lesson_url)
+                                logging.warning(
+                                    "lesson group redirected to signin; skipping lesson=%s. "
+                                    "Persistent MOOCs login is missing or expired.",
+                                    lesson_url,
+                                )
                                 continue
 
                             pages: list[CoursePageProbeRecord] = []
@@ -795,7 +945,11 @@ def probe_course_details(
 
                                     log_dom_diagnostics(page)
                                     if "/signin" in urlparse(page.url).path:
-                                        logging.warning("lesson page redirected to signin; skipping page=%s", lesson_page_url)
+                                        logging.warning(
+                                            "lesson page redirected to signin; skipping page=%s. "
+                                            "Persistent MOOCs login is missing or expired.",
+                                            lesson_page_url,
+                                        )
                                         continue
 
                                     materials = extract_google_slides_materials(page)
@@ -849,6 +1003,13 @@ def probe_course_details(
                     continue
         finally:
             close_moocs_context(context)
+
+    if not details and output_path.exists():
+        logging.warning(
+            "course detail probe returned 0 records; keeping existing output file=%s",
+            output_path,
+        )
+        return details
 
     output_path.parent.mkdir(parents=True, exist_ok=True)
     output_path.write_text(
@@ -953,15 +1114,25 @@ def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Probe MOOCs course list from logged-in DOM.")
     parser.add_argument("--storage-state", type=Path, default=DEFAULT_STORAGE_STATE)
     parser.add_argument(
+        "--user-data-dir",
+        type=Path,
+        default=None,
+        help=(
+            "Use a persistent Chromium user data directory instead of storage_state. "
+            f"Recommended for MOOCs login state, e.g. {DEFAULT_PROFILE_DIR}."
+        ),
+    )
+    parser.add_argument(
         "--profile-dir",
         type=Path,
         default=None,
-        help=f"Use a persistent Chromium profile directory instead of storage_state, e.g. {DEFAULT_PROFILE_DIR}.",
+        help="Deprecated alias for --user-data-dir.",
     )
     parser.add_argument("--output", type=Path, default=DEFAULT_OUTPUT_PATH)
     parser.add_argument("--details", action="store_true", help="Probe each course detail page from moocs_courses.json.")
     parser.add_argument("--courses-input", type=Path, default=DEFAULT_OUTPUT_PATH)
     parser.add_argument("--details-output", type=Path, default=DEFAULT_DETAILS_OUTPUT_PATH)
+    parser.add_argument("--course-code", help="Limit --details traversal to one course code, e.g. COT101.")
     parser.add_argument("--details-limit", type=int, default=None, help="Limit the number of courses visited by --details.")
     parser.add_argument("--lesson-limit", type=int, default=None, help="Limit lesson groups visited per course by --details.")
     parser.add_argument("--page-limit", type=int, default=None, help="Limit lesson pages visited per lesson group by --details.")
@@ -970,8 +1141,32 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--links-debug-output", type=Path, default=DEFAULT_LINKS_DEBUG_OUTPUT_PATH)
     parser.add_argument("--lesson-debug", help="Write diagnostics for one MOOCs lesson/material page URL.")
     parser.add_argument("--lesson-debug-output", type=Path, default=DEFAULT_LESSON_DEBUG_OUTPUT_PATH)
+    parser.add_argument(
+        "--save-storage-state",
+        action="store_true",
+        help=(
+            "Open MOOCs with a persistent profile, verify a content page, then save "
+            "storage_state for headless HTTP/Playwright imports."
+        ),
+    )
+    parser.add_argument(
+        "--check-url",
+        nargs="?",
+        const=DEFAULT_CONTENT_CHECK_URL,
+        default=None,
+        help=(
+            "Verify logged-in access to a MOOCs URL. If no URL is supplied, checks "
+            f"{DEFAULT_CONTENT_CHECK_URL}."
+        ),
+    )
     parser.add_argument("--headed", action="store_true", help="Run Chromium with a visible browser window.")
     parser.add_argument("--timeout-ms", type=int, default=30000)
+    parser.add_argument(
+        "--login-wait-ms",
+        type=int,
+        default=300000,
+        help="When --save-storage-state is headed, wait this long for manual login before refusing to save.",
+    )
     parser.add_argument("--verbose", action="store_true")
     return parser.parse_args()
 
@@ -979,10 +1174,36 @@ def parse_args() -> argparse.Namespace:
 def main() -> None:
     args = parse_args()
     configure_logging(args.verbose)
+    user_data_dir = args.user_data_dir or args.profile_dir
+
+    if args.save_storage_state:
+        profile_dir = user_data_dir or DEFAULT_PROFILE_DIR
+        result = save_storage_state_from_profile(
+            storage_state=args.storage_state,
+            profile_dir=profile_dir,
+            check_url=args.check_url or DEFAULT_CONTENT_CHECK_URL,
+            headless=not args.headed,
+            timeout_ms=args.timeout_ms,
+            login_wait_ms=args.login_wait_ms,
+        )
+        print(json.dumps(result, ensure_ascii=False, indent=2))
+        return
+
+    if args.check_url:
+        result = check_moocs_url_access(
+            storage_state=args.storage_state,
+            profile_dir=user_data_dir,
+            url=args.check_url,
+            headless=not args.headed,
+            timeout_ms=args.timeout_ms,
+        )
+        print(json.dumps(result, ensure_ascii=False, indent=2))
+        return
+
     if args.lesson_debug:
         probe_lesson_debug(
             storage_state=args.storage_state,
-            profile_dir=args.profile_dir,
+            profile_dir=user_data_dir,
             lesson_url=args.lesson_debug,
             output_path=args.lesson_debug_output,
             headless=not args.headed,
@@ -993,7 +1214,7 @@ def main() -> None:
     if args.links_debug:
         probe_course_links_debug(
             storage_state=args.storage_state,
-            profile_dir=args.profile_dir,
+            profile_dir=user_data_dir,
             course_url=args.links_debug_course_url,
             output_path=args.links_debug_output,
             headless=not args.headed,
@@ -1004,7 +1225,7 @@ def main() -> None:
     if args.details:
         probe_course_details(
             storage_state=args.storage_state,
-            profile_dir=args.profile_dir,
+            profile_dir=user_data_dir,
             courses_input_path=args.courses_input,
             output_path=args.details_output,
             headless=not args.headed,
@@ -1012,12 +1233,13 @@ def main() -> None:
             details_limit=args.details_limit,
             lesson_limit=args.lesson_limit,
             page_limit=args.page_limit,
+            course_code=args.course_code,
         )
         return
 
     probe_courses(
         storage_state=args.storage_state,
-        profile_dir=args.profile_dir,
+        profile_dir=user_data_dir,
         output_path=args.output,
         headless=not args.headed,
         timeout_ms=args.timeout_ms,

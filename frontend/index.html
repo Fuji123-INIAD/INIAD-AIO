@@ -18,14 +18,28 @@
       <label class="section-title" for="question">質問</label>
       <textarea id="question" rows="8" placeholder="質問を入力してください"></textarea>
       <div class="actions">
-        <p class="hint">Enterで送信 / Shift+Enterで改行</p>
+        <p class="hint">AI回答</p>
         <button id="sendButton" onclick="ask()">送信</button>
       </div>
     </section>
 
+    <details class="card search-card">
+      <summary class="search-summary">詳細検索</summary>
+      <div class="search-panel">
+        <label class="section-title" for="searchQuery">検索</label>
+        <div class="search-row">
+          <input id="searchQuery" type="search" placeholder="課題 / COT101 / exercise">
+          <button id="searchButton" onclick="searchMoocs()">検索</button>
+        </div>
+        <div id="searchStatus" class="status-line"></div>
+        <div id="searchResults" class="sources"></div>
+      </div>
+    </details>
+
     <section class="card answer-card">
-      <h2 class="section-title">回答</h2>
+      <h2 class="section-title">AI回答</h2>
       <pre id="answer">ここに回答が表示されます。</pre>
+      <h3 class="sources-title answer-sources-title">参照データ</h3>
       <div id="sources" class="sources"></div>
     </section>
   </main>
@@ -39,6 +53,10 @@
     const questionInput = document.getElementById("question");
     const answerArea = document.getElementById("answer");
     const sourcesArea = document.getElementById("sources");
+    const searchButton = document.getElementById("searchButton");
+    const searchQueryInput = document.getElementById("searchQuery");
+    const searchStatus = document.getElementById("searchStatus");
+    const searchResultsArea = document.getElementById("searchResults");
 
     async function ask() {
       const question = questionInput.value;
@@ -64,18 +82,52 @@
 
         const data = await response.json();
 
-        if (data.error) {
+        if (data.answer) {
+          answerArea.textContent = data.answer;
+        } else if (data.error) {
           answerArea.textContent = "エラー: " + data.error;
         } else {
-          answerArea.textContent = data.answer;
+          answerArea.textContent = "";
         }
 
-        renderSources(data.sources);
+        renderSources(data.sources, sourcesArea, null);
       } catch (error) {
         answerArea.textContent = "通信エラー: " + error.message;
       } finally {
         answerArea.classList.remove("is-loading");
         sendButton.disabled = false;
+      }
+    }
+
+    async function searchMoocs() {
+      const query = searchQueryInput.value.trim();
+
+      if (!query) {
+        searchStatus.textContent = "検索語を入力してください。";
+        searchResultsArea.textContent = "";
+        return;
+      }
+
+      searchStatus.textContent = "検索中...";
+      searchResultsArea.textContent = "";
+      searchButton.disabled = true;
+
+      try {
+        const params = new URLSearchParams({ q: query, limit: "12" });
+        const response = await fetch("/api/search?" + params.toString());
+        const data = await response.json();
+
+        if (data.status !== "ok") {
+          searchStatus.textContent = "エラー: " + (data.detail || "search failed");
+          return;
+        }
+
+        searchStatus.textContent = data.results.length + "件";
+        renderSources(data.results, searchResultsArea, "検索結果");
+      } catch (error) {
+        searchStatus.textContent = "通信エラー: " + error.message;
+      } finally {
+        searchButton.disabled = false;
       }
     }
 
@@ -86,49 +138,113 @@
       }
     });
 
-    function renderSources(sources) {
-      sourcesArea.textContent = "";
+    searchQueryInput.addEventListener("keydown", function(event) {
+      if (event.key === "Enter") {
+        event.preventDefault();
+        searchMoocs();
+      }
+    });
+
+    function renderSources(sources, targetArea, headingText) {
+      const area = targetArea || sourcesArea;
+      area.textContent = "";
 
       if (!Array.isArray(sources) || sources.length === 0) {
         return;
       }
 
-      const title = document.createElement("h3");
-      title.className = "sources-title";
-      title.textContent = "参照データ";
-      sourcesArea.appendChild(title);
+      if (headingText !== null) {
+        const title = document.createElement("h3");
+        title.className = "sources-title";
+        title.textContent = headingText || "参照データ";
+        area.appendChild(title);
+      }
 
       const list = document.createElement("ol");
       list.className = "sources-list";
 
       sources.forEach(function(source) {
         const item = document.createElement("li");
-        item.className = "source-item";
+        item.className = "source-item source-item-" + (source.type || "unknown");
+
+        const badge = document.createElement("span");
+        badge.className = "type-badge type-badge-" + (source.type || "unknown");
+        badge.textContent = typeLabel(source.type);
 
         const heading = document.createElement("p");
         heading.className = "source-heading";
-        heading.textContent = (source.course || "科目未設定") + " / " + (source.title || "タイトル未設定");
+        heading.textContent = source.title || "タイトル未設定";
 
-        const type = document.createElement("p");
-        type.className = "source-meta";
-        type.textContent = "type: " + (source.type || "未設定");
+        const meta = document.createElement("dl");
+        meta.className = "source-meta-list";
+        appendMeta(meta, "type", source.type || "未設定");
+        appendMeta(meta, "course_code", source.course_code || "未設定");
+        appendMeta(meta, "lecture_title", source.lecture_title || "未設定");
 
-        const deadline = document.createElement("p");
-        deadline.className = "source-meta";
-        deadline.textContent = "deadline: " + (source.deadline || "未設定");
+        const excerptText = source.snippet || source.content_excerpt;
+        let excerpt = null;
+        if (excerptText) {
+          excerpt = document.createElement("p");
+          excerpt.className = "source-snippet";
+          excerpt.textContent = excerptText;
+        }
 
-        const content = document.createElement("p");
-        content.className = "source-content";
-        content.textContent = source.content || "内容未設定";
+        if (source.source_url) {
+          const urlRow = document.createElement("div");
+          urlRow.className = "source-url-row";
 
-        item.appendChild(heading);
-        item.appendChild(type);
-        item.appendChild(deadline);
-        item.appendChild(content);
+          const label = document.createElement("span");
+          label.className = "source-url-label";
+          label.textContent = "source_url";
+
+          const link = document.createElement("a");
+          link.href = source.source_url;
+          link.target = "_blank";
+          link.rel = "noreferrer";
+          link.textContent = source.source_url;
+
+          urlRow.appendChild(label);
+          urlRow.appendChild(link);
+          item.appendChild(badge);
+          item.appendChild(heading);
+          item.appendChild(meta);
+          if (excerpt) {
+            item.appendChild(excerpt);
+          }
+          item.appendChild(urlRow);
+        } else {
+          item.appendChild(badge);
+          item.appendChild(heading);
+          item.appendChild(meta);
+          if (excerpt) {
+            item.appendChild(excerpt);
+          }
+        }
+
         list.appendChild(item);
       });
 
-      sourcesArea.appendChild(list);
+      area.appendChild(list);
+    }
+
+    function appendMeta(parent, label, value) {
+      const term = document.createElement("dt");
+      term.textContent = label;
+      const description = document.createElement("dd");
+      description.textContent = value;
+      parent.appendChild(term);
+      parent.appendChild(description);
+    }
+
+    function typeLabel(type) {
+      const labels = {
+        course: "course",
+        lecture: "lecture",
+        task: "課題",
+        page: "page",
+        material: "material"
+      };
+      return labels[type] || (type || "unknown");
     }
   </script>
 </body>

@@ -1,12 +1,19 @@
 from pathlib import Path
 from datetime import datetime
+from concurrent.futures import ThreadPoolExecutor, TimeoutError
 import json
 import os
 from urllib.parse import urlparse
 
 from fastapi import FastAPI
+from fastapi.responses import Response
 from fastapi.staticfiles import StaticFiles
+from bs4 import BeautifulSoup
+import meilisearch
+from playwright.sync_api import TimeoutError as PlaywrightTimeoutError
+from playwright.sync_api import sync_playwright
 import psycopg
+import requests
 from pydantic import BaseModel
 
 from ai_module import generate_answer
@@ -19,6 +26,52 @@ SCHEMA_PATH = Path(__file__).resolve().with_name("schema.sql")
 COURSE_DETAILS_PATH = (
     Path(__file__).resolve().parent.parent / "data" / "probe" / "moocs_course_details.json"
 )
+DEFAULT_MOOCS_STORAGE_STATE_PATH = (
+    Path(__file__).resolve().parent.parent / "data" / "probe" / "moocs_storage_state.json"
+)
+DEFAULT_MEILI_URL = "http://meilisearch:7700"
+DEFAULT_MEILI_MASTER_KEY = "dev-master-key"
+DEFAULT_MEILI_INDEX = "search_documents"
+DEFAULT_ASK_TIMEOUT_SECONDS = 20
+MEILI_SEARCHABLE_ATTRIBUTES = [
+    "course_code",
+    "title",
+    "lecture_title",
+    "course_title",
+    "content_excerpt",
+    "snippet",
+    "search_text",
+    "source_url",
+]
+MEILI_FILTERABLE_ATTRIBUTES = [
+    "type",
+    "course_code",
+    "course_id",
+    "lecture_id",
+]
+MEILI_SORTABLE_ATTRIBUTES = [
+    "lecture_number",
+    "db_id",
+]
+CONTENT_TEXT_KEYS = {
+    "content",
+    "text",
+    "body",
+    "description",
+    "transcript",
+    "extracted_text",
+    "raw",
+}
+CONTENT_EXCERPT_LIMIT = 1000
+HTML_EXTRACTED_TEXT_LIMIT = 8000
+HTML_FETCH_TIMEOUT_SECONDS = 12
+
+
+def utf8_json(data):
+    return Response(
+        content=json.dumps(data, ensure_ascii=False),
+        media_type="application/json; charset=utf-8",
+    )
 
 
 class AskRequest(BaseModel):
@@ -156,13 +209,11 @@ def extract_material_items(course):
 
 TASK_KEYWORDS = (
     "課題",
-    "小テスト",
-    "確認テスト",
     "提出",
-    "quiz",
-    "assignment",
+    "締切",
     "exercise",
-    "task",
+    "assignment",
+    "homework",
 )
 
 TASK_DUE_KEYS = (
@@ -177,6 +228,456 @@ TASK_DUE_KEYS = (
 def contains_task_keyword(*values):
     haystack = " ".join(str(value) for value in values if value).lower()
     return any(keyword.lower() in haystack for keyword in TASK_KEYWORDS)
+
+
+def looks_like_task_query(query):
+    task_search_words = {
+        "課題",
+        "宿題",
+        "提出",
+        "締切",
+        "レポート",
+        "task",
+        "tasks",
+        "assignment",
+        "assignments",
+        "homework",
+        "deadline",
+        "deadlines",
+        "exercise",
+        "exercises",
+    }
+    lowered = query.lower()
+    return any(word in lowered for word in task_search_words)
+
+
+def looks_like_content_query(query):
+    content_words = (
+        "内容",
+        "学ぶ",
+        "何をする",
+        "どんな講義",
+        "変数",
+        "python",
+        "システムガイダンス",
+    )
+    lowered = query.lower()
+    return any(word in lowered for word in content_words)
+
+
+def looks_like_course_overview_query(query):
+    normalized = normalize_search_text(query)
+    overview_phrases = (
+        "cot101とは",
+        "cot101 とは",
+        "cot101では何を学ぶ",
+        "cot101 では何を学ぶ",
+        "cs概論とは",
+        "cs概論 とは",
+        "コンピュータ・サイエンス概論とは",
+    )
+    return any(phrase in normalized for phrase in overview_phrases)
+
+
+def search_query_intent(query):
+    if looks_like_course_overview_query(query):
+        return "course_overview"
+    if looks_like_task_query(query):
+        return "task"
+    if looks_like_content_query(query):
+        return "content"
+    return "general"
+
+
+def looks_like_recent_task_query(query):
+    recent_words = ("一番新しい", "最新", "新しい")
+    return any(word in query for word in recent_words)
+
+
+def normalize_search_text(value):
+    return (
+        str(value or "")
+        .lower()
+        .replace("　", " ")
+        .replace("１", "1")
+        .replace("Ⅰ", "i")
+        .replace("ⅰ", "i")
+    )
+
+
+def specific_query_text(query):
+    normalized = normalize_search_text(query)
+    remove_words = (
+        "一番新しい",
+        "最新",
+        "新しい",
+        "最近",
+        "今週",
+        "課題",
+        "宿題",
+        "提出",
+        "締切",
+        "レポート",
+        "assignment",
+        "assignments",
+        "homework",
+        "deadline",
+        "deadlines",
+        "exercise",
+        "exercises",
+        "task",
+        "tasks",
+        "教えて",
+        "ください",
+        "一覧",
+        "の",
+        "を",
+        "は",
+        "について",
+        "cot101",
+    )
+    for word in remove_words:
+        normalized = normalized.replace(word, " ")
+    return " ".join(normalized.split())
+
+
+def meili_query_text(query):
+    normalized = normalize_search_text(query)
+    remove_words = (
+        "一番新しい",
+        "最新",
+        "新しい",
+        "最近",
+        "今週",
+        "教えて",
+        "ください",
+        "一覧",
+        "について",
+        "とは",
+        "では",
+        "何を学ぶ",
+        "の",
+        "を",
+        "は",
+    )
+    for word in remove_words:
+        normalized = normalized.replace(word, " ")
+    return " ".join(normalized.split()) or query
+
+
+def item_matches_specific_query(item, specific_text):
+    if not specific_text:
+        return True
+
+    haystack = normalize_search_text(
+        " ".join(
+            str(item.get(key) or "")
+            for key in ("title", "lecture_title", "course_title", "source_url")
+        )
+    )
+    return all(part in haystack for part in specific_text.split())
+
+
+def course_code_matches_query(item, query):
+    course_code = normalize_search_text(item.get("course_code"))
+    if not course_code:
+        return True
+    return course_code in normalize_search_text(query)
+
+
+def course_code_penalty(item, query):
+    normalized_query = normalize_search_text(query)
+    course_code = normalize_search_text(item.get("course_code"))
+    if not course_code or not any(char.isdigit() for char in normalized_query):
+        return 0
+    return 0 if course_code in normalized_query else 1
+
+
+def meili_task_filter(query):
+    normalized_query = normalize_search_text(query)
+    if "cot101" in normalized_query:
+        return 'type = task AND course_code = "COT101"'
+    return "type = task"
+
+
+def meili_course_filter(query):
+    normalized_query = normalize_search_text(query)
+    if "cot101" in normalized_query or "cs概論" in normalized_query:
+        return 'course_code = "COT101"'
+    return ""
+
+
+def json_text(value):
+    return json.dumps(value, ensure_ascii=False) if value is not None else ""
+
+
+def compact_text(value):
+    return " ".join(str(value or "").split())
+
+
+def truncate_text(value, limit=CONTENT_EXCERPT_LIMIT):
+    text = compact_text(value)
+    if len(text) <= limit:
+        return text
+    return text[:limit].rstrip() + "..."
+
+
+def collect_text_fields(value):
+    texts = []
+    if isinstance(value, dict):
+        for key, item in value.items():
+            if key in CONTENT_TEXT_KEYS and isinstance(item, (str, int, float)):
+                text = compact_text(item)
+                if text:
+                    texts.append(text)
+            elif isinstance(item, (dict, list)):
+                texts.extend(collect_text_fields(item))
+    elif isinstance(value, list):
+        for item in value:
+            texts.extend(collect_text_fields(item))
+    return texts
+
+
+def content_excerpt_from_raw_json(raw_json, limit=CONTENT_EXCERPT_LIMIT):
+    if isinstance(raw_json, str):
+        try:
+            raw_json = json.loads(raw_json)
+        except json.JSONDecodeError:
+            return truncate_text(raw_json, limit)
+
+    return truncate_text(" ".join(collect_text_fields(raw_json)), limit)
+
+
+def extract_text_from_html(html, limit=HTML_EXTRACTED_TEXT_LIMIT):
+    soup = BeautifulSoup(html or "", "html.parser")
+    for selector in (
+        "script",
+        "style",
+        "noscript",
+        "nav",
+        "header",
+        "footer",
+        "aside",
+        "iframe",
+        "form",
+        ".navbar",
+        ".sidebar",
+        ".main-header",
+        ".main-sidebar",
+        ".content-header",
+        ".breadcrumb",
+        ".control-sidebar",
+        ".bookmark",
+        ".pagination",
+        ".pager",
+    ):
+        for element in soup.select(selector):
+            element.decompose()
+
+    candidates = []
+    for selector in (
+        ".content-wrapper section.content",
+        "section.content",
+        ".content-wrapper",
+        "main",
+        "article",
+        "body",
+    ):
+        for element in soup.select(selector):
+            text = clean_extracted_html_text(element.get_text(separator=" ", strip=True))
+            if text:
+                candidates.append(text)
+
+    text = max(candidates, key=len, default="")
+    return truncate_text(text, limit)
+
+
+def clean_extracted_html_text(value):
+    text = compact_text(value)
+    noise_phrases = (
+        "Bookmark",
+        "« Previous Next »",
+        "Previous Next",
+        "« Previous",
+        "Next »",
+    )
+    for phrase in noise_phrases:
+        text = text.replace(phrase, " ")
+    return compact_text(text)
+
+
+def looks_like_moocs_login_page(html, text):
+    haystack = normalize_search_text(f"{html or ''} {text or ''}")
+    login_markers = (
+        "sign in with iniad account",
+        "/signin",
+        "welcome to iniad moocs educational platform",
+    )
+    content_markers = (
+        "content-wrapper",
+        "section class=\"content",
+        "section content",
+    )
+    return any(marker in haystack for marker in login_markers) and not any(
+        marker in haystack for marker in content_markers
+    )
+
+
+def moocs_storage_state_path():
+    raw_path = os.getenv("MOOCS_STORAGE_STATE")
+    if raw_path:
+        return Path(raw_path)
+    return DEFAULT_MOOCS_STORAGE_STATE_PATH
+
+
+def moocs_user_data_dir_path():
+    raw_path = os.getenv("MOOCS_USER_DATA_DIR")
+    if raw_path:
+        return Path(raw_path)
+    return None
+
+
+def moocs_playwright_headless():
+    # MOOCs invalidates or rejects authenticated sessions when Chromium is headless.
+    # Keep the content fallback headed even if MOOCS_PLAYWRIGHT_HEADLESS is set.
+    return False
+
+
+def load_moocs_storage_cookies(session):
+    storage_state_path = moocs_storage_state_path()
+    if not storage_state_path.exists():
+        return
+
+    try:
+        storage_state = json.loads(storage_state_path.read_text(encoding="utf-8"))
+    except Exception:
+        return
+
+    for cookie in storage_state.get("cookies", []):
+        if not isinstance(cookie, dict):
+            continue
+        name = cookie.get("name")
+        value = cookie.get("value")
+        if not name or value is None:
+            continue
+        session.cookies.set(
+            name,
+            value,
+            domain=cookie.get("domain"),
+            path=cookie.get("path") or "/",
+            secure=bool(cookie.get("secure", False)),
+        )
+
+
+def build_moocs_http_session():
+    session = requests.Session()
+    load_moocs_storage_cookies(session)
+    return session
+
+
+class MoocsHtmlTextExtractor:
+    def __init__(self):
+        self.session = build_moocs_http_session()
+        self.playwright = None
+        self.browser = None
+        self.context = None
+        self.page = None
+
+    def close(self):
+        for resource in (self.context, self.browser, self.playwright):
+            if resource is None:
+                continue
+            try:
+                if hasattr(resource, "stop"):
+                    resource.stop()
+                else:
+                    resource.close()
+            except Exception:
+                pass
+
+    def extract(self, url):
+        text = fetch_html_extracted_text(url, session=self.session)
+        if text:
+            return text
+        return self.extract_with_playwright(url)
+
+    def ensure_playwright_page(self):
+        if self.page is not None:
+            return self.page
+
+        user_data_dir_path = moocs_user_data_dir_path()
+        if user_data_dir_path is None:
+            return None
+
+        self.playwright = sync_playwright().start()
+        user_data_dir_path.mkdir(parents=True, exist_ok=True)
+        self.context = self.playwright.chromium.launch_persistent_context(
+            user_data_dir=str(user_data_dir_path),
+            headless=moocs_playwright_headless(),
+        )
+        self.page = self.context.new_page()
+        return self.page
+
+    def extract_with_playwright(self, url):
+        page = self.ensure_playwright_page()
+        if page is None:
+            return ""
+
+        try:
+            page.goto(
+                url,
+                wait_until="domcontentloaded",
+                timeout=HTML_FETCH_TIMEOUT_SECONDS * 1000,
+            )
+            if "/signin" in urlparse(page.url).path:
+                return ""
+            html = page.content()
+        except (PlaywrightTimeoutError, Exception):
+            return ""
+
+        extracted_text = extract_text_from_html(html)
+        if looks_like_moocs_login_page(html, extracted_text):
+            return ""
+        return extracted_text
+
+
+def fetch_html_extracted_text(url, session=None):
+    if not url:
+        return ""
+
+    http = session or requests
+    response = http.get(
+        url,
+        timeout=HTML_FETCH_TIMEOUT_SECONDS,
+        headers={"User-Agent": "INIAD-AIO/0.2.5 content-rag-poc"},
+    )
+    response.raise_for_status()
+    content_type = response.headers.get("content-type", "")
+    if "html" not in content_type.lower():
+        return ""
+
+    extracted_text = extract_text_from_html(response.text)
+    if looks_like_moocs_login_page(response.text, extracted_text):
+        return ""
+    return extracted_text
+
+
+def page_raw_json_with_extracted_text(raw_json, url, session=None, extractor=None):
+    if not isinstance(raw_json, dict):
+        return raw_json
+
+    enriched = dict(raw_json)
+    try:
+        if extractor is not None:
+            extracted_text = extractor.extract(url)
+        else:
+            extracted_text = fetch_html_extracted_text(url, session=session)
+    except Exception:
+        return enriched
+
+    if extracted_text:
+        enriched["extracted_text"] = extracted_text
+    return enriched
 
 
 def find_first_value_by_keys(value, keys):
@@ -231,6 +732,7 @@ def extract_task_items(course):
             raw_page.get("type"),
             raw_page.get("body"),
             raw_page.get("description"),
+            json_text(raw_page),
         )
 
         if page_is_task or page_due:
@@ -272,6 +774,7 @@ def extract_task_items(course):
                 material.get("type"),
                 material.get("body"),
                 material.get("description"),
+                json_text(material),
             )
 
             if not material_is_task and not material_due:
@@ -292,42 +795,159 @@ def extract_task_items(course):
     return task_items
 
 
+def ask_timeout_seconds():
+    raw_value = os.getenv("ASK_TIMEOUT_SECONDS", str(DEFAULT_ASK_TIMEOUT_SECONDS))
+    try:
+        return max(1, int(raw_value))
+    except ValueError:
+        return DEFAULT_ASK_TIMEOUT_SECONDS
+
+
+def generate_answer_with_timeout(question, sources):
+    executor = ThreadPoolExecutor(max_workers=1)
+    future = executor.submit(generate_answer, question, sources)
+    try:
+        return future.result(timeout=ask_timeout_seconds())
+    finally:
+        executor.shutdown(wait=False, cancel_futures=True)
+
+
+def source_type_label(source_type):
+    labels = {
+        "task": "課題",
+        "lecture": "講義",
+        "page": "ページ",
+        "course": "コース",
+        "material": "資料",
+    }
+    return labels.get(source_type, source_type or "情報")
+
+
+def sorted_fallback_sources(question, sources):
+    indexed_sources = list(enumerate(sources or []))
+    if not looks_like_task_query(question):
+        return [source for _, source in indexed_sources]
+
+    recent_query = looks_like_recent_task_query(question)
+
+    def fallback_rank(indexed_source):
+        original_index, source = indexed_source
+        lecture_number = source.get("lecture_number") or -1
+        type_order = {
+            "task": 0,
+            "page": 1,
+            "lecture": 2,
+            "course": 3,
+        }
+        if recent_query:
+            return (
+                type_order.get(source.get("type"), 9),
+                -lecture_number,
+                original_index,
+            )
+        return (
+            type_order.get(source.get("type"), 9),
+            original_index,
+            -lecture_number,
+        )
+
+    return [
+        source
+        for _, source in sorted(
+            indexed_sources,
+            key=fallback_rank,
+        )
+    ]
+
+
+def format_fallback_source(source):
+    label = source_type_label(source.get("type"))
+    course_code = source.get("course_code") or "course未設定"
+    lecture_number = source.get("lecture_number")
+    lecture_part = str(lecture_number) if lecture_number is not None else "lecture未設定"
+    title = source.get("title") or source.get("lecture_title") or "タイトル未設定"
+    source_url = source.get("source_url") or "URLなし"
+    return f"- [{label}] {course_code} / {lecture_part} / {title} / {source_url}"
+
+
+def build_fallback_answer(question, sources, reason=None):
+    fallback_sources = sorted_fallback_sources(question, sources)[:8]
+    lines = [
+        "AI回答生成に失敗したため、検索結果をもとに関連情報を表示します。",
+    ]
+    if reason:
+        lines.append(f"理由: {reason}")
+    lines.append("")
+
+    if not fallback_sources:
+        lines.append("検索結果は見つかりませんでした。")
+        return "\n".join(lines)
+
+    lines.extend(format_fallback_source(source) for source in fallback_sources)
+    return "\n".join(lines)
+
+
 @app.post("/api/ask")
 def ask(request: AskRequest):
     question = request.question.strip()
 
     if not question:
-        return {
+        return utf8_json({
             "answer": "",
             "sources": [],
             "error": "質問を入力してください。",
-        }
+        })
 
     sources = []
 
     try:
-        search_response = search_database(question, limit=12)
-        if search_response.get("status") != "ok":
-            return {
-                "answer": "",
-                "sources": [],
-                "error": search_response.get("detail", "search failed"),
-            }
-
-        sources = search_response.get("results", [])
-        answer = generate_answer(question, sources)
+        search_response = search_database_data(question, limit=12)
     except Exception as exc:
-        return {
+        return utf8_json({
             "answer": "",
             "sources": sources,
             "error": str(exc),
-        }
+        })
 
-    return {
+    if search_response.get("status") != "ok":
+        return utf8_json({
+            "answer": "",
+            "sources": [],
+            "error": search_response.get("detail", "search failed"),
+        })
+
+    sources = search_response.get("results", [])
+
+    try:
+        answer = generate_answer_with_timeout(question, sources)
+        if not answer or not answer.strip():
+            answer = build_fallback_answer(question, sources, "AIモデルが空の回答を返しました。")
+            return utf8_json({
+                "answer": answer,
+                "sources": sources,
+                "error": "empty AI answer",
+            })
+    except TimeoutError:
+        return utf8_json({
+            "answer": build_fallback_answer(
+                question,
+                sources,
+                f"AI回答生成が {ask_timeout_seconds()} 秒以内に完了しませんでした。",
+            ),
+            "sources": sources,
+            "error": "AI answer generation timed out",
+        })
+    except Exception as exc:
+        return utf8_json({
+            "answer": build_fallback_answer(question, sources, str(exc)),
+            "sources": sources,
+            "error": str(exc),
+        })
+
+    return utf8_json({
         "answer": answer,
         "sources": sources,
-        "error": None,
-    }
+    })
 
 
 @app.get("/api/db-test")
@@ -559,101 +1179,141 @@ def import_pages():
     try:
         raw_courses = json.loads(COURSE_DETAILS_PATH.read_text(encoding="utf-8"))
         imported = 0
+        updated = 0
         found_page_metadata = False
 
-        with psycopg.connect(database_url) as conn:
-            with conn.cursor() as cur:
-                for course in raw_courses:
-                    if not isinstance(course, dict):
-                        continue
-
-                    course_code = extract_course_code(course)
-                    if not course_code:
-                        continue
-
-                    page_items = extract_page_items(course)
-                    if not page_items:
-                        continue
-
-                    found_page_metadata = True
-
-                    cur.execute(
-                        "SELECT id FROM courses WHERE course_code = %s;",
-                        (course_code,),
-                    )
-                    course_row = cur.fetchone()
-                    if not course_row:
-                        continue
-
-                    course_id = course_row[0]
-
-                    for page in page_items:
-                        cur.execute(
-                            """
-                            SELECT id
-                            FROM lectures
-                            WHERE course_id = %s
-                              AND (
-                                lecture_number = %s
-                                OR title = %s
-                              )
-                            LIMIT 1;
-                            """,
-                            (
-                                course_id,
-                                page["lecture_number"],
-                                page["lecture_title"],
-                            ),
-                        )
-                        lecture_row = cur.fetchone()
-                        if not lecture_row:
+        html_extractor = MoocsHtmlTextExtractor()
+        try:
+            with psycopg.connect(database_url) as conn:
+                with conn.cursor() as cur:
+                    for course in raw_courses:
+                        if not isinstance(course, dict):
                             continue
 
-                        lecture_id = lecture_row[0]
-
-                        cur.execute(
-                            """
-                            SELECT id
-                            FROM pages
-                            WHERE lecture_id = %s
-                              AND (
-                                page_number = %s
-                                OR title = %s
-                                OR url = %s
-                              )
-                            LIMIT 1;
-                            """,
-                            (
-                                lecture_id,
-                                page["page_number"],
-                                page["title"],
-                                page["url"],
-                            ),
-                        )
-                        if cur.fetchone():
+                        course_code = extract_course_code(course)
+                        if not course_code:
                             continue
 
+                        page_items = extract_page_items(course)
+                        if not page_items:
+                            continue
+
+                        found_page_metadata = True
+
                         cur.execute(
-                            """
-                            INSERT INTO pages (
-                                lecture_id,
-                                page_number,
-                                title,
-                                url,
-                                raw_json
+                            "SELECT id FROM courses WHERE course_code = %s;",
+                            (course_code,),
+                        )
+                        course_row = cur.fetchone()
+                        if not course_row:
+                            continue
+
+                        course_id = course_row[0]
+
+                        for page in page_items:
+                            cur.execute(
+                                """
+                                SELECT id
+                                FROM lectures
+                                WHERE course_id = %s
+                                  AND (
+                                    lecture_number = %s
+                                    OR title = %s
+                                  )
+                                LIMIT 1;
+                                """,
+                                (
+                                    course_id,
+                                    page["lecture_number"],
+                                    page["lecture_title"],
+                                ),
                             )
-                            VALUES (%s, %s, %s, %s, %s::jsonb);
-                            """,
-                            (
-                                lecture_id,
-                                page["page_number"],
-                                page["title"] or None,
-                                page["url"] or None,
-                                json.dumps(page["raw_json"], ensure_ascii=False),
-                            ),
-                        )
-                        imported += 1
-            conn.commit()
+                            lecture_row = cur.fetchone()
+                            if not lecture_row:
+                                continue
+
+                            lecture_id = lecture_row[0]
+                            page_raw_json = page_raw_json_with_extracted_text(
+                                page["raw_json"],
+                                page["url"],
+                                extractor=html_extractor,
+                            )
+
+                            cur.execute(
+                                """
+                                SELECT id, raw_json
+                                FROM pages
+                                WHERE lecture_id = %s
+                                  AND (
+                                    page_number = %s
+                                    OR title = %s
+                                    OR url = %s
+                                  )
+                                LIMIT 1;
+                                """,
+                                (
+                                    lecture_id,
+                                    page["page_number"],
+                                    page["title"],
+                                    page["url"],
+                                ),
+                            )
+                            existing_page_row = cur.fetchone()
+                            if existing_page_row:
+                                existing_extracted_text = content_excerpt_from_raw_json(
+                                    existing_page_row[1],
+                                    HTML_EXTRACTED_TEXT_LIMIT,
+                                )
+                                if (
+                                    existing_extracted_text
+                                    and not looks_like_moocs_login_page("", existing_extracted_text)
+                                    and isinstance(page_raw_json, dict)
+                                    and not page_raw_json.get("extracted_text")
+                                ):
+                                    page_raw_json["extracted_text"] = existing_extracted_text
+
+                                cur.execute(
+                                    """
+                                    UPDATE pages
+                                    SET
+                                        title = COALESCE(%s, title),
+                                        url = COALESCE(%s, url),
+                                        raw_json = %s::jsonb
+                                    WHERE id = %s;
+                                    """,
+                                    (
+                                        page["title"] or None,
+                                        page["url"] or None,
+                                        json.dumps(page_raw_json, ensure_ascii=False),
+                                        existing_page_row[0],
+                                    ),
+                                )
+                                updated += 1
+                                continue
+
+                            cur.execute(
+                                """
+                                INSERT INTO pages (
+                                    lecture_id,
+                                    page_number,
+                                    title,
+                                    url,
+                                    raw_json
+                                )
+                                VALUES (%s, %s, %s, %s, %s::jsonb);
+                                """,
+                                (
+                                    lecture_id,
+                                    page["page_number"],
+                                    page["title"] or None,
+                                    page["url"] or None,
+                                    json.dumps(page_raw_json, ensure_ascii=False),
+                                ),
+                            )
+                            imported += 1
+                conn.commit()
+        finally:
+            html_extractor.close()
     except Exception as exc:
         return {
             "status": "error",
@@ -670,6 +1330,7 @@ def import_pages():
     return {
         "status": "ok",
         "imported": imported,
+        "updated": updated,
     }
 
 
@@ -956,6 +1617,44 @@ def import_tasks():
     }
 
 
+@app.post("/api/import-moocs-details")
+def import_moocs_details():
+    import_steps = [
+        ("courses", import_courses),
+        ("lectures", import_lectures),
+        ("pages", import_pages),
+        ("materials", import_materials),
+        ("tasks", import_tasks),
+    ]
+    results = {}
+
+    for name, import_step in import_steps:
+        result = import_step()
+        results[name] = result
+        if result.get("status") != "ok":
+            return {
+                "status": "error",
+                "failed_step": name,
+                "results": results,
+            }
+
+    try:
+        results["search_index"] = {
+            "status": "ok",
+            "indexed": reindex_search_documents(),
+        }
+    except Exception as exc:
+        results["search_index"] = {
+            "status": "error",
+            "detail": str(exc),
+        }
+
+    return {
+        "status": "ok",
+        "results": results,
+    }
+
+
 @app.get("/api/courses")
 def list_courses():
     database_url, error = get_database_url()
@@ -1139,8 +1838,509 @@ def list_tasks():
     }
 
 
-@app.get("/api/search")
-def search_database(q: str = "", limit: int = 50):
+def get_meili_client():
+    meili_url = os.getenv("MEILI_URL", DEFAULT_MEILI_URL)
+    meili_master_key = os.getenv("MEILI_MASTER_KEY", DEFAULT_MEILI_MASTER_KEY)
+    return meilisearch.Client(meili_url, meili_master_key)
+
+
+def get_meili_index(client=None):
+    client = client or get_meili_client()
+    index_name = os.getenv("MEILI_INDEX", DEFAULT_MEILI_INDEX)
+    return client.index(index_name)
+
+
+def wait_meili_task(client, task):
+    task_uid = task.get("taskUid") if isinstance(task, dict) else None
+    if task_uid is not None:
+        result = client.wait_for_task(task_uid)
+        if result.get("status") == "failed":
+            error = result.get("error") or {}
+            raise RuntimeError(error.get("message", "Meilisearch task failed"))
+
+
+def configure_meili_index(client=None):
+    client = client or get_meili_client()
+    index = get_meili_index(client)
+    wait_meili_task(client, index.update_searchable_attributes(MEILI_SEARCHABLE_ATTRIBUTES))
+    wait_meili_task(client, index.update_filterable_attributes(MEILI_FILTERABLE_ATTRIBUTES))
+    wait_meili_task(client, index.update_sortable_attributes(MEILI_SORTABLE_ATTRIBUTES))
+    return index
+
+
+def search_text_for_document(document):
+    return " ".join(
+        str(document.get(key) or "")
+        for key in (
+            "course_code",
+            "course_title",
+            "lecture_title",
+            "lecture_number",
+            "title",
+            "content_excerpt",
+            "snippet",
+            "source_url",
+            "type",
+        )
+    ).strip()
+
+
+def make_search_document(
+    item_type,
+    db_id,
+    course_id=None,
+    lecture_id=None,
+    title=None,
+    course_code=None,
+    course_title=None,
+    lecture_title=None,
+    lecture_number=None,
+    page_id=None,
+    page_number=None,
+    source_url=None,
+    content_excerpt=None,
+):
+    snippet = truncate_text(content_excerpt)
+    document = {
+        "id": f"{item_type}-{db_id}",
+        "type": item_type,
+        "db_id": db_id,
+        "course_id": course_id,
+        "lecture_id": lecture_id,
+        "title": title,
+        "course_code": course_code,
+        "course_title": course_title,
+        "lecture_title": lecture_title,
+        "lecture_number": lecture_number,
+        "page_id": page_id,
+        "page_number": page_number,
+        "source_url": source_url,
+        "content_excerpt": snippet,
+        "snippet": snippet,
+    }
+    document["search_text"] = search_text_for_document(document)
+    return document
+
+
+def fetch_search_documents():
+    database_url, error = get_database_url()
+    if error:
+        raise RuntimeError(error.get("detail", "DATABASE_URL is not set"))
+
+    documents = []
+    with psycopg.connect(database_url) as conn:
+        with conn.cursor() as cur:
+            cur.execute(
+                """
+                SELECT id, course_code, title
+                FROM courses
+                ORDER BY id;
+                """
+            )
+            for row in cur.fetchall():
+                documents.append(
+                    make_search_document(
+                        "course",
+                        row[0],
+                        course_id=row[0],
+                        title=row[2],
+                        course_code=row[1],
+                        course_title=row[2],
+                    )
+                )
+
+            cur.execute(
+                """
+                SELECT
+                    lectures.id,
+                    lectures.course_id,
+                    lectures.lecture_number,
+                    lectures.title,
+                    courses.course_code,
+                    courses.title
+                FROM lectures
+                LEFT JOIN courses ON courses.id = lectures.course_id
+                ORDER BY lectures.course_id, lectures.lecture_number, lectures.id;
+                """
+            )
+            for row in cur.fetchall():
+                documents.append(
+                    make_search_document(
+                        "lecture",
+                        row[0],
+                        course_id=row[1],
+                        lecture_id=row[0],
+                        title=row[3],
+                        course_code=row[4],
+                        course_title=row[5],
+                        lecture_title=row[3],
+                        lecture_number=row[2],
+                    )
+                )
+
+            cur.execute(
+                """
+                SELECT
+                    pages.id,
+                    lectures.course_id,
+                    pages.lecture_id,
+                    COALESCE(pages.title, pages.url, '(untitled page)') AS title,
+                    courses.course_code,
+                    courses.title,
+                    lectures.title,
+                    lectures.lecture_number,
+                    pages.page_number,
+                    pages.url,
+                    pages.raw_json
+                FROM pages
+                LEFT JOIN lectures ON lectures.id = pages.lecture_id
+                LEFT JOIN courses ON courses.id = lectures.course_id
+                ORDER BY lectures.course_id, lectures.lecture_number, pages.page_number, pages.id;
+                """
+            )
+            for row in cur.fetchall():
+                documents.append(
+                    make_search_document(
+                        "page",
+                        row[0],
+                        course_id=row[1],
+                        lecture_id=row[2],
+                        title=row[3],
+                        course_code=row[4],
+                        course_title=row[5],
+                        lecture_title=row[6],
+                        lecture_number=row[7],
+                        page_id=row[0],
+                        page_number=row[8],
+                        source_url=row[9],
+                        content_excerpt=content_excerpt_from_raw_json(row[10]),
+                    )
+                )
+
+            cur.execute(
+                """
+                SELECT
+                    tasks.id,
+                    tasks.course_id,
+                    tasks.lecture_id,
+                    tasks.title,
+                    courses.course_code,
+                    courses.title,
+                    lectures.title,
+                    lectures.lecture_number,
+                    tasks.source_url,
+                    tasks.raw_json
+                FROM tasks
+                LEFT JOIN courses ON courses.id = tasks.course_id
+                LEFT JOIN lectures ON lectures.id = tasks.lecture_id
+                ORDER BY tasks.course_id, lectures.lecture_number, tasks.id;
+                """
+            )
+            for row in cur.fetchall():
+                documents.append(
+                    make_search_document(
+                        "task",
+                        row[0],
+                        course_id=row[1],
+                        lecture_id=row[2],
+                        title=row[3],
+                        course_code=row[4],
+                        course_title=row[5],
+                        lecture_title=row[6],
+                        lecture_number=row[7],
+                        source_url=row[8],
+                        content_excerpt=content_excerpt_from_raw_json(row[9]),
+                    )
+                )
+
+            cur.execute(
+                """
+                SELECT
+                    materials.id,
+                    lectures.course_id,
+                    pages.lecture_id,
+                    COALESCE(
+                        materials.raw_json->>'material_title',
+                        materials.raw_json->>'title',
+                        materials.raw_json->>'name',
+                        materials.material_type,
+                        materials.url,
+                        '(untitled material)'
+                    ) AS title,
+                    courses.course_code,
+                    courses.title,
+                    lectures.title,
+                    lectures.lecture_number,
+                    materials.page_id,
+                    pages.page_number,
+                    materials.url,
+                    materials.raw_json
+                FROM materials
+                LEFT JOIN pages ON pages.id = materials.page_id
+                LEFT JOIN lectures ON lectures.id = pages.lecture_id
+                LEFT JOIN courses ON courses.id = lectures.course_id
+                ORDER BY lectures.course_id, lectures.lecture_number, pages.page_number, materials.material_number, materials.id;
+                """
+            )
+            for row in cur.fetchall():
+                documents.append(
+                    make_search_document(
+                        "material",
+                        row[0],
+                        course_id=row[1],
+                        lecture_id=row[2],
+                        title=row[3],
+                        course_code=row[4],
+                        course_title=row[5],
+                        lecture_title=row[6],
+                        lecture_number=row[7],
+                        page_id=row[8],
+                        page_number=row[9],
+                        source_url=row[10],
+                        content_excerpt=content_excerpt_from_raw_json(row[11]),
+                    )
+                )
+
+    return documents
+
+
+def reindex_search_documents():
+    client = get_meili_client()
+    index = configure_meili_index(client)
+    documents = fetch_search_documents()
+    wait_meili_task(client, index.delete_all_documents())
+    if documents:
+        wait_meili_task(client, index.add_documents(documents, primary_key="id"))
+    return len(documents)
+
+
+def meili_hit_to_search_result(hit):
+    return {
+        "type": hit.get("type"),
+        "id": hit.get("db_id"),
+        "course_id": hit.get("course_id"),
+        "lecture_id": hit.get("lecture_id"),
+        "title": hit.get("title"),
+        "course_code": hit.get("course_code"),
+        "course_title": hit.get("course_title"),
+        "lecture_title": hit.get("lecture_title"),
+        "lecture_number": hit.get("lecture_number"),
+        "page_id": hit.get("page_id"),
+        "page_number": hit.get("page_number"),
+        "source_url": hit.get("source_url"),
+        "snippet": hit.get("snippet") or hit.get("content_excerpt"),
+        "content_excerpt": hit.get("content_excerpt") or hit.get("snippet"),
+    }
+
+
+def enrich_results_with_content(results):
+    if not results:
+        return results
+
+    database_url, error = get_database_url()
+    if error:
+        return results
+
+    ids_by_type = {}
+    for result in results:
+        result_type = result.get("type")
+        result_id = result.get("id")
+        if result_type in {"page", "material", "task"} and result_id is not None:
+            ids_by_type.setdefault(result_type, set()).add(result_id)
+
+    if not ids_by_type:
+        return results
+
+    table_by_type = {
+        "page": "pages",
+        "material": "materials",
+        "task": "tasks",
+    }
+    excerpts = {}
+
+    try:
+        with psycopg.connect(database_url) as conn:
+            with conn.cursor() as cur:
+                for result_type, result_ids in ids_by_type.items():
+                    table = table_by_type[result_type]
+                    cur.execute(
+                        f"SELECT id, raw_json FROM {table} WHERE id = ANY(%s);",
+                        (list(result_ids),),
+                    )
+                    for row in cur.fetchall():
+                        excerpt = content_excerpt_from_raw_json(row[1])
+                        if excerpt:
+                            excerpts[(result_type, row[0])] = excerpt
+    except Exception:
+        return results
+
+    for result in results:
+        excerpt = excerpts.get((result.get("type"), result.get("id")))
+        if excerpt:
+            result["snippet"] = excerpt
+            result["content_excerpt"] = excerpt
+
+    return results
+
+
+def search_meili_data(query, limit):
+    index = get_meili_index()
+    candidate_limit = max(limit, min(limit * 12, 120))
+    meili_query = meili_query_text(query)
+    query_intent = search_query_intent(query)
+    task_query = query_intent == "task"
+    recent_query = looks_like_recent_task_query(query)
+    specific_text = specific_query_text(query) if task_query else ""
+    response = index.search(meili_query, {"limit": candidate_limit})
+    hits = response.get("hits", [])
+    if task_query:
+        task_response = index.search(
+            meili_query,
+            {
+                "limit": candidate_limit,
+                "filter": meili_task_filter(query),
+            },
+        )
+        seen = {hit.get("id") for hit in hits}
+        hits.extend(
+            hit
+            for hit in task_response.get("hits", [])
+            if hit.get("id") not in seen
+        )
+        if recent_query or not specific_text:
+            broad_task_response = index.search(
+                "",
+                {
+                    "limit": candidate_limit,
+                    "filter": meili_task_filter(query),
+                    "sort": ["lecture_number:desc", "db_id:asc"],
+                },
+            )
+            seen = {hit.get("id") for hit in hits}
+            hits.extend(
+                hit
+                for hit in broad_task_response.get("hits", [])
+                if hit.get("id") not in seen
+            )
+
+    if query_intent == "course_overview":
+        overview_filter = meili_course_filter(query)
+        overview_filters = []
+        if overview_filter:
+            overview_filters = [
+                f"type = course AND {overview_filter}",
+                f"type = lecture AND {overview_filter}",
+            ]
+        else:
+            overview_filters = ["type = course", "type = lecture"]
+
+        seen = {hit.get("id") for hit in hits}
+        for filter_expression in overview_filters:
+            overview_response = index.search(
+                meili_query,
+                {
+                    "limit": candidate_limit,
+                    "filter": filter_expression,
+                },
+            )
+            hits.extend(
+                hit
+                for hit in overview_response.get("hits", [])
+                if hit.get("id") not in seen
+            )
+            seen = {hit.get("id") for hit in hits}
+
+    results = [meili_hit_to_search_result(hit) for hit in hits]
+    type_orders = {
+        "task": {
+            "task": 0,
+            "page": 1,
+            "lecture": 2,
+            "course": 3,
+        },
+        "content": {
+            "lecture": 0,
+            "page": 1,
+            "course": 2,
+            "material": 3,
+            "task": 8,
+        },
+        "course_overview": {
+            "course": 0,
+            "lecture": 1,
+            "page": 2,
+            "material": 3,
+            "task": 8,
+        },
+    }
+    type_order = type_orders.get(query_intent)
+    if type_order:
+
+        def rank_key(indexed_item):
+            original_rank, item = indexed_item
+            lecture_number = item.get("lecture_number") or -1
+            type_penalty = type_order.get(item.get("type"), 9)
+            course_penalty = course_code_penalty(item, query)
+
+            if query_intent == "task":
+                related_penalty = 0 if item_matches_specific_query(item, specific_text) else 1
+                if recent_query:
+                    return (
+                        course_penalty,
+                        related_penalty,
+                        type_penalty,
+                        -lecture_number,
+                        original_rank,
+                    )
+                if specific_text:
+                    return (
+                        course_penalty,
+                        related_penalty,
+                        type_penalty,
+                        original_rank,
+                        -lecture_number,
+                    )
+                return (
+                    course_penalty,
+                    type_penalty,
+                    -lecture_number,
+                    original_rank,
+                )
+
+            return (
+                course_penalty,
+                type_penalty,
+                original_rank,
+                lecture_number if query_intent == "course_overview" else 0,
+            )
+
+        results = [
+            item
+            for _, item in sorted(
+                enumerate(results),
+                key=rank_key,
+            )
+        ]
+    return enrich_results_with_content(results[:limit])
+
+
+@app.post("/api/reindex-search")
+def reindex_search():
+    try:
+        indexed = reindex_search_documents()
+    except Exception as exc:
+        return {
+            "status": "error",
+            "detail": str(exc),
+        }
+
+    return {
+        "status": "ok",
+        "indexed": indexed,
+    }
+
+
+def search_postgresql_data(q: str = "", limit: int = 50):
     query = q.strip()
     if not query:
         return {
@@ -1153,22 +2353,7 @@ def search_database(q: str = "", limit: int = 50):
         return error
 
     normalized_limit = max(1, min(limit, 100))
-    task_search_words = {
-        "課題",
-        "宿題",
-        "提出",
-        "レポート",
-        "task",
-        "tasks",
-        "assignment",
-        "assignments",
-        "homework",
-        "deadline",
-        "deadlines",
-        "quiz",
-        "quizzes",
-    }
-    task_query = any(word in query.lower() for word in task_search_words)
+    task_query = looks_like_task_query(query)
 
     search_keyword = query
     normalized_query = (
@@ -1428,6 +2613,7 @@ def search_database(q: str = "", limit: int = 50):
                     }
                     for row in cur.fetchall()
                 ]
+                results = enrich_results_with_content(results)
     except Exception as exc:
         return {
             "status": "error",
@@ -1439,6 +2625,31 @@ def search_database(q: str = "", limit: int = 50):
         "query": query,
         "results": results,
     }
+
+
+def search_database_data(q: str = "", limit: int = 50):
+    query = q.strip()
+    if not query:
+        return {
+            "status": "error",
+            "detail": "query parameter q is required",
+        }
+
+    normalized_limit = max(1, min(limit, 100))
+    try:
+        results = search_meili_data(query, normalized_limit)
+        return {
+            "status": "ok",
+            "query": query,
+            "results": results,
+        }
+    except Exception:
+        return search_postgresql_data(query, normalized_limit)
+
+
+@app.get("/api/search")
+def search_database(q: str = "", limit: int = 50):
+    return utf8_json(search_database_data(q, limit))
 
 
 FRONTEND_DIR = (

@@ -7,11 +7,29 @@ services:
       - backend/.env
     environment:
       DATABASE_URL: ${DATABASE_URL:-postgresql://aio_user:aio_password@db:5432/aio_db}
+      MEILI_URL: ${MEILI_URL:-http://meilisearch:7700}
+      MEILI_MASTER_KEY: ${MEILI_MASTER_KEY:-dev-master-key}
+      MEILI_INDEX: ${MEILI_INDEX:-search_documents}
+      ASK_TIMEOUT_SECONDS: ${ASK_TIMEOUT_SECONDS:-20}
+    volumes:
+      - ./data:/app/data
     ports:
       - "8000:8000"
     depends_on:
       db:
         condition: service_healthy
+      meilisearch:
+        condition: service_started
+
+  meilisearch:
+    image: getmeili/meilisearch:v1.13
+    ports:
+      - "7700:7700"
+    environment:
+      MEILI_NO_ANALYTICS: "true"
+      MEILI_MASTER_KEY: "dev-master-key"
+    volumes:
+      - meili_data:/meili_data
 
   db:
     image: postgres:16
@@ -31,3 +49,4 @@ services:
 
 volumes:
   postgres_data:
+  meili_data:

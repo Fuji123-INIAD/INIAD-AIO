@@ -5,3 +5,6 @@ google-genai
 playwright
 uvicorn[standard]
 psycopg[binary]
+meilisearch
+beautifulsoup4
+requests

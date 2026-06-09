@@ -41,8 +41,3017 @@
             "materials": []
           }
         ]
+      },
+      {
+        "lesson_title": "01-1: Pythonプログラミングを体験しよう",
+        "lesson_url": "https://moocs.iniad.org/courses/2026/COT101/01-1",
+        "pages": [
+          {
+            "page_title": "はじめに",
+            "page_url": "https://moocs.iniad.org/courses/2026/COT101/01-1/01",
+            "materials": [
+              {
+                "material_type": "google_slides",
+                "material_url": "https://docs.google.com/presentation/d/e/2PACX-1vSsq6D04ZtHqmur_kNu7wtj33u6062ps05-8-cWaYRJWrEv53LCQUqm4iYdP5Kbgw/pubembed?start=false&loop=false&delayms=3000",
+                "retrieval_method": "iframe:google_slides"
+              }
+            ]
+          },
+          {
+            "page_title": "出席クイズ",
+            "page_url": "https://moocs.iniad.org/courses/2026/COT101/01-1/02",
+            "materials": []
+          },
+          {
+            "page_title": "1. プログラミングとPython",
+            "page_url": "https://moocs.iniad.org/courses/2026/COT101/01-1/03",
+            "materials": [
+              {
+                "material_type": "google_slides",
+                "material_url": "https://docs.google.com/presentation/d/e/2PACX-1vTMLR3WTK3zcxLkGUAK27nZdw5PcQIDafXLHl6pLE1JdcFikjZajqbtCedR67MgZg/embed?start=false&loop=false&delayms=3000",
+                "retrieval_method": "iframe:google_slides"
+              }
+            ]
+          },
+          {
+            "page_title": "2. タートルグラフィックスで絵を描いてみよう",
+            "page_url": "https://moocs.iniad.org/courses/2026/COT101/01-1/04",
+            "materials": [
+              {
+                "material_type": "google_slides",
+                "material_url": "https://docs.google.com/presentation/d/e/2PACX-1vRSBVJXJuGuZwpUwpluCKW6P6KxhNJxz9emv2N4neejjkVgIjrXjaMotpoOUESGjA/embed?start=false&loop=false&delayms=3000",
+                "retrieval_method": "iframe:google_slides"
+              }
+            ]
+          },
+          {
+            "page_title": "3. Pythonの構文を活用しよう",
+            "page_url": "https://moocs.iniad.org/courses/2026/COT101/01-1/05",
+            "materials": [
+              {
+                "material_type": "google_slides",
+                "material_url": "https://docs.google.com/presentation/d/e/2PACX-1vSAQtF1TQz60FsxajLUk952SEd-mI6wHThrcUzGNSsEO3Hnevoe3fgSjtDYqzVKAQ/embed?start=false&loop=false&delayms=3000",
+                "retrieval_method": "iframe:google_slides"
+              }
+            ]
+          },
+          {
+            "page_title": "課題1-1-1",
+            "page_url": "https://moocs.iniad.org/courses/2026/COT101/01-1/06",
+            "materials": [
+              {
+                "material_type": "google_slides",
+                "material_url": "https://docs.google.com/presentation/d/e/2PACX-1vTTF5v_7HMdkJx1YluoRQut5otSBmH93YT1wtUudzkelXFZ0ADMuWhcFzvZ2_IgAw/embed?start=false&loop=false&delayms=3000",
+                "retrieval_method": "iframe:google_slides"
+              }
+            ]
+          },
+          {
+            "page_title": "課題1-1-2",
+            "page_url": "https://moocs.iniad.org/courses/2026/COT101/01-1/07",
+            "materials": [
+              {
+                "material_type": "google_slides",
+                "material_url": "https://docs.google.com/presentation/d/e/2PACX-1vQUxjpKFY2GtivBXMaa7zfsdckimt3gDbB42BHESoPgSNt0xvJZFaI1klDUr_8tWw/embed?start=false&loop=false&delayms=3000",
+                "retrieval_method": "iframe:google_slides"
+              }
+            ]
+          },
+          {
+            "page_title": "キーワード",
+            "page_url": "https://moocs.iniad.org/courses/2026/COT101/01-1/08",
+            "materials": [
+              {
+                "material_type": "google_slides",
+                "material_url": "https://docs.google.com/presentation/d/e/2PACX-1vRYyoYmiRYnQy7_iooKM5ubSyKKJKVl_wzfi52J1ldWJCfJq9yn4R9gz7jad-Xzgg/embed?start=false&loop=false&delayms=3000",
+                "retrieval_method": "iframe:google_slides"
+              }
+            ]
+          },
+          {
+            "page_title": "課題解説",
+            "page_url": "https://moocs.iniad.org/courses/2026/COT101/01-1/review",
+            "materials": []
+          }
+        ]
+      },
+      {
+        "lesson_title": "01-2: 文字列と型を理解しよう",
+        "lesson_url": "https://moocs.iniad.org/courses/2026/COT101/01-2",
+        "pages": [
+          {
+            "page_title": "前回の確認",
+            "page_url": "https://moocs.iniad.org/courses/2026/COT101/01-2/00",
+            "materials": []
+          },
+          {
+            "page_title": "1. Pythonで計算してみよう",
+            "page_url": "https://moocs.iniad.org/courses/2026/COT101/01-2/01",
+            "materials": [
+              {
+                "material_type": "google_slides",
+                "material_url": "https://docs.google.com/presentation/d/e/2PACX-1vRUXwR9g09UT_oRreV5exftaHsdazUyAxba-N9kqTdXEZ790504dUxGMFSPL1Qfow/pubembed?start=false&loop=false&delayms=3000",
+                "retrieval_method": "iframe:google_slides"
+              }
+            ]
+          },
+          {
+            "page_title": "課題1-2-1",
+            "page_url": "https://moocs.iniad.org/courses/2026/COT101/01-2/02",
+            "materials": [
+              {
+                "material_type": "google_slides",
+                "material_url": "https://docs.google.com/presentation/d/e/2PACX-1vTkVr5N_ko-l6ScgtlWsVJRm2DT7WWo9i4QJD6Ni0oaRBfvvF6oXtO3ajBlxNKO4w/embed?start=false&loop=false&delayms=3000",
+                "retrieval_method": "iframe:google_slides"
+              }
+            ]
+          },
+          {
+            "page_title": "2. 文字列を理解しよう",
+            "page_url": "https://moocs.iniad.org/courses/2026/COT101/01-2/03",
+            "materials": [
+              {
+                "material_type": "google_slides",
+                "material_url": "https://docs.google.com/presentation/d/e/2PACX-1vT0ilPuRLMHTkQpbxjnFVTSz_fcUTw_Guwis9ZSABFxhCbxELF__KvMRW8wgLwIkQ/embed?start=false&loop=false&delayms=3000",
+                "retrieval_method": "iframe:google_slides"
+              }
+            ]
+          },
+          {
+            "page_title": "課題1-2-2",
+            "page_url": "https://moocs.iniad.org/courses/2026/COT101/01-2/04",
+            "materials": [
+              {
+                "material_type": "google_slides",
+                "material_url": "https://docs.google.com/presentation/d/e/2PACX-1vS7zjHPuwVdBzDR_wM2s_ix82XKPAeyd-imjKFVLU94NeQLKg0YTi1MPnQwDxCN8g/embed?start=false&loop=false&delayms=3000",
+                "retrieval_method": "iframe:google_slides"
+              }
+            ]
+          },
+          {
+            "page_title": "3. 型と値の関係を理解しよう",
+            "page_url": "https://moocs.iniad.org/courses/2026/COT101/01-2/05",
+            "materials": [
+              {
+                "material_type": "google_slides",
+                "material_url": "https://docs.google.com/presentation/d/e/2PACX-1vQ7LwqboQS4o5GO1ZEAVA3Isgm0YQy5e-4UAw1QCGj63MsHO_e1RMAadXJqSVMgrg/embed?start=false&loop=false&delayms=3000",
+                "retrieval_method": "iframe:google_slides"
+              }
+            ]
+          },
+          {
+            "page_title": "課題1-2-3",
+            "page_url": "https://moocs.iniad.org/courses/2026/COT101/01-2/06",
+            "materials": [
+              {
+                "material_type": "google_slides",
+                "material_url": "https://docs.google.com/presentation/d/e/2PACX-1vREYjHK960OugWD77ARgLlmL9gcnL_my-Khqy3dPkmJgOruyADz7d4e7xdtpgbFnA/embed?start=false&loop=false&delayms=3000",
+                "retrieval_method": "iframe:google_slides"
+              }
+            ]
+          },
+          {
+            "page_title": "キーワード",
+            "page_url": "https://moocs.iniad.org/courses/2026/COT101/01-2/07",
+            "materials": [
+              {
+                "material_type": "google_slides",
+                "material_url": "https://docs.google.com/presentation/d/e/2PACX-1vTGUp-5FUW0GP88C5zfaJlQiQhIuHOFSMz7grr-MFtzQ5sUMql9WGHcdi_BAVJZqA/embed?start=false&loop=false&delayms=3000",
+                "retrieval_method": "iframe:google_slides"
+              }
+            ]
+          },
+          {
+            "page_title": "課題解説",
+            "page_url": "https://moocs.iniad.org/courses/2026/COT101/01-2/review",
+            "materials": []
+          }
+        ]
+      },
+      {
+        "lesson_title": "01-3: コンピューターリテラシー・これまでの復習",
+        "lesson_url": "https://moocs.iniad.org/courses/2026/COT101/01-3",
+        "pages": [
+          {
+            "page_title": "出席",
+            "page_url": "https://moocs.iniad.org/courses/2026/COT101/01-3/00",
+            "materials": []
+          },
+          {
+            "page_title": "成績評価について",
+            "page_url": "https://moocs.iniad.org/courses/2026/COT101/01-3/01",
+            "materials": [
+              {
+                "material_type": "google_slides",
+                "material_url": "https://docs.google.com/presentation/d/e/2PACX-1vS3qZdrJmMHBZ2QhfHQU3rW3CoSgweGH3ZWKvOPSbdHcnXZ-CAMXaxCfsATEsIrGQ/pubembed?start=false&loop=false&delayms=60000",
+                "retrieval_method": "iframe:google_slides"
+              }
+            ]
+          },
+          {
+            "page_title": "1. コンピューターリテラシー",
+            "page_url": "https://moocs.iniad.org/courses/2026/COT101/01-3/02",
+            "materials": [
+              {
+                "material_type": "google_slides",
+                "material_url": "https://docs.google.com/presentation/d/e/2PACX-1vRtam3Fl2k0NqlZU1G9nf8JLt5Q7Pqppi3C6cQB6uJASPX2ZMGpAbPFSprpeZvj1Q/pubembed?start=false&loop=false&delayms=60000",
+                "retrieval_method": "iframe:google_slides"
+              }
+            ]
+          },
+          {
+            "page_title": "課題1-3-1",
+            "page_url": "https://moocs.iniad.org/courses/2026/COT101/01-3/03",
+            "materials": [
+              {
+                "material_type": "google_slides",
+                "material_url": "https://docs.google.com/presentation/d/e/2PACX-1vRuYYcGtrRxxQtY3HcQeJZbPGPMuIMvs3EyYiaIy1y9st4bS-Wf2iiukydR2gw2mg/pubembed?start=false&loop=false&delayms=60000",
+                "retrieval_method": "iframe:google_slides"
+              }
+            ]
+          },
+          {
+            "page_title": "2. ウェブの基礎知識",
+            "page_url": "https://moocs.iniad.org/courses/2026/COT101/01-3/04",
+            "materials": [
+              {
+                "material_type": "google_slides",
+                "material_url": "https://docs.google.com/presentation/d/e/2PACX-1vRmDSrvTB5CCTtyg6AmXg0745Akqcm-w3cL5TuPsaUmzxMOMaNxPJ1aR7Jq0il_nw/pubembed?start=false&loop=false&delayms=60000",
+                "retrieval_method": "iframe:google_slides"
+              }
+            ]
+          },
+          {
+            "page_title": "課題1-3-2",
+            "page_url": "https://moocs.iniad.org/courses/2026/COT101/01-3/05",
+            "materials": [
+              {
+                "material_type": "google_slides",
+                "material_url": "https://docs.google.com/presentation/d/e/2PACX-1vRFmyz2bLla5eWuhLMyKXGJBaif3MBSotw8_Z3bNDfhoyhQBZUD-fws8H95PHWf_w/pubembed?start=false&loop=false&delayms=60000",
+                "retrieval_method": "iframe:google_slides"
+              }
+            ]
+          },
+          {
+            "page_title": "3. キーボード・その他",
+            "page_url": "https://moocs.iniad.org/courses/2026/COT101/01-3/06",
+            "materials": [
+              {
+                "material_type": "google_slides",
+                "material_url": "https://docs.google.com/presentation/d/e/2PACX-1vSn2LEeMok8Cv-dRQ7qGoZds0rMYqGHAQ6qtF1zgWGoBWr4m7205L5Ou4bqpiz5LQ/pubembed?start=false&loop=false&delayms=60000",
+                "retrieval_method": "iframe:google_slides"
+              }
+            ]
+          },
+          {
+            "page_title": "課題1-3-3",
+            "page_url": "https://moocs.iniad.org/courses/2026/COT101/01-3/07",
+            "materials": [
+              {
+                "material_type": "google_slides",
+                "material_url": "https://docs.google.com/presentation/d/e/2PACX-1vT8lHIsUn-CCU4hOMsPO5JWfpfR1wjhzfvBSnnUo7x_H0h5QZzeMDYDa4EW5FADBQ/pubembed?start=false&loop=false&delayms=60000",
+                "retrieval_method": "iframe:google_slides"
+              }
+            ]
+          },
+          {
+            "page_title": "4. これまでの復習",
+            "page_url": "https://moocs.iniad.org/courses/2026/COT101/01-3/08",
+            "materials": [
+              {
+                "material_type": "google_slides",
+                "material_url": "https://docs.google.com/presentation/d/e/2PACX-1vQPKLfNPTUT1s6LjDVGLNogejAoDMVRQ2EqkokAHyTc4BeFcGta6adX3jVCfaONtQ/pubembed?start=false&loop=false&delayms=60000",
+                "retrieval_method": "iframe:google_slides"
+              }
+            ]
+          },
+          {
+            "page_title": "課題1-3-4",
+            "page_url": "https://moocs.iniad.org/courses/2026/COT101/01-3/09",
+            "materials": [
+              {
+                "material_type": "google_slides",
+                "material_url": "https://docs.google.com/presentation/d/e/2PACX-1vSGT2Jv6lD-n8obwbp-RLeEc28M0ZuyKlcmXHuHsKSm7GU9eyaZaaU_1b0TJ1zXaw/pubembed?start=false&loop=false&delayms=60000",
+                "retrieval_method": "iframe:google_slides"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "lesson_title": "02-1: 変数を理解しよう",
+        "lesson_url": "https://moocs.iniad.org/courses/2026/COT101/02-1",
+        "pages": [
+          {
+            "page_title": "前回の確認",
+            "page_url": "https://moocs.iniad.org/courses/2026/COT101/02-1/00",
+            "materials": []
+          },
+          {
+            "page_title": "1. 変数と代入を理解しよう",
+            "page_url": "https://moocs.iniad.org/courses/2026/COT101/02-1/01",
+            "materials": [
+              {
+                "material_type": "google_slides",
+                "material_url": "https://docs.google.com/presentation/d/e/2PACX-1vRSF9X6qAirEFMoTgtrzxwFDKg_rva3vieB5NYBxqS_l5vTNCurCAb98nlTR9F_Yg/embed?start=false&loop=false&delayms=3000",
+                "retrieval_method": "iframe:google_slides"
+              }
+            ]
+          },
+          {
+            "page_title": "課題2-1-1",
+            "page_url": "https://moocs.iniad.org/courses/2026/COT101/02-1/02",
+            "materials": [
+              {
+                "material_type": "google_slides",
+                "material_url": "https://docs.google.com/presentation/d/e/2PACX-1vTSooQQq7oDeaQjtMyQvrHJ1A5F0oh7i73IQamealCG9OonGMhbFUzWhgSk81WuOg/embed?start=false&loop=false&delayms=3000",
+                "retrieval_method": "iframe:google_slides"
+              }
+            ]
+          },
+          {
+            "page_title": "2. プログラムを読みやすくしよう",
+            "page_url": "https://moocs.iniad.org/courses/2026/COT101/02-1/03",
+            "materials": [
+              {
+                "material_type": "google_slides",
+                "material_url": "https://docs.google.com/presentation/d/e/2PACX-1vRJR46hoxSsoELFrbAE9cT60KbpeWUEAqLiDXaC7NXYBIXOhZEjXOTjo3V4cJmjIA/embed?start=false&loop=false&delayms=3000",
+                "retrieval_method": "iframe:google_slides"
+              }
+            ]
+          },
+          {
+            "page_title": "課題2-1-2",
+            "page_url": "https://moocs.iniad.org/courses/2026/COT101/02-1/04",
+            "materials": []
+          },
+          {
+            "page_title": "3. inputとprintを使ったインタラクティブプログラム",
+            "page_url": "https://moocs.iniad.org/courses/2026/COT101/02-1/05",
+            "materials": [
+              {
+                "material_type": "google_slides",
+                "material_url": "https://docs.google.com/presentation/d/e/2PACX-1vQQIj3XP5ISzHwdU6YGExnpOGX5WD9Z3Zk2RxYabaWRTwR3pCLH1IJpFhnWbIY1rw/embed?start=false&loop=false&delayms=3000",
+                "retrieval_method": "iframe:google_slides"
+              }
+            ]
+          },
+          {
+            "page_title": "課題2-1-3",
+            "page_url": "https://moocs.iniad.org/courses/2026/COT101/02-1/06",
+            "materials": []
+          },
+          {
+            "page_title": "4. エラーが発生したら？",
+            "page_url": "https://moocs.iniad.org/courses/2026/COT101/02-1/07",
+            "materials": [
+              {
+                "material_type": "google_slides",
+                "material_url": "https://docs.google.com/presentation/d/e/2PACX-1vSBZCoy3PKrwOv0RNgXpQMxlRgFpRTMSeO2vum0jELJs2s5dT0jG8Re51-2HKFFKg/embed?start=false&loop=false&delayms=3000",
+                "retrieval_method": "iframe:google_slides"
+              }
+            ]
+          },
+          {
+            "page_title": "課題2-1-4",
+            "page_url": "https://moocs.iniad.org/courses/2026/COT101/02-1/08",
+            "materials": []
+          },
+          {
+            "page_title": "キーワード",
+            "page_url": "https://moocs.iniad.org/courses/2026/COT101/02-1/09",
+            "materials": [
+              {
+                "material_type": "google_slides",
+                "material_url": "https://docs.google.com/presentation/d/e/2PACX-1vSUx2qWdt7ppXX5NT8SbD4gQxgs_8cpjwOhl9JN3L7V1_VlbzVccqOITb_yXHa1Kg/embed?start=false&loop=false&delayms=3000",
+                "retrieval_method": "iframe:google_slides"
+              }
+            ]
+          },
+          {
+            "page_title": "課題解説",
+            "page_url": "https://moocs.iniad.org/courses/2026/COT101/02-1/review",
+            "materials": []
+          }
+        ]
+      },
+      {
+        "lesson_title": "02-2: 条件で動作を変えよう",
+        "lesson_url": "https://moocs.iniad.org/courses/2026/COT101/02-2",
+        "pages": [
+          {
+            "page_title": "前回の確認",
+            "page_url": "https://moocs.iniad.org/courses/2026/COT101/02-2/00",
+            "materials": []
+          },
+          {
+            "page_title": "お知らせ",
+            "page_url": "https://moocs.iniad.org/courses/2026/COT101/02-2/01",
+            "materials": [
+              {
+                "material_type": "google_slides",
+                "material_url": "https://docs.google.com/presentation/d/e/2PACX-1vQs9mjkJWEx3l374wcy6WzvQYaH4DR3UyjLLqARRW4qiYo976rD1QN41ByNhI6i5A/embed?start=false&loop=false&delayms=3000",
+                "retrieval_method": "iframe:google_slides"
+              }
+            ]
+          },
+          {
+            "page_title": "1. もし(if) … ならば",
+            "page_url": "https://moocs.iniad.org/courses/2026/COT101/02-2/02",
+            "materials": [
+              {
+                "material_type": "google_slides",
+                "material_url": "https://docs.google.com/presentation/d/e/2PACX-1vTKhjljC29EJUUaJGAjHrEVi-AQOsKMaNx8ELBM0ThDPkcOysr4xP6ZNm3pAq3epw/embed?start=false&loop=false&delayms=3000",
+                "retrieval_method": "iframe:google_slides"
+              }
+            ]
+          },
+          {
+            "page_title": "課題2-2-1",
+            "page_url": "https://moocs.iniad.org/courses/2026/COT101/02-2/03",
+            "materials": [
+              {
+                "material_type": "google_slides",
+                "material_url": "https://docs.google.com/presentation/d/e/2PACX-1vTGceqBoeZLeS3_Q2OXGRyPDyG_fuAejRM6Gt6Nbe6b649ZNUp7u9NgLFzfmOjjcQ/embed?start=false&loop=false&delayms=3000",
+                "retrieval_method": "iframe:google_slides"
+              }
+            ]
+          },
+          {
+            "page_title": "2. ～の間(while)",
+            "page_url": "https://moocs.iniad.org/courses/2026/COT101/02-2/04",
+            "materials": [
+              {
+                "material_type": "google_slides",
+                "material_url": "https://docs.google.com/presentation/d/e/2PACX-1vSqJX5upktxleWjwIBO_IVF1BWQfVmPDFuzXbfZ0LZfY4lSCY7BmwISMBS7ytV-oQ/embed?start=false&loop=false&delayms=3000",
+                "retrieval_method": "iframe:google_slides"
+              }
+            ]
+          },
+          {
+            "page_title": "課題2-2-2",
+            "page_url": "https://moocs.iniad.org/courses/2026/COT101/02-2/05",
+            "materials": []
+          },
+          {
+            "page_title": "3. ブール型とブール代数",
+            "page_url": "https://moocs.iniad.org/courses/2026/COT101/02-2/06",
+            "materials": [
+              {
+                "material_type": "google_slides",
+                "material_url": "https://docs.google.com/presentation/d/e/2PACX-1vSusAQ5hkC5sWU-xdGEfsYGobsLTmjWRO7C3dmZ-n9UxKLArpFOLMyCnqdDHx1XzQ/embed?start=false&loop=false&delayms=3000",
+                "retrieval_method": "iframe:google_slides"
+              }
+            ]
+          },
+          {
+            "page_title": "課題2-2-3",
+            "page_url": "https://moocs.iniad.org/courses/2026/COT101/02-2/07",
+            "materials": [
+              {
+                "material_type": "google_slides",
+                "material_url": "https://docs.google.com/presentation/d/e/2PACX-1vQWph8V-k6usnYNu21kUcB-7DnhH4m0iJzyhvlsbfDMHWh1V2tDTlwXJNC6j-TL2A/embed?start=false&loop=false&delayms=3000",
+                "retrieval_method": "iframe:google_slides"
+              }
+            ]
+          },
+          {
+            "page_title": "キーワード",
+            "page_url": "https://moocs.iniad.org/courses/2026/COT101/02-2/08",
+            "materials": [
+              {
+                "material_type": "google_slides",
+                "material_url": "https://docs.google.com/presentation/d/e/2PACX-1vSsvc1N5qAPh0RyLfugJzXBdRgQ0EaIsHnwGV7YYJI2G0WSbVHX7mewXn_VIkLfog/embed?start=false&loop=false&delayms=3000",
+                "retrieval_method": "iframe:google_slides"
+              }
+            ]
+          },
+          {
+            "page_title": "課題解説",
+            "page_url": "https://moocs.iniad.org/courses/2026/COT101/02-2/review",
+            "materials": []
+          }
+        ]
+      },
+      {
+        "lesson_title": "02-3: Python3をインストールしよう",
+        "lesson_url": "https://moocs.iniad.org/courses/2026/COT101/02-3",
+        "pages": [
+          {
+            "page_title": "出席",
+            "page_url": "https://moocs.iniad.org/courses/2026/COT101/02-3/00",
+            "materials": []
+          },
+          {
+            "page_title": "前回の復習",
+            "page_url": "https://moocs.iniad.org/courses/2026/COT101/02-3/01",
+            "materials": [
+              {
+                "material_type": "google_slides",
+                "material_url": "https://docs.google.com/presentation/d/e/2PACX-1vT2ROl8499wS4G8CPDsVEGTu45qy3hSmpwXh3Rc0twaECevwjsiBwT5zvsbB9U1lg/pubembed?start=false&loop=false&delayms=60000",
+                "retrieval_method": "iframe:google_slides"
+              }
+            ]
+          },
+          {
+            "page_title": "Pythonのダウンロード・インストール",
+            "page_url": "https://moocs.iniad.org/courses/2026/COT101/02-3/02",
+            "materials": [
+              {
+                "material_type": "google_slides",
+                "material_url": "https://docs.google.com/presentation/d/e/2PACX-1vSnjSycrdtKuElwYtvfM6wVlDvYicI0Us76cvlR40nxuBjxZxRehMr3O5FlJ5po5Q/pubembed?start=false&loop=false&delayms=60000",
+                "retrieval_method": "iframe:google_slides"
+              },
+              {
+                "material_type": "google_slides",
+                "material_url": "https://docs.google.com/presentation/d/e/2PACX-1vQkn84E1P4oOdwIlGOd_wfkqa7dJBEOAnUbgAJc5eijHyYyde3dFTUajSdI5nEdVg/pubembed?start=false&loop=false&delayms=60000",
+                "retrieval_method": "iframe:google_slides"
+              },
+              {
+                "material_type": "google_slides",
+                "material_url": "https://docs.google.com/presentation/d/e/2PACX-1vQc4mXNApF2CV3he4NOc-zSBjM0Y0Z0ViEFsQ075CPfyLUJ_SIDlbimOkNbHwcNAQ/pubembed?start=false&loop=false&delayms=60000",
+                "retrieval_method": "iframe:google_slides"
+              }
+            ]
+          },
+          {
+            "page_title": "課題1: インストールしたPython3を動かしてみよう",
+            "page_url": "https://moocs.iniad.org/courses/2026/COT101/02-3/03",
+            "materials": [
+              {
+                "material_type": "google_slides",
+                "material_url": "https://docs.google.com/presentation/d/e/2PACX-1vQGTNwXerPUpm2lnpkt6GCDsTFT61Klw8bn61O1TpsQ2j6IP1rghA_Q2eoVULUF9A/pubembed?start=false&loop=false&delayms=60000",
+                "retrieval_method": "iframe:google_slides"
+              }
+            ]
+          },
+          {
+            "page_title": "Visual Studio Codeのインストール",
+            "page_url": "https://moocs.iniad.org/courses/2026/COT101/02-3/04",
+            "materials": [
+              {
+                "material_type": "google_slides",
+                "material_url": "https://docs.google.com/presentation/d/e/2PACX-1vTgS_lTOTxnyqJJtSC9p2wU7zFWhF5QmQnqAf_N9crZXUR8TSr7Hgzh6xybXdudbg/pubembed?start=false&loop=false&delayms=60000",
+                "retrieval_method": "iframe:google_slides"
+              },
+              {
+                "material_type": "google_slides",
+                "material_url": "https://docs.google.com/presentation/d/e/2PACX-1vTGFAoPkU6PWNNVFokcNogwQmv9PYrjL23wi0MLC5aEpUTxzCRLCkgnAkxDwac0yA/pubembed?start=false&loop=false&delayms=60000",
+                "retrieval_method": "iframe:google_slides"
+              }
+            ]
+          },
+          {
+            "page_title": "Visual Studio Code へプラグインのインストール",
+            "page_url": "https://moocs.iniad.org/courses/2026/COT101/02-3/03-plugin",
+            "materials": [
+              {
+                "material_type": "google_slides",
+                "material_url": "https://docs.google.com/presentation/d/e/2PACX-1vSncDP-Wi-8I1cIlvpMzl5I6WWjr53amrrchz7Mwlqq_DR5n1PNTIzZZc3obMhN2A/pubembed?start=false&loop=false&delayms=60000",
+                "retrieval_method": "iframe:google_slides"
+              }
+            ]
+          },
+          {
+            "page_title": "Visual Studio Codeを使ってプログラムを作成・保存してみよう",
+            "page_url": "https://moocs.iniad.org/courses/2026/COT101/02-3/05",
+            "materials": [
+              {
+                "material_type": "google_slides",
+                "material_url": "https://docs.google.com/presentation/d/e/2PACX-1vQg5ib6wLqAnYCZk35LKjGO9BG1mUb3L4-4Z_fc9MbV9jYcoU6U-7UznVfkiIEsNw/pubembed?start=false&loop=false&delayms=60000",
+                "retrieval_method": "iframe:google_slides"
+              }
+            ]
+          },
+          {
+            "page_title": "課題 2: プログラムをファイルに保存しよう",
+            "page_url": "https://moocs.iniad.org/courses/2026/COT101/02-3/06",
+            "materials": [
+              {
+                "material_type": "google_slides",
+                "material_url": "https://docs.google.com/presentation/d/e/2PACX-1vTIEP76XX8R-_t5XKTN_ac8lKzUorZhlPhQDwxq_nJW_b0lk0RQ_O_vlNfkqSJO7Q/pubembed?start=false&loop=false&delayms=60000",
+                "retrieval_method": "iframe:google_slides"
+              }
+            ]
+          },
+          {
+            "page_title": "今週の復習",
+            "page_url": "https://moocs.iniad.org/courses/2026/COT101/02-3/07",
+            "materials": [
+              {
+                "material_type": "google_slides",
+                "material_url": "https://docs.google.com/presentation/d/e/2PACX-1vRhQz8-os4TOwVYdeBMVfVia8CIAJGkHGrdSbMwzpbDuULQpFck2hYD0M2J4f-ypQ/pubembed?start=false&loop=false&delayms=60000",
+                "retrieval_method": "iframe:google_slides"
+              }
+            ]
+          },
+          {
+            "page_title": "課題3: プログラミング",
+            "page_url": "https://moocs.iniad.org/courses/2026/COT101/02-3/08",
+            "materials": [
+              {
+                "material_type": "google_slides",
+                "material_url": "https://docs.google.com/presentation/d/e/2PACX-1vTAnJkxDBNAe00aCdLQrGiTpOLBoy_dlhBhT6W_hMfjqIb85jMPisGzrr5ttA_ASg/pubembed?start=false&loop=false&delayms=60000",
+                "retrieval_method": "iframe:google_slides"
+              }
+            ]
+          },
+          {
+            "page_title": "Important Keywords",
+            "page_url": "https://moocs.iniad.org/courses/2026/COT101/02-3/09",
+            "materials": [
+              {
+                "material_type": "google_slides",
+                "material_url": "https://docs.google.com/presentation/d/e/2PACX-1vTw0flsRDETZqIk6AygQD8pfO4WNZ79ZXA97p-OnaGErF0Gdr84P_tKVkP1TcNlpQ/pubembed?start=false&loop=false&delayms=60000",
+                "retrieval_method": "iframe:google_slides"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "lesson_title": "03-1: 関数を使おう",
+        "lesson_url": "https://moocs.iniad.org/courses/2026/COT101/03-1",
+        "pages": [
+          {
+            "page_title": "前回の確認",
+            "page_url": "https://moocs.iniad.org/courses/2026/COT101/03-1/00",
+            "materials": []
+          },
+          {
+            "page_title": "(補足) Pythonプログラムのファイル名・フォルダ名について",
+            "page_url": "https://moocs.iniad.org/courses/2026/COT101/03-1/note",
+            "materials": [
+              {
+                "material_type": "google_slides",
+                "material_url": "https://docs.google.com/presentation/d/e/2PACX-1vS5eBASVCZnEfOOT1wQVqedZd0u4Py1LNDRewa8pJHexoCBLQXAFNTWW8HGrois_A/embed?start=false&loop=false&delayms=3000",
+                "retrieval_method": "iframe:google_slides"
+              }
+            ]
+          },
+          {
+            "page_title": "1. 関数を作ってみよう",
+            "page_url": "https://moocs.iniad.org/courses/2026/COT101/03-1/01",
+            "materials": [
+              {
+                "material_type": "google_slides",
+                "material_url": "https://docs.google.com/presentation/d/e/2PACX-1vTfBVCRt-UerFboLOe9AdTNsTBafRICVgkq07RNAEuFJ-S8iqtj0Z-trnYt9n4etA/embed?start=false&loop=false&delayms=3000",
+                "retrieval_method": "iframe:google_slides"
+              }
+            ]
+          },
+          {
+            "page_title": "課題3-1-1",
+            "page_url": "https://moocs.iniad.org/courses/2026/COT101/03-1/02",
+            "materials": [
+              {
+                "material_type": "google_slides",
+                "material_url": "https://docs.google.com/presentation/d/e/2PACX-1vQR9Y60Kmur3vJnb0RGdMlEkgzdrOx-TGohM_-tVZpMNUBPmsP6ifEELSJ94apm5w/embed?start=false&loop=false&delayms=3000",
+                "retrieval_method": "iframe:google_slides"
+              }
+            ]
+          },
+          {
+            "page_title": "2. 引数(ひきすう)を利用しよう",
+            "page_url": "https://moocs.iniad.org/courses/2026/COT101/03-1/03",
+            "materials": [
+              {
+                "material_type": "google_slides",
+                "material_url": "https://docs.google.com/presentation/d/e/2PACX-1vQYMrEysJWjFDamTXdiS9QeH1mFs1jQlCwmAubZvAQgYGxoNsrkDA4nYuKV23eOVg/embed?start=false&loop=false&delayms=3000",
+                "retrieval_method": "iframe:google_slides"
+              }
+            ]
+          },
+          {
+            "page_title": "課題3-1-2",
+            "page_url": "https://moocs.iniad.org/courses/2026/COT101/03-1/04",
+            "materials": [
+              {
+                "material_type": "google_slides",
+                "material_url": "https://docs.google.com/presentation/d/e/2PACX-1vR5f9b2X8KhSg3Hm1CPwEDdHlCoSUW4Z5PJNezEvey9GCFN1odOf2bjQrfRHyQnhg/embed?start=false&loop=false&delayms=3000",
+                "retrieval_method": "iframe:google_slides"
+              }
+            ]
+          },
+          {
+            "page_title": "3. 戻り値を利用しよう",
+            "page_url": "https://moocs.iniad.org/courses/2026/COT101/03-1/05",
+            "materials": [
+              {
+                "material_type": "google_slides",
+                "material_url": "https://docs.google.com/presentation/d/e/2PACX-1vR0n5rih6aWeMBJFRsNr1n1Xod5TB1Vaa-eroLz3Bp72kPRB_5pqi1pkhUOxjIQrA/embed?start=false&loop=false&delayms=3000",
+                "retrieval_method": "iframe:google_slides"
+              }
+            ]
+          },
+          {
+            "page_title": "課題3-1-3",
+            "page_url": "https://moocs.iniad.org/courses/2026/COT101/03-1/06",
+            "materials": []
+          },
+          {
+            "page_title": "4. 組込み関数を活用しよう",
+            "page_url": "https://moocs.iniad.org/courses/2026/COT101/03-1/07",
+            "materials": [
+              {
+                "material_type": "google_slides",
+                "material_url": "https://docs.google.com/presentation/d/e/2PACX-1vQUe_y3-cSFQqL5h2GPUwMRYCcn8nwkhHGUDKotsU3iwr8WKGNzlU1TGEsD_ksOyw/embed?start=false&loop=false&delayms=3000",
+                "retrieval_method": "iframe:google_slides"
+              }
+            ]
+          },
+          {
+            "page_title": "課題3-1-4",
+            "page_url": "https://moocs.iniad.org/courses/2026/COT101/03-1/08",
+            "materials": []
+          },
+          {
+            "page_title": "キーワード",
+            "page_url": "https://moocs.iniad.org/courses/2026/COT101/03-1/09",
+            "materials": [
+              {
+                "material_type": "google_slides",
+                "material_url": "https://docs.google.com/presentation/d/e/2PACX-1vQtJM9JaZvV_Uhrhw7us0I6CICY31SwHnfvtUydYTGFnZQzpHUE1DphkqDcC9g_fA/embed?start=false&loop=false&delayms=3000",
+                "retrieval_method": "iframe:google_slides"
+              }
+            ]
+          },
+          {
+            "page_title": "課題解説",
+            "page_url": "https://moocs.iniad.org/courses/2026/COT101/03-1/review",
+            "materials": []
+          }
+        ]
+      },
+      {
+        "lesson_title": "03-2: リストを扱おう",
+        "lesson_url": "https://moocs.iniad.org/courses/2026/COT101/03-2",
+        "pages": [
+          {
+            "page_title": "前回の確認",
+            "page_url": "https://moocs.iniad.org/courses/2026/COT101/03-2/00",
+            "materials": []
+          },
+          {
+            "page_title": "単位変換について確認しよう",
+            "page_url": "https://moocs.iniad.org/courses/2026/COT101/03-2/00-unit",
+            "materials": [
+              {
+                "material_type": "google_slides",
+                "material_url": "https://docs.google.com/presentation/d/e/2PACX-1vQzxIvpVChY-_3RJ63NhKqGN30bR4A6nQ66F6dPVYMvcjwFOaNYy1DAQcrLI-lbBg/embed?start=false&loop=false&delayms=3000",
+                "retrieval_method": "iframe:google_slides"
+              }
+            ]
+          },
+          {
+            "page_title": "1. リストを使ってみよう",
+            "page_url": "https://moocs.iniad.org/courses/2026/COT101/03-2/01",
+            "materials": [
+              {
+                "material_type": "google_slides",
+                "material_url": "https://docs.google.com/presentation/d/e/2PACX-1vSksEQGyPeB55xhhjCsue589CStECQKP7AwlDiodo8YA25fsRsB_QaBtbYlUbDXfg/embed?start=false&loop=false&delayms=3000",
+                "retrieval_method": "iframe:google_slides"
+              }
+            ]
+          },
+          {
+            "page_title": "課題3-2-1",
+            "page_url": "https://moocs.iniad.org/courses/2026/COT101/03-2/02",
+            "materials": []
+          },
+          {
+            "page_title": "2. リストを列挙しよう",
+            "page_url": "https://moocs.iniad.org/courses/2026/COT101/03-2/03",
+            "materials": [
+              {
+                "material_type": "google_slides",
+                "material_url": "https://docs.google.com/presentation/d/e/2PACX-1vRv08cgCxt-Ax6kfx4Rz5Wdxhu0I5_ZLiurFEKzAGiV3PbQ1w0KUs_8wkLlDCHpaQ/embed?start=false&loop=false&delayms=3000",
+                "retrieval_method": "iframe:google_slides"
+              }
+            ]
+          },
+          {
+            "page_title": "課題3-2-2",
+            "page_url": "https://moocs.iniad.org/courses/2026/COT101/03-2/04",
+            "materials": []
+          },
+          {
+            "page_title": "3. リストの操作",
+            "page_url": "https://moocs.iniad.org/courses/2026/COT101/03-2/05",
+            "materials": [
+              {
+                "material_type": "google_slides",
+                "material_url": "https://docs.google.com/presentation/d/e/2PACX-1vTDJ-ND_-a84ifcC_gRx-bLlk_Ixm30wSOI0X3e4JfbR4pPBdsQCY1Ojpyn4cynWg/embed?start=false&loop=false&delayms=3000",
+                "retrieval_method": "iframe:google_slides"
+              }
+            ]
+          },
+          {
+            "page_title": "課題3-2-3",
+            "page_url": "https://moocs.iniad.org/courses/2026/COT101/03-2/06",
+            "materials": []
+          },
+          {
+            "page_title": "4. エイリアシング(別名付け)と可変・不変オブジェクト",
+            "page_url": "https://moocs.iniad.org/courses/2026/COT101/03-2/07",
+            "materials": [
+              {
+                "material_type": "google_slides",
+                "material_url": "https://docs.google.com/presentation/d/e/2PACX-1vTpA9ifNolUtxguBlC8b1RmIllkPQTdgF4Wq85RMKR2VWdqMh3RwAfsdNCty6fzAQ/embed?start=false&loop=false&delayms=3000",
+                "retrieval_method": "iframe:google_slides"
+              }
+            ]
+          },
+          {
+            "page_title": "課題3-2-4",
+            "page_url": "https://moocs.iniad.org/courses/2026/COT101/03-2/08",
+            "materials": []
+          },
+          {
+            "page_title": "重要なキーワード",
+            "page_url": "https://moocs.iniad.org/courses/2026/COT101/03-2/09",
+            "materials": [
+              {
+                "material_type": "google_slides",
+                "material_url": "https://docs.google.com/presentation/d/e/2PACX-1vQPUbODyZCUBlf0BTyN9lfaDM7HsCFyNA6oXPb_Zt7QKqJWCxO9YJtvppXZ1O0Lrw/embed?start=false&loop=false&delayms=3000",
+                "retrieval_method": "iframe:google_slides"
+              }
+            ]
+          },
+          {
+            "page_title": "課題解説",
+            "page_url": "https://moocs.iniad.org/courses/2026/COT101/03-2/review",
+            "materials": []
+          }
+        ]
+      },
+      {
+        "lesson_title": "03-3: Pythonの練習問題 (1)",
+        "lesson_url": "https://moocs.iniad.org/courses/2026/COT101/03-3",
+        "pages": [
+          {
+            "page_title": "出席",
+            "page_url": "https://moocs.iniad.org/courses/2026/COT101/03-3/00",
+            "materials": []
+          },
+          {
+            "page_title": "今回の内容",
+            "page_url": "https://moocs.iniad.org/courses/2026/COT101/03-3/01",
+            "materials": [
+              {
+                "material_type": "google_slides",
+                "material_url": "https://docs.google.com/presentation/d/e/2PACX-1vQynd-rA2pkHo_xLlsgaeRhkWdbocILkfyhyj-elQLfwi5_KbE_ScsrPTqBsCD6pQ/pubembed?start=false&loop=false&delayms=3000",
+                "retrieval_method": "iframe:google_slides"
+              }
+            ]
+          },
+          {
+            "page_title": "課題3-3-1. 肩慣らし",
+            "page_url": "https://moocs.iniad.org/courses/2026/COT101/03-3/02",
+            "materials": [
+              {
+                "material_type": "google_slides",
+                "material_url": "https://docs.google.com/presentation/d/e/2PACX-1vTkLjbC2x0nDrhZjlGf4nNDAouV9blPqd0M5CSaO5q9a_AkA29Q9Vgnb93M1Q72Fw/pubembed?start=false&loop=false&delayms=3000",
+                "retrieval_method": "iframe:google_slides"
+              }
+            ]
+          },
+          {
+            "page_title": "課題3-3-2. input文・四則演算",
+            "page_url": "https://moocs.iniad.org/courses/2026/COT101/03-3/03",
+            "materials": [
+              {
+                "material_type": "google_slides",
+                "material_url": "https://docs.google.com/presentation/d/e/2PACX-1vSb0V6WtdwEPiycQLp-swKQa8525PHw9mbDbgFmJWp_nbXNxUPeMIBvfhOIc-oURA/pubembed?start=false&loop=false&delayms=3000",
+                "retrieval_method": "iframe:google_slides"
+              }
+            ]
+          },
+          {
+            "page_title": "課題3-3-3. if文",
+            "page_url": "https://moocs.iniad.org/courses/2026/COT101/03-3/04",
+            "materials": [
+              {
+                "material_type": "google_slides",
+                "material_url": "https://docs.google.com/presentation/d/e/2PACX-1vQkXmEst_H4r6BLDZTQetYzAKwvNjU0tbKaH1Y8LWQVAIbornoXvFdewyOhm5C-PQ/pubembed?start=false&loop=false&delayms=3000",
+                "retrieval_method": "iframe:google_slides"
+              }
+            ]
+          },
+          {
+            "page_title": "Python実行の可視化",
+            "page_url": "https://moocs.iniad.org/courses/2026/COT101/03-3/05-1",
+            "materials": [
+              {
+                "material_type": "google_slides",
+                "material_url": "https://docs.google.com/presentation/d/e/2PACX-1vSKC2uYGp_NSb7bB71DKvCrbFKeTyib-Mb8Rh-oNUkrxHeuzVOYclc5iXqAcfzOrg/pubembed?start=false&loop=false&delayms=3000",
+                "retrieval_method": "iframe:google_slides"
+              }
+            ]
+          },
+          {
+            "page_title": "課題3-3-4. 繰り返し",
+            "page_url": "https://moocs.iniad.org/courses/2026/COT101/03-3/05",
+            "materials": [
+              {
+                "material_type": "google_slides",
+                "material_url": "https://docs.google.com/presentation/d/e/2PACX-1vQl-JlJInlM4mc1AHoKsATp8esAjxYXPxPcuIEZWuTK5ak1TAMUYxqWNPAxLoVEig/pubembed?start=false&loop=false&delayms=3000",
+                "retrieval_method": "iframe:google_slides"
+              }
+            ]
+          },
+          {
+            "page_title": "課題3-3-5. 関数",
+            "page_url": "https://moocs.iniad.org/courses/2026/COT101/03-3/06",
+            "materials": [
+              {
+                "material_type": "google_slides",
+                "material_url": "https://docs.google.com/presentation/d/e/2PACX-1vSQ28X9lFbc5BLrgGdCj_IrHISSq54V5zShg3H_hCpR3gRrlr2RADHlHhTDRlmpxw/pubembed?start=false&loop=false&delayms=3000",
+                "retrieval_method": "iframe:google_slides"
+              }
+            ]
+          },
+          {
+            "page_title": "発展課題3-3-6",
+            "page_url": "https://moocs.iniad.org/courses/2026/COT101/03-3/07",
+            "materials": [
+              {
+                "material_type": "google_slides",
+                "material_url": "https://docs.google.com/presentation/d/e/2PACX-1vTcOHUN2mnP0A6nrXf7Bgr3soS92v2n3MTJa84TAJWT2lAM4GooREZ4h8LIWjchwA/pubembed?start=false&loop=false&delayms=3000",
+                "retrieval_method": "iframe:google_slides"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "lesson_title": "04-1: リストの仲間たち",
+        "lesson_url": "https://moocs.iniad.org/courses/2026/COT101/04-1",
+        "pages": [
+          {
+            "page_title": "前回の確認",
+            "page_url": "https://moocs.iniad.org/courses/2026/COT101/04-1/00",
+            "materials": []
+          },
+          {
+            "page_title": "1. 文字列の使い方を極めよう",
+            "page_url": "https://moocs.iniad.org/courses/2026/COT101/04-1/01",
+            "materials": [
+              {
+                "material_type": "google_slides",
+                "material_url": "https://docs.google.com/presentation/d/e/2PACX-1vQF409yXq8k1nTj1ag7avVmx3tpHYQ0kagiVJrs4B9EZ7G2BFgb4wZ_242Z2Heeig/embed?start=false&loop=false&delayms=3000",
+                "retrieval_method": "iframe:google_slides"
+              }
+            ]
+          },
+          {
+            "page_title": "課題4-1-1",
+            "page_url": "https://moocs.iniad.org/courses/2026/COT101/04-1/02",
+            "materials": []
+          },
+          {
+            "page_title": "2. rangeオブジェクトの使い方",
+            "page_url": "https://moocs.iniad.org/courses/2026/COT101/04-1/03",
+            "materials": [
+              {
+                "material_type": "google_slides",
+                "material_url": "https://docs.google.com/presentation/d/e/2PACX-1vTcLgu1jmShUAXV6k6oceMNWgdoanYjSe8Y2MYliPxuwV8eLBlzbK2sOo-0mfD4Aw/embed?start=false&loop=false&delayms=3000",
+                "retrieval_method": "iframe:google_slides"
+              }
+            ]
+          },
+          {
+            "page_title": "課題4-1-2",
+            "page_url": "https://moocs.iniad.org/courses/2026/COT101/04-1/04",
+            "materials": []
+          },
+          {
+            "page_title": "3. スライス",
+            "page_url": "https://moocs.iniad.org/courses/2026/COT101/04-1/05",
+            "materials": [
+              {
+                "material_type": "google_slides",
+                "material_url": "https://docs.google.com/presentation/d/e/2PACX-1vSV9dIyKkRF30W0nYs6juY0j4vacy5uLf5Q_OEjz2HllOeToleSPvKn-RvdS-vz1Q/embed?start=false&loop=false&delayms=3000",
+                "retrieval_method": "iframe:google_slides"
+              }
+            ]
+          },
+          {
+            "page_title": "課題4-1-3",
+            "page_url": "https://moocs.iniad.org/courses/2026/COT101/04-1/06",
+            "materials": []
+          },
+          {
+            "page_title": "重要なキーワード",
+            "page_url": "https://moocs.iniad.org/courses/2026/COT101/04-1/kwd",
+            "materials": [
+              {
+                "material_type": "google_slides",
+                "material_url": "https://docs.google.com/presentation/d/e/2PACX-1vSyEn7n4jc0D483MKJa-BJ4aMuxZgC5g8QBHSrVk6ZWB_78oZZOPJZtVxSy4hEBng/embed?start=false&loop=false&delayms=3000",
+                "retrieval_method": "iframe:google_slides"
+              }
+            ]
+          },
+          {
+            "page_title": "課題解説",
+            "page_url": "https://moocs.iniad.org/courses/2026/COT101/04-1/review",
+            "materials": []
+          }
+        ]
+      },
+      {
+        "lesson_title": "04-2: これまでの総復習と列挙を用いた問題解決",
+        "lesson_url": "https://moocs.iniad.org/courses/2026/COT101/04-2",
+        "pages": [
+          {
+            "page_title": "前回の確認",
+            "page_url": "https://moocs.iniad.org/courses/2026/COT101/04-2/00",
+            "materials": []
+          },
+          {
+            "page_title": "1. これまでの総復習",
+            "page_url": "https://moocs.iniad.org/courses/2026/COT101/04-2/01",
+            "materials": [
+              {
+                "material_type": "google_slides",
+                "material_url": "https://docs.google.com/presentation/d/e/2PACX-1vRaMwHlOn6-5FvAyqi6puXfEoN8xxzxhfUErJ0WSV85iWoSaJqHqmXlZeYGA0_stg/embed?start=false&loop=false&delayms=3000",
+                "retrieval_method": "iframe:google_slides"
+              }
+            ]
+          },
+          {
+            "page_title": "課題4-2-1",
+            "page_url": "https://moocs.iniad.org/courses/2026/COT101/04-2/02",
+            "materials": []
+          },
+          {
+            "page_title": "2. 列挙による問題解決",
+            "page_url": "https://moocs.iniad.org/courses/2026/COT101/04-2/03",
+            "materials": [
+              {
+                "material_type": "google_slides",
+                "material_url": "https://docs.google.com/presentation/d/e/2PACX-1vSQw9sKkS-EQ6B6j5IK4K9Ck6H15zPCmZ-_6V6wueolhLCoE1aYOhfrDWZ63APiGg/embed?start=false&loop=false&delayms=3000",
+                "retrieval_method": "iframe:google_slides"
+              }
+            ]
+          },
+          {
+            "page_title": "課題4-2-2",
+            "page_url": "https://moocs.iniad.org/courses/2026/COT101/04-2/04",
+            "materials": []
+          },
+          {
+            "page_title": "3. 問題集",
+            "page_url": "https://moocs.iniad.org/courses/2026/COT101/04-2/05",
+            "materials": [
+              {
+                "material_type": "google_slides",
+                "material_url": "https://docs.google.com/presentation/d/e/2PACX-1vSMKCA9Rk_KQ997Lyo254Aqvja-XHRKjA6W7PGbPgtw4TfRvcsSdpAqUqF7uovcqw/embed?start=false&loop=false&delayms=3000",
+                "retrieval_method": "iframe:google_slides"
+              }
+            ]
+          },
+          {
+            "page_title": "重要なキーワード",
+            "page_url": "https://moocs.iniad.org/courses/2026/COT101/04-2/06",
+            "materials": [
+              {
+                "material_type": "google_slides",
+                "material_url": "https://docs.google.com/presentation/d/e/2PACX-1vR5Fh99jx_vG0pAmcLzV3VRd023-wC2jAPRV8huJH2SpGPhkN-HEQ9GsKq0xCM4Zw/embed?start=false&loop=false&delayms=3000",
+                "retrieval_method": "iframe:google_slides"
+              }
+            ]
+          },
+          {
+            "page_title": "課題解説",
+            "page_url": "https://moocs.iniad.org/courses/2026/COT101/04-2/review",
+            "materials": []
+          }
+        ]
+      },
+      {
+        "lesson_title": "04-3: Pythonの練習問題 (2)",
+        "lesson_url": "https://moocs.iniad.org/courses/2026/COT101/04-3",
+        "pages": [
+          {
+            "page_title": "出席問題",
+            "page_url": "https://moocs.iniad.org/courses/2026/COT101/04-3/00",
+            "materials": []
+          },
+          {
+            "page_title": "今回の内容",
+            "page_url": "https://moocs.iniad.org/courses/2026/COT101/04-3/01",
+            "materials": [
+              {
+                "material_type": "google_slides",
+                "material_url": "https://docs.google.com/presentation/d/e/2PACX-1vTDQsSv3XqX03APfE-FFMk158Pe-MZgqsFWLuYh_IA9Le0FCu1GeeXgn0OlQCZcrw/pubembed?start=false&loop=false&delayms=3000",
+                "retrieval_method": "iframe:google_slides"
+              }
+            ]
+          },
+          {
+            "page_title": "課題4-3-1. 関数の復習",
+            "page_url": "https://moocs.iniad.org/courses/2026/COT101/04-3/02",
+            "materials": [
+              {
+                "material_type": "google_slides",
+                "material_url": "https://docs.google.com/presentation/d/e/2PACX-1vTJVGySvoWml56UgpAc6kn4exhag-aRdMWMdGyLMKJvZn_Uvh-1PfumQKS9U4VfUQ/pubembed?start=false&loop=false&delayms=3000",
+                "retrieval_method": "iframe:google_slides"
+              }
+            ]
+          },
+          {
+            "page_title": "課題4-3-2. リスト1",
+            "page_url": "https://moocs.iniad.org/courses/2026/COT101/04-3/03",
+            "materials": [
+              {
+                "material_type": "google_slides",
+                "material_url": "https://docs.google.com/presentation/d/e/2PACX-1vRZvpfPnLXkhUyHxRNxZ9iZNuNiIusw3akPRS-Ohf2rRuaLocy-F_nmgT-NQcrIKw/pubembed?start=false&loop=false&delayms=3000",
+                "retrieval_method": "iframe:google_slides"
+              }
+            ]
+          },
+          {
+            "page_title": "課題4-3-3. リスト2",
+            "page_url": "https://moocs.iniad.org/courses/2026/COT101/04-3/04",
+            "materials": [
+              {
+                "material_type": "google_slides",
+                "material_url": "https://docs.google.com/presentation/d/e/2PACX-1vRe8kLZaUCod2J8FUBL88p32J1RM4IEo86oNb6hg-tF9fW2kK9mVtTXkfGPy9XtYg/pubembed?start=false&loop=false&delayms=3000",
+                "retrieval_method": "iframe:google_slides"
+              }
+            ]
+          },
+          {
+            "page_title": "課題4-3-4. 文字列",
+            "page_url": "https://moocs.iniad.org/courses/2026/COT101/04-3/05",
+            "materials": [
+              {
+                "material_type": "google_slides",
+                "material_url": "https://docs.google.com/presentation/d/e/2PACX-1vR0qI08ESdkOySBxxefQI4caQ0-sVqZWl7x-JAFYo_tl3jPFBSJHHF8LZuTXZbg_A/pubembed?start=false&loop=false&delayms=3000",
+                "retrieval_method": "iframe:google_slides"
+              }
+            ]
+          },
+          {
+            "page_title": "発展課題4-3-5.",
+            "page_url": "https://moocs.iniad.org/courses/2026/COT101/04-3/06",
+            "materials": [
+              {
+                "material_type": "google_slides",
+                "material_url": "https://docs.google.com/presentation/d/e/2PACX-1vRGGviqv6mU1xYcbLwloOsbfdkB66gY2meBNengVKyzFCtXLFdJLh8BrinY8WSJrQ/pubembed?start=false&loop=false&delayms=3000",
+                "retrieval_method": "iframe:google_slides"
+              }
+            ]
+          },
+          {
+            "page_title": "発展課題4-3-6.",
+            "page_url": "https://moocs.iniad.org/courses/2026/COT101/04-3/07",
+            "materials": [
+              {
+                "material_type": "google_slides",
+                "material_url": "https://docs.google.com/presentation/d/e/2PACX-1vQJAuR5l1TVXhJhRMZbYE0Y3tGzUgsVV15SYQZuKmLO6B5xoVnxOUrc4_0Th7cXPQ/pubembed?start=false&loop=false&delayms=3000",
+                "retrieval_method": "iframe:google_slides"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "lesson_title": "05-1: 中間試験",
+        "lesson_url": "https://moocs.iniad.org/courses/2026/COT101/05-1",
+        "pages": [
+          {
+            "page_title": "中間試験の受験方法",
+            "page_url": "https://moocs.iniad.org/courses/2026/COT101/05-1/01",
+            "materials": [
+              {
+                "material_type": "google_slides",
+                "material_url": "https://docs.google.com/presentation/d/e/2PACX-1vS8qo2jvIRu-ryxByCkIM4FYtytBEPNa1M48qNs6mw5DJlgJ8IVaz-eEgqJbWYAdQ/pubembed?start=false&loop=false&delayms=3000",
+                "retrieval_method": "iframe:google_slides"
+              }
+            ]
+          },
+          {
+            "page_title": "もったいないミスを避けるために",
+            "page_url": "https://moocs.iniad.org/courses/2026/COT101/05-1/02",
+            "materials": [
+              {
+                "material_type": "google_slides",
+                "material_url": "https://docs.google.com/presentation/d/e/2PACX-1vRWy7U6d7CH-i8RjNpxRI2OpPC0Frsf84xhEwqXI9mO367_MjB3PLFEtAfVI6D6fA/embed?start=false&loop=false&delayms=3000",
+                "retrieval_method": "iframe:google_slides"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "lesson_title": "05-2: モジュールを使いこなそう",
+        "lesson_url": "https://moocs.iniad.org/courses/2026/COT101/05-2",
+        "pages": [
+          {
+            "page_title": "前回の確認",
+            "page_url": "https://moocs.iniad.org/courses/2026/COT101/05-2/00",
+            "materials": []
+          },
+          {
+            "page_title": "1. REPLとヘルプシステム",
+            "page_url": "https://moocs.iniad.org/courses/2026/COT101/05-2/01",
+            "materials": [
+              {
+                "material_type": "google_slides",
+                "material_url": "https://docs.google.com/presentation/d/e/2PACX-1vS73mbt2sMKKtKfIX9C9ZmGorKz3VFnEmiBE_2xf53P_yEy66CYZBn6_rTKHvMNQg/embed?start=false&loop=false&delayms=3000",
+                "retrieval_method": "iframe:google_slides"
+              }
+            ]
+          },
+          {
+            "page_title": "2. モジュールを活用しよう",
+            "page_url": "https://moocs.iniad.org/courses/2026/COT101/05-2/02",
+            "materials": [
+              {
+                "material_type": "google_slides",
+                "material_url": "https://docs.google.com/presentation/d/e/2PACX-1vRhxCBjv5d4UxQ7Wnnwd6pkHg-uwqY04VvMqnmGjJXc-Ee4M68_pWx19nuY-EOrgQ/embed?start=false&loop=false&delayms=3000",
+                "retrieval_method": "iframe:google_slides"
+              }
+            ]
+          },
+          {
+            "page_title": "課題5-2-1",
+            "page_url": "https://moocs.iniad.org/courses/2026/COT101/05-2/03",
+            "materials": []
+          },
+          {
+            "page_title": "3. 辞書と集合とタプル",
+            "page_url": "https://moocs.iniad.org/courses/2026/COT101/05-2/04",
+            "materials": [
+              {
+                "material_type": "google_slides",
+                "material_url": "https://docs.google.com/presentation/d/e/2PACX-1vR80P6Iqt4XnKRzwlmh3-_fAOYDenQfvvq4Eq2iDuKFNm35h2qO1O2qrWkAP8Iy7w/embed?start=false&loop=false&delayms=3000",
+                "retrieval_method": "iframe:google_slides"
+              }
+            ]
+          },
+          {
+            "page_title": "課題5-2-2",
+            "page_url": "https://moocs.iniad.org/courses/2026/COT101/05-2/05",
+            "materials": []
+          },
+          {
+            "page_title": "重要なキーワード",
+            "page_url": "https://moocs.iniad.org/courses/2026/COT101/05-2/06",
+            "materials": [
+              {
+                "material_type": "google_slides",
+                "material_url": "https://docs.google.com/presentation/d/e/2PACX-1vS9ZL45pA-WGb25JSVH6fQHnwr0DTe5999Dq5FueYcLeoHVCOw5A-UXAc-B5O_k9g/embed?start=false&loop=false&delayms=3000",
+                "retrieval_method": "iframe:google_slides"
+              }
+            ]
+          },
+          {
+            "page_title": "課題解説",
+            "page_url": "https://moocs.iniad.org/courses/2026/COT101/05-2/review",
+            "materials": []
+          }
+        ]
+      },
+      {
+        "lesson_title": "05-3: エディタの環境を整えよう",
+        "lesson_url": "https://moocs.iniad.org/courses/2026/COT101/05-3",
+        "pages": [
+          {
+            "page_title": "出席問題",
+            "page_url": "https://moocs.iniad.org/courses/2026/COT101/05-3/00",
+            "materials": []
+          },
+          {
+            "page_title": "HTML関連のVS Codeプラグインをインストールしよう",
+            "page_url": "https://moocs.iniad.org/courses/2026/COT101/05-3/01",
+            "materials": [
+              {
+                "material_type": "google_slides",
+                "material_url": "https://docs.google.com/presentation/d/e/2PACX-1vTIMQaFrJr8GfbjYLXOrE2NRIu6chy7bftSIJpMjAi2WRL_vrVFH4JuOpmT_CCMqw/pubembed?start=false&loop=false&delayms=3000",
+                "retrieval_method": "iframe:google_slides"
+              }
+            ]
+          },
+          {
+            "page_title": "Visual Studio Codeを 使ってHTMLを作ってみよう",
+            "page_url": "https://moocs.iniad.org/courses/2026/COT101/05-3/02",
+            "materials": [
+              {
+                "material_type": "google_slides",
+                "material_url": "https://docs.google.com/presentation/d/e/2PACX-1vT2yeJbHcpiIdGtckXKAt81tRgWgEyGGC_vnqA_xXGhp5KpMy34FTAfTS6uTnZ8RQ/pubembed?start=false&loop=false&delayms=3000",
+                "retrieval_method": "iframe:google_slides"
+              }
+            ]
+          },
+          {
+            "page_title": "パッケージ管理ソフトウェアをインストールしてみよう",
+            "page_url": "https://moocs.iniad.org/courses/2026/COT101/05-3/03",
+            "materials": [
+              {
+                "material_type": "google_slides",
+                "material_url": "https://docs.google.com/presentation/d/e/2PACX-1vRg8FbaN7kfNNQGosZpE19ZAMk4HYPtTszNNLCbVdaV-8E7Bux-JlO_aYrtZdUeCA/pubembed?start=false&loop=false&delayms=3000",
+                "retrieval_method": "iframe:google_slides"
+              }
+            ]
+          },
+          {
+            "page_title": "パッケージ管理ソフトウェアを使ってみよう",
+            "page_url": "https://moocs.iniad.org/courses/2026/COT101/05-3/04",
+            "materials": [
+              {
+                "material_type": "google_slides",
+                "material_url": "https://docs.google.com/presentation/d/e/2PACX-1vTXK6E8D43qOfLO1JFIFmEB-B4Dz3mgC21nRmdi8jVRLfPHRsB8_-H3VoBy5jsOTA/pubembed?start=false&loop=false&delayms=3000",
+                "retrieval_method": "iframe:google_slides"
+              }
+            ]
+          },
+          {
+            "page_title": "今後の予定",
+            "page_url": "https://moocs.iniad.org/courses/2026/COT101/05-3/05",
+            "materials": [
+              {
+                "material_type": "google_slides",
+                "material_url": "https://docs.google.com/presentation/d/e/2PACX-1vSgGZAL5HZ6DQ1nWdgdpFeiT9bDWCMSxfHq3-1Net8cH7enkqaExpnIXqzkZM1KrQ/pubembed?start=false&loop=false&delayms=3000",
+                "retrieval_method": "iframe:google_slides"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "lesson_title": "06-1: コンピュータ・サイエンスの基礎知識",
+        "lesson_url": "https://moocs.iniad.org/courses/2026/COT101/06-1",
+        "pages": [
+          {
+            "page_title": "前回の確認",
+            "page_url": "https://moocs.iniad.org/courses/2026/COT101/06-1/06-1-0",
+            "materials": []
+          },
+          {
+            "page_title": "ファイルシステムとシェル",
+            "page_url": "https://moocs.iniad.org/courses/2026/COT101/06-1/06-1-1",
+            "materials": [
+              {
+                "material_type": "google_slides",
+                "material_url": "https://docs.google.com/presentation/d/e/2PACX-1vTGSdiy5iSG8tWobqxV1CSqSLfujDNWb2k3ATsSlvPMZ1qZ4-6xE-FxH_x0LMLcAg/embed?start=false&loop=false&delayms=3000",
+                "retrieval_method": "iframe:google_slides"
+              }
+            ]
+          },
+          {
+            "page_title": "課題06-1-1",
+            "page_url": "https://moocs.iniad.org/courses/2026/COT101/06-1/06-1-1-ex",
+            "materials": [
+              {
+                "material_type": "google_slides",
+                "material_url": "https://docs.google.com/presentation/d/e/2PACX-1vQ56Vk3IGkfmuHrN2klLXZghAvs4-SWGv51oesdVBpmZZLJ7EjSKTTH8Apvsqc05A/embed?start=false&loop=false&delayms=3000",
+                "retrieval_method": "iframe:google_slides"
+              }
+            ]
+          },
+          {
+            "page_title": "コンピュータの仕組み",
+            "page_url": "https://moocs.iniad.org/courses/2026/COT101/06-1/06-1-2",
+            "materials": [
+              {
+                "material_type": "google_slides",
+                "material_url": "https://docs.google.com/presentation/d/e/2PACX-1vTrH5wIfoaen5-3LsHygXdqMQNDrmL6Pvxf7nAqnBpfgpCcsKhSvzViMAfz7ty5iQ/embed?start=false&loop=false&delayms=3000",
+                "retrieval_method": "iframe:google_slides"
+              }
+            ]
+          },
+          {
+            "page_title": "課題06-1-2",
+            "page_url": "https://moocs.iniad.org/courses/2026/COT101/06-1/06-1-2-ex",
+            "materials": [
+              {
+                "material_type": "google_slides",
+                "material_url": "https://docs.google.com/presentation/d/e/2PACX-1vRAYM45h7olkX5I4yAHaQE-xma24md4TtqoTSHIIUgqrQXTmu9hC0Ir-E6LGaOsWA/embed?start=false&loop=false&delayms=3000",
+                "retrieval_method": "iframe:google_slides"
+              }
+            ]
+          },
+          {
+            "page_title": "情報の表現とビット",
+            "page_url": "https://moocs.iniad.org/courses/2026/COT101/06-1/06-1-3",
+            "materials": [
+              {
+                "material_type": "google_slides",
+                "material_url": "https://docs.google.com/presentation/d/e/2PACX-1vQw71WO36j4S2QBkrwV9Ll0DxtnWH28GAHDCd5sNIiNJwZmJm5bEyECW3X3pBs9iQ/embed?start=false&loop=false&delayms=3000",
+                "retrieval_method": "iframe:google_slides"
+              }
+            ]
+          },
+          {
+            "page_title": "課題06-1-3",
+            "page_url": "https://moocs.iniad.org/courses/2026/COT101/06-1/06-1-3-ex",
+            "materials": [
+              {
+                "material_type": "google_slides",
+                "material_url": "https://docs.google.com/presentation/d/e/2PACX-1vStQLpJLzDT_3xjeEbwGRa8Hjj21bUbWl6Vto-orpTHw0jkKModPoBiBwgmvaZaBA/embed?start=false&loop=false&delayms=3000",
+                "retrieval_method": "iframe:google_slides"
+              }
+            ]
+          },
+          {
+            "page_title": "数値とテキストのデジタル表現",
+            "page_url": "https://moocs.iniad.org/courses/2026/COT101/06-1/06-1-4",
+            "materials": [
+              {
+                "material_type": "google_slides",
+                "material_url": "https://docs.google.com/presentation/d/e/2PACX-1vQqBxk6USqHZnMDLgy_1RukvQ3JUuXgr-MFqalA9cF7g1tci4VcvMwT432A6BBeyg/embed?start=false&loop=false&delayms=3000",
+                "retrieval_method": "iframe:google_slides"
+              }
+            ]
+          },
+          {
+            "page_title": "課題06-1-4",
+            "page_url": "https://moocs.iniad.org/courses/2026/COT101/06-1/06-1-4-ex",
+            "materials": [
+              {
+                "material_type": "google_slides",
+                "material_url": "https://docs.google.com/presentation/d/e/2PACX-1vQBHEAGyoRuoYo_RSp1gxHk1mf00mfzsKfBjiYysy5CV9ZGh5ngDHy3zQc4Zhyqjw/embed?start=false&loop=false&delayms=3000",
+                "retrieval_method": "iframe:google_slides"
+              }
+            ]
+          },
+          {
+            "page_title": "アナログ情報のデジタル表現",
+            "page_url": "https://moocs.iniad.org/courses/2026/COT101/06-1/06-1-5",
+            "materials": [
+              {
+                "material_type": "google_slides",
+                "material_url": "https://docs.google.com/presentation/d/e/2PACX-1vSCrxIZse85rBvqfjs3hJ71vmYgT7mzMq761GU2kF436Vr0e7eyfussjjA-ZjV9Kw/embed?start=false&loop=false&delayms=3000",
+                "retrieval_method": "iframe:google_slides"
+              }
+            ]
+          },
+          {
+            "page_title": "課題解説",
+            "page_url": "https://moocs.iniad.org/courses/2026/COT101/06-1/review",
+            "materials": []
+          }
+        ]
+      },
+      {
+        "lesson_title": "06-2: Webサービスを作ってみよう",
+        "lesson_url": "https://moocs.iniad.org/courses/2026/COT101/06-2",
+        "pages": [
+          {
+            "page_title": "前回の確認",
+            "page_url": "https://moocs.iniad.org/courses/2026/COT101/06-2/06-2-0",
+            "materials": []
+          },
+          {
+            "page_title": "Webサービスは世界を変える",
+            "page_url": "https://moocs.iniad.org/courses/2026/COT101/06-2/06-2-1",
+            "materials": [
+              {
+                "material_type": "google_slides",
+                "material_url": "https://docs.google.com/presentation/d/e/2PACX-1vTbn2exYWOAXUFUQxmWS0oA91ww-EgIYRmJA4Ld-VbnUJnVrVpxE9DlQ-hqu66CrX8HA1NvKLYhoa5E/embed?start=false&loop=false&delayms=3000",
+                "retrieval_method": "iframe:google_slides"
+              }
+            ]
+          },
+          {
+            "page_title": "インターネットとWebの仕組み",
+            "page_url": "https://moocs.iniad.org/courses/2026/COT101/06-2/06-2-2",
+            "materials": [
+              {
+                "material_type": "google_slides",
+                "material_url": "https://docs.google.com/presentation/d/e/2PACX-1vRsVTKY8BNcFfK7uo711rPdbu5waMqLRSS2mn0HfVzthBG5iI4JUWsRpEYm-tKUo4u0ZTo5kiq-Xx61/embed?start=false&loop=false&delayms=3000",
+                "retrieval_method": "iframe:google_slides"
+              }
+            ]
+          },
+          {
+            "page_title": "Webサービスを動かしてみよう",
+            "page_url": "https://moocs.iniad.org/courses/2026/COT101/06-2/06-2-3",
+            "materials": [
+              {
+                "material_type": "google_slides",
+                "material_url": "https://docs.google.com/presentation/d/e/2PACX-1vSPt6oURqRzwW2v9aW69fVEHf1kHCQVARsS7c2wWIXk24I5_xv32SUpu2_r5u2ZIw/embed?start=false&loop=false&delayms=3000",
+                "retrieval_method": "iframe:google_slides"
+              }
+            ]
+          },
+          {
+            "page_title": "投票システムを作っていこう",
+            "page_url": "https://moocs.iniad.org/courses/2026/COT101/06-2/06-2-4",
+            "materials": [
+              {
+                "material_type": "google_slides",
+                "material_url": "https://docs.google.com/presentation/d/e/2PACX-1vQwP0geFFpA3xaaYXms0ACPMuE5tmMkfFaUwpbZ6NnG3P9mrDj1D2vfmOycl6jUyg/embed?start=false&loop=false&delayms=3000",
+                "retrieval_method": "iframe:google_slides"
+              }
+            ]
+          },
+          {
+            "page_title": "Webサービスのマッシュアップ",
+            "page_url": "https://moocs.iniad.org/courses/2026/COT101/06-2/06-2-5",
+            "materials": [
+              {
+                "material_type": "google_slides",
+                "material_url": "https://docs.google.com/presentation/d/e/2PACX-1vSnzoIicl1fooO4V55dGodI6kwPH44kkcyTBfd2ufSj7VBee1sGnes2HgosLI12FA/embed?start=false&loop=false&delayms=3000",
+                "retrieval_method": "iframe:google_slides"
+              }
+            ]
+          },
+          {
+            "page_title": "課題06-2-5",
+            "page_url": "https://moocs.iniad.org/courses/2026/COT101/06-2/06-2-5-ex",
+            "materials": [
+              {
+                "material_type": "google_slides",
+                "material_url": "https://docs.google.com/presentation/d/e/2PACX-1vSa2U-j-dydRQZkRpINyyTSGEQ0nCD2u8f48GsDvLdvlEgpC2FFU-_FQ7CHfzqqxA/embed?start=false&loop=false&delayms=3000",
+                "retrieval_method": "iframe:google_slides"
+              }
+            ]
+          },
+          {
+            "page_title": "課題解説",
+            "page_url": "https://moocs.iniad.org/courses/2026/COT101/06-2/review",
+            "materials": []
+          }
+        ]
+      },
+      {
+        "lesson_title": "06-3: Python/Shellを使ったファイル操作",
+        "lesson_url": "https://moocs.iniad.org/courses/2026/COT101/06-3",
+        "pages": [
+          {
+            "page_title": "出席問題",
+            "page_url": "https://moocs.iniad.org/courses/2026/COT101/06-3/0",
+            "materials": []
+          },
+          {
+            "page_title": "シェル・コマンドと相対パスの復習",
+            "page_url": "https://moocs.iniad.org/courses/2026/COT101/06-3/1",
+            "materials": [
+              {
+                "material_type": "google_slides",
+                "material_url": "https://docs.google.com/presentation/d/e/2PACX-1vSohCZD4qvwUZrKXvoo-XBbRaM01Vw17l72_S1hvPovgJDqR0SPWL_x6mMv4AMuTQ/pubembed?start=false&loop=false&delayms=60000",
+                "retrieval_method": "iframe:google_slides"
+              }
+            ]
+          },
+          {
+            "page_title": "ファイル操作",
+            "page_url": "https://moocs.iniad.org/courses/2026/COT101/06-3/2",
+            "materials": [
+              {
+                "material_type": "google_slides",
+                "material_url": "https://docs.google.com/presentation/d/e/2PACX-1vQCY9Lyg46pM1Vnl0wTdLVAjK3REdsWbPzTu12u5iRqWEPWZJBAj8C1EAFZZPmC_A/pubembed?start=false&loop=false&delayms=60000",
+                "retrieval_method": "iframe:google_slides"
+              }
+            ]
+          },
+          {
+            "page_title": "pipを用いたパッケージのインストール",
+            "page_url": "https://moocs.iniad.org/courses/2026/COT101/06-3/3",
+            "materials": [
+              {
+                "material_type": "google_slides",
+                "material_url": "https://docs.google.com/presentation/d/e/2PACX-1vRo9HrK2C4WiJzlPeA48vfoAwAfUS45-QqVT2oqoLQDzsda577QYr-RPRb1wB7Z6g/pubembed?start=false&loop=false&delayms=60000",
+                "retrieval_method": "iframe:google_slides"
+              }
+            ]
+          },
+          {
+            "page_title": "ファイルの一括処理",
+            "page_url": "https://moocs.iniad.org/courses/2026/COT101/06-3/4",
+            "materials": [
+              {
+                "material_type": "google_slides",
+                "material_url": "https://docs.google.com/presentation/d/e/2PACX-1vSdeKJsv6JnSfaoDbip-pLliCPjk07Lz9PSmF47qiybGfo2oHr8Mja0kkoS--RETw/pubembed?start=false&loop=false&delayms=60000",
+                "retrieval_method": "iframe:google_slides"
+              }
+            ]
+          },
+          {
+            "page_title": "Windows Powershellの設定変更",
+            "page_url": "https://moocs.iniad.org/courses/2026/COT101/06-3/5",
+            "materials": [
+              {
+                "material_type": "google_slides",
+                "material_url": "https://docs.google.com/presentation/d/e/2PACX-1vSKjzEWi5_cd2kp9_5IddRsujxtC01By_kkefyIPg7XGe8uG8JaSCAekBarkf7nmg/pubembed?start=false&loop=false&delayms=60000",
+                "retrieval_method": "iframe:google_slides"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "lesson_title": "07-1: HTMLによる情報表現 (1)",
+        "lesson_url": "https://moocs.iniad.org/courses/2026/COT101/07-1",
+        "pages": [
+          {
+            "page_title": "前回の確認",
+            "page_url": "https://moocs.iniad.org/courses/2026/COT101/07-1/00",
+            "materials": []
+          },
+          {
+            "page_title": "マークアップ言語とHTML",
+            "page_url": "https://moocs.iniad.org/courses/2026/COT101/07-1/01",
+            "materials": [
+              {
+                "material_type": "google_slides",
+                "material_url": "https://docs.google.com/presentation/d/e/2PACX-1vSGGoLEfrWbpaau2hdsBDfZ1XI0o_IgtwWGS8XYPv2nvZQLRFL_SwvYZ8lf8bGIYw/embed?start=false&loop=false&delayms=3000",
+                "retrieval_method": "iframe:google_slides"
+              }
+            ]
+          },
+          {
+            "page_title": "HTMLの基本構成",
+            "page_url": "https://moocs.iniad.org/courses/2026/COT101/07-1/02",
+            "materials": [
+              {
+                "material_type": "google_slides",
+                "material_url": "https://docs.google.com/presentation/d/e/2PACX-1vTueylOZZCTU3phgk7IJad0dsbpsOPdT-cM8q0aQ9_ANwv-M42v_B1UwdQguLoQ-A/embed?start=false&loop=false&delayms=3000",
+                "retrieval_method": "iframe:google_slides"
+              }
+            ]
+          },
+          {
+            "page_title": "課題1",
+            "page_url": "https://moocs.iniad.org/courses/2026/COT101/07-1/03",
+            "materials": [
+              {
+                "material_type": "google_slides",
+                "material_url": "https://docs.google.com/presentation/d/e/2PACX-1vTa5XzyNIX7-atV2QoSzv-FmmJ1F40-DKVNPvDoDFocFtu26pHpG7M2Y-S10Yh0rg/embed?start=false&loop=false&delayms=60000",
+                "retrieval_method": "iframe:google_slides"
+              }
+            ]
+          },
+          {
+            "page_title": "基本的な要素",
+            "page_url": "https://moocs.iniad.org/courses/2026/COT101/07-1/04",
+            "materials": [
+              {
+                "material_type": "google_slides",
+                "material_url": "https://docs.google.com/presentation/d/e/2PACX-1vSzOr3j3YO--8SLSNCzVCWJ3PXg3trhS4QJx-7V72rXxh0-3hKyH70C71G1mEDKEQ/embed?start=false&loop=false&delayms=60000",
+                "retrieval_method": "iframe:google_slides"
+              }
+            ]
+          },
+          {
+            "page_title": "課題2",
+            "page_url": "https://moocs.iniad.org/courses/2026/COT101/07-1/05",
+            "materials": [
+              {
+                "material_type": "google_slides",
+                "material_url": "https://docs.google.com/presentation/d/e/2PACX-1vSL3iW9UQB2Q2TJzE8zqFcFPsMnirRv-2QadLSH3Ib4JTKhDqj5hcmzcdXDgsr4Vg/embed?start=false&loop=false&delayms=60000",
+                "retrieval_method": "iframe:google_slides"
+              }
+            ]
+          },
+          {
+            "page_title": "重要なキーワード",
+            "page_url": "https://moocs.iniad.org/courses/2026/COT101/07-1/06",
+            "materials": [
+              {
+                "material_type": "google_slides",
+                "material_url": "https://docs.google.com/presentation/d/e/2PACX-1vQbRPKwp4w11oVTLH172vS6obGPo0ldDrocsPXh3FXARJCt-X8HA1pZAoqBkUXGNw/embed?start=false&loop=false&delayms=60000",
+                "retrieval_method": "iframe:google_slides"
+              }
+            ]
+          },
+          {
+            "page_title": "課題解説",
+            "page_url": "https://moocs.iniad.org/courses/2026/COT101/07-1/review",
+            "materials": []
+          }
+        ]
+      },
+      {
+        "lesson_title": "07-2: HTMLによる情報表現 (2)",
+        "lesson_url": "https://moocs.iniad.org/courses/2026/COT101/07-2",
+        "pages": [
+          {
+            "page_title": "前回の確認",
+            "page_url": "https://moocs.iniad.org/courses/2026/COT101/07-2/00",
+            "materials": []
+          },
+          {
+            "page_title": "サンプルHTMLファイルのダウンロード",
+            "page_url": "https://moocs.iniad.org/courses/2026/COT101/07-2/01",
+            "materials": [
+              {
+                "material_type": "google_slides",
+                "material_url": "https://docs.google.com/presentation/d/e/2PACX-1vRkI3sx11TMzNTkzrVDfinyY2zQ18ZBKjwV1G-lY7VR3gQXkWmX5Gg867W8vG8BWg/embed?start=false&loop=false&delayms=60000",
+                "retrieval_method": "iframe:google_slides"
+              }
+            ]
+          },
+          {
+            "page_title": "URLの指定",
+            "page_url": "https://moocs.iniad.org/courses/2026/COT101/07-2/02",
+            "materials": [
+              {
+                "material_type": "google_slides",
+                "material_url": "https://docs.google.com/presentation/d/e/2PACX-1vQlIQm39vZykfWgE0sCnlv0FILUUHIowEVYebwKtw0wfLlD7wF74ZfsnDH7cR1uFA/embed?start=false&loop=false&delayms=60000",
+                "retrieval_method": "iframe:google_slides"
+              }
+            ]
+          },
+          {
+            "page_title": "表とフォーム",
+            "page_url": "https://moocs.iniad.org/courses/2026/COT101/07-2/03",
+            "materials": [
+              {
+                "material_type": "google_slides",
+                "material_url": "https://docs.google.com/presentation/d/e/2PACX-1vSMCILTxgFX4fmk0qD6xSpR0G0W8hdExKF8ir_sq68kr0vyW2nrrokx3nfndNPJeA/embed?start=false&loop=false&delayms=60000",
+                "retrieval_method": "iframe:google_slides"
+              }
+            ]
+          },
+          {
+            "page_title": "課題1",
+            "page_url": "https://moocs.iniad.org/courses/2026/COT101/07-2/04",
+            "materials": [
+              {
+                "material_type": "google_slides",
+                "material_url": "https://docs.google.com/presentation/d/e/2PACX-1vRVlIpX6ENQUbFFHBQ_0h8oRfT8KP5Lj3mBlAuIZgin4n-7Bb6YOZg7b3td1f5y4Q/embed?start=false&loop=false&delayms=60000",
+                "retrieval_method": "iframe:google_slides"
+              }
+            ]
+          },
+          {
+            "page_title": "HTML記述のルール",
+            "page_url": "https://moocs.iniad.org/courses/2026/COT101/07-2/05",
+            "materials": [
+              {
+                "material_type": "google_slides",
+                "material_url": "https://docs.google.com/presentation/d/e/2PACX-1vQADXGfhv5O_oJfZcumskC8tubvqqI0GRQaf0JN1AFkE3NyPaSS9XSQYo2oF3V-Xw/embed?start=false&loop=false&delayms=60000",
+                "retrieval_method": "iframe:google_slides"
+              }
+            ]
+          },
+          {
+            "page_title": "課題2",
+            "page_url": "https://moocs.iniad.org/courses/2026/COT101/07-2/06",
+            "materials": [
+              {
+                "material_type": "google_slides",
+                "material_url": "https://docs.google.com/presentation/d/e/2PACX-1vRRbmPJ5VkgN-Y2L4UQg5kH9dov4k3-Z3NxtTuQq2F8FL02VqhsUeCPObWlbR3GyQ/embed?start=false&loop=false&delayms=60000",
+                "retrieval_method": "iframe:google_slides"
+              }
+            ]
+          },
+          {
+            "page_title": "重要なキーワード",
+            "page_url": "https://moocs.iniad.org/courses/2026/COT101/07-2/07",
+            "materials": [
+              {
+                "material_type": "google_slides",
+                "material_url": "https://docs.google.com/presentation/d/e/2PACX-1vRS7gQqjYwY013dblmlRPFHJKwcS2H5_nhrPFkllBxFMZUoAemTbIAJzyP2qkWghQ/embed?start=false&loop=false&delayms=60000",
+                "retrieval_method": "iframe:google_slides"
+              }
+            ]
+          },
+          {
+            "page_title": "課題解説",
+            "page_url": "https://moocs.iniad.org/courses/2026/COT101/07-2/review",
+            "materials": []
+          }
+        ]
+      },
+      {
+        "lesson_title": "07-3: HTMLを使ってみよう",
+        "lesson_url": "https://moocs.iniad.org/courses/2026/COT101/07-3",
+        "pages": [
+          {
+            "page_title": "出席問題",
+            "page_url": "https://moocs.iniad.org/courses/2026/COT101/07-3/0",
+            "materials": []
+          },
+          {
+            "page_title": "HTMLの復習",
+            "page_url": "https://moocs.iniad.org/courses/2026/COT101/07-3/1",
+            "materials": [
+              {
+                "material_type": "google_slides",
+                "material_url": "https://docs.google.com/presentation/d/e/2PACX-1vRR7uacYvp-cxdJDeHPqZ2zqv3pvHPfqfqmpZnYVd6xvRChWnuq545-WDD1OotBtQ/pubembed?start=false&loop=false&delayms=3000",
+                "retrieval_method": "iframe:google_slides"
+              }
+            ]
+          },
+          {
+            "page_title": "Visual Studio Codeの基本的な使い方",
+            "page_url": "https://moocs.iniad.org/courses/2026/COT101/07-3/2",
+            "materials": [
+              {
+                "material_type": "google_slides",
+                "material_url": "https://docs.google.com/presentation/d/e/2PACX-1vQsaROR_959FiEnwgkNDIFWOM4gGwqDZ5ijA6kPdeEd2PZNVtRa2RsdAYBXUiVaAg/pubembed?start=false&loop=false&delayms=3000",
+                "retrieval_method": "iframe:google_slides"
+              }
+            ]
+          },
+          {
+            "page_title": "課題1",
+            "page_url": "https://moocs.iniad.org/courses/2026/COT101/07-3/3",
+            "materials": [
+              {
+                "material_type": "google_slides",
+                "material_url": "https://docs.google.com/presentation/d/e/2PACX-1vRAB7nr6JuL3VulOYtJ0fV9gnzCua87ZnOEzxARNbxf5mqMLPFNnIJRXDMe-YT1Zg/pubembed?start=false&loop=false&delayms=3000",
+                "retrieval_method": "iframe:google_slides"
+              }
+            ]
+          },
+          {
+            "page_title": "課題2",
+            "page_url": "https://moocs.iniad.org/courses/2026/COT101/07-3/4",
+            "materials": [
+              {
+                "material_type": "google_slides",
+                "material_url": "https://docs.google.com/presentation/d/e/2PACX-1vSjOX-y_0EUXL1as6D3D4RKpjHGVmCzaoTsSm5G2Pk7cujoBeCLcBUC6UVdwKtP8w/pubembed?start=false&loop=false&delayms=3000",
+                "retrieval_method": "iframe:google_slides"
+              }
+            ]
+          },
+          {
+            "page_title": "課題3",
+            "page_url": "https://moocs.iniad.org/courses/2026/COT101/07-3/5",
+            "materials": [
+              {
+                "material_type": "google_slides",
+                "material_url": "https://docs.google.com/presentation/d/e/2PACX-1vSOZxB5jze9nPvW8yZQn0yYAclUyUitk8L6v3n73ASCCXIyjLrYwdjlOiNc2l9hGQ/pubembed?start=false&loop=false&delayms=3000",
+                "retrieval_method": "iframe:google_slides"
+              }
+            ]
+          },
+          {
+            "page_title": "(発展)課題4",
+            "page_url": "https://moocs.iniad.org/courses/2026/COT101/07-3/6",
+            "materials": [
+              {
+                "material_type": "google_slides",
+                "material_url": "https://docs.google.com/presentation/d/e/2PACX-1vR9plcHY1xlvzYCq19bHOifcgnQsdiiBhFUCWe8rQw0LaMIw3kNxIu8T1QHveHnVg/pubembed?start=false&loop=false&delayms=3000",
+                "retrieval_method": "iframe:google_slides"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "lesson_title": "08-1: CSS (Cascading Style Sheet) その１",
+        "lesson_url": "https://moocs.iniad.org/courses/2026/COT101/08-1",
+        "pages": [
+          {
+            "page_title": "前回の確認",
+            "page_url": "https://moocs.iniad.org/courses/2026/COT101/08-1/00",
+            "materials": []
+          },
+          {
+            "page_title": "CSS (Cascading Style Sheets)",
+            "page_url": "https://moocs.iniad.org/courses/2026/COT101/08-1/01",
+            "materials": [
+              {
+                "material_type": "google_slides",
+                "material_url": "https://docs.google.com/presentation/d/e/2PACX-1vSMz9hxR2E4ZL6C6KoTR0oT9zuZFmYn_DXjhCa5eFuMKLdVVq79umUF_Pm3tQa-3w/embed?start=false&loop=false&delayms=60000",
+                "retrieval_method": "iframe:google_slides"
+              }
+            ]
+          },
+          {
+            "page_title": "CSSの基本",
+            "page_url": "https://moocs.iniad.org/courses/2026/COT101/08-1/02",
+            "materials": [
+              {
+                "material_type": "google_slides",
+                "material_url": "https://docs.google.com/presentation/d/e/2PACX-1vRrvpPsCUjS4S9nzVpp9mXe1nBSEr92KLeSJbgDSNAEXPIVyIjBDD1jiMr2npV6ow/embed?start=false&loop=false&delayms=60000",
+                "retrieval_method": "iframe:google_slides"
+              }
+            ]
+          },
+          {
+            "page_title": "課題 8-1-1",
+            "page_url": "https://moocs.iniad.org/courses/2026/COT101/08-1/03",
+            "materials": [
+              {
+                "material_type": "google_slides",
+                "material_url": "https://docs.google.com/presentation/d/e/2PACX-1vQTlF1gQ9AjEsH4xAp8qRBTyFJ5XcuCQDsdl29aVputDXtMJz0YLBNQT2xKK6ynRA/embed?start=false&loop=false&delayms=60000",
+                "retrieval_method": "iframe:google_slides"
+              }
+            ]
+          },
+          {
+            "page_title": "レイアウトを指定する",
+            "page_url": "https://moocs.iniad.org/courses/2026/COT101/08-1/04",
+            "materials": [
+              {
+                "material_type": "google_slides",
+                "material_url": "https://docs.google.com/presentation/d/e/2PACX-1vRQ15lEa_jAtCiGeo6veRxt17t0QV1Jv-uuZCCNjo5WsMR1dM_jheXchmhJLq5R-w/embed?start=false&loop=false&delayms=3000",
+                "retrieval_method": "iframe:google_slides"
+              }
+            ]
+          },
+          {
+            "page_title": "課題 8-1-2",
+            "page_url": "https://moocs.iniad.org/courses/2026/COT101/08-1/05",
+            "materials": [
+              {
+                "material_type": "google_slides",
+                "material_url": "https://docs.google.com/presentation/d/e/2PACX-1vRyeWCWPQCRaNdez7B4lOnEOhPgjOSGfSsbltjKQGlHSKYgVkLsjOVc2ITWJre3nQ/embed?start=false&loop=false&delayms=60000",
+                "retrieval_method": "iframe:google_slides"
+              }
+            ]
+          },
+          {
+            "page_title": "重要なキーワード",
+            "page_url": "https://moocs.iniad.org/courses/2026/COT101/08-1/06",
+            "materials": [
+              {
+                "material_type": "google_slides",
+                "material_url": "https://docs.google.com/presentation/d/e/2PACX-1vSiW7c1zVxLhi2M6nYswRJkwSEY-z3NfjU353sOjPrYb5DfdvvfUzJeWSH7CVU79Q/embed?start=false&loop=false&delayms=60000",
+                "retrieval_method": "iframe:google_slides"
+              }
+            ]
+          },
+          {
+            "page_title": "課題解説",
+            "page_url": "https://moocs.iniad.org/courses/2026/COT101/08-1/review",
+            "materials": []
+          }
+        ]
+      },
+      {
+        "lesson_title": "08-2: CSS (Cascading Style Sheet) その2",
+        "lesson_url": "https://moocs.iniad.org/courses/2026/COT101/08-2",
+        "pages": [
+          {
+            "page_title": "前回の確認",
+            "page_url": "https://moocs.iniad.org/courses/2026/COT101/08-2/00",
+            "materials": []
+          },
+          {
+            "page_title": "セレクタで要素を指定する",
+            "page_url": "https://moocs.iniad.org/courses/2026/COT101/08-2/01",
+            "materials": [
+              {
+                "material_type": "google_slides",
+                "material_url": "https://docs.google.com/presentation/d/e/2PACX-1vSOPzateg24c6uEXAPGHZYXEMtdrOlt_GyRKw_6P1KaKdMnE2yUKMTSI2rnYRStSA/embed?start=false&loop=false&delayms=3000",
+                "retrieval_method": "iframe:google_slides"
+              }
+            ]
+          },
+          {
+            "page_title": "課題 8-2-1",
+            "page_url": "https://moocs.iniad.org/courses/2026/COT101/08-2/02",
+            "materials": [
+              {
+                "material_type": "google_slides",
+                "material_url": "https://docs.google.com/presentation/d/e/2PACX-1vQh3J-tU9B-lmEGA3x-D6XTfPhtqe8cRzxv1_gJGXNtu5HiiiPr-wlekXnIJrQBaQ/embed?start=false&loop=false&delayms=3000",
+                "retrieval_method": "iframe:google_slides"
+              }
+            ]
+          },
+          {
+            "page_title": "より柔軟なスタイル付け",
+            "page_url": "https://moocs.iniad.org/courses/2026/COT101/08-2/03",
+            "materials": [
+              {
+                "material_type": "google_slides",
+                "material_url": "https://docs.google.com/presentation/d/e/2PACX-1vTm4M99qZ-K7yCEr-4kf_oWP1A_04znYsG4gs2M8S9z0MxuCCM_GUHpABDIVfDuXA/embed?start=false&loop=false&delayms=3000",
+                "retrieval_method": "iframe:google_slides"
+              }
+            ]
+          },
+          {
+            "page_title": "課題 8-2-2",
+            "page_url": "https://moocs.iniad.org/courses/2026/COT101/08-2/04",
+            "materials": [
+              {
+                "material_type": "google_slides",
+                "material_url": "https://docs.google.com/presentation/d/e/2PACX-1vQ-yQRjTJ8BDgwvbcRhDVRZiOsag8RM9nWBassvrrf6OqK-NemZZ0p6dp9CcFwmXQ/embed?start=false&loop=false&delayms=60000",
+                "retrieval_method": "iframe:google_slides"
+              }
+            ]
+          },
+          {
+            "page_title": "ユーザ・インタフェースとは",
+            "page_url": "https://moocs.iniad.org/courses/2026/COT101/08-2/05",
+            "materials": [
+              {
+                "material_type": "google_slides",
+                "material_url": "https://docs.google.com/presentation/d/e/2PACX-1vQRwg22DNAUezx0oVUfgARv8lw262xoKD6S7xtpKjPHplWXkFlYPU-y24Y1DhXdxw/embed?start=false&loop=false&delayms=60000",
+                "retrieval_method": "iframe:google_slides"
+              }
+            ]
+          },
+          {
+            "page_title": "課題 8-2-3",
+            "page_url": "https://moocs.iniad.org/courses/2026/COT101/08-2/06",
+            "materials": [
+              {
+                "material_type": "google_slides",
+                "material_url": "https://docs.google.com/presentation/d/e/2PACX-1vQ1n_CZy3uZK5Dv_GBCg9oJy6-_5O7bJDNAK-eROmdpA79ZSY9xAvlU7_6N0362fg/embed?start=false&loop=false&delayms=60000",
+                "retrieval_method": "iframe:google_slides"
+              }
+            ]
+          },
+          {
+            "page_title": "重要なキーワード",
+            "page_url": "https://moocs.iniad.org/courses/2026/COT101/08-2/07",
+            "materials": [
+              {
+                "material_type": "google_slides",
+                "material_url": "https://docs.google.com/presentation/d/e/2PACX-1vSb3HnPzOVgmXCliHNNkr3P7kJO8bf2wBdNTEo_3X9dbcwLuVO4xgg19PttI4qbcQ/embed?start=false&loop=false&delayms=3000",
+                "retrieval_method": "iframe:google_slides"
+              }
+            ]
+          },
+          {
+            "page_title": "課題解説",
+            "page_url": "https://moocs.iniad.org/courses/2026/COT101/08-2/review",
+            "materials": []
+          }
+        ]
+      },
+      {
+        "lesson_title": "09-1: GitHubを使ってみよう",
+        "lesson_url": "https://moocs.iniad.org/courses/2026/COT101/09-1",
+        "pages": [
+          {
+            "page_title": "前回の確認",
+            "page_url": "https://moocs.iniad.org/courses/2026/COT101/09-1/00",
+            "materials": []
+          },
+          {
+            "page_title": "チーム開発とGitHub",
+            "page_url": "https://moocs.iniad.org/courses/2026/COT101/09-1/09-1-1",
+            "materials": [
+              {
+                "material_type": "google_slides",
+                "material_url": "https://docs.google.com/presentation/d/e/2PACX-1vQX7ZwgcjM2Z2nwAW8LeBjFDLY4meu9F_qrI5Kb_hG_leVgqnBI8jQISOQfSoC5SQ/embed?start=false&loop=false&delayms=3000",
+                "retrieval_method": "iframe:google_slides"
+              }
+            ]
+          },
+          {
+            "page_title": "GitHubの環境を準備しよう",
+            "page_url": "https://moocs.iniad.org/courses/2026/COT101/09-1/09-1-2",
+            "materials": [
+              {
+                "material_type": "google_slides",
+                "material_url": "https://docs.google.com/presentation/d/e/2PACX-1vQmYudDewSW9B6wvFBSs8T2415IeXMLAq9gKoBUvC8XuOYnpc6FhXd_H1Gg2nQMpQ/pubembed?start=false&loop=false&delayms=3000",
+                "retrieval_method": "iframe:google_slides"
+              }
+            ]
+          },
+          {
+            "page_title": "リポジトリを作ってみよう",
+            "page_url": "https://moocs.iniad.org/courses/2026/COT101/09-1/09-1-3",
+            "materials": [
+              {
+                "material_type": "google_slides",
+                "material_url": "https://docs.google.com/presentation/d/e/2PACX-1vQ7ZjtuUvkn2wR7YWNZ-iEN0nP6dcisLA51c2nriwC8Ifijw04NQm6R8_Wf2gB8kw/pubembed?start=false&loop=false&delayms=3000",
+                "retrieval_method": "iframe:google_slides"
+              }
+            ]
+          },
+          {
+            "page_title": "コミット(commit)とプッシュ(push)",
+            "page_url": "https://moocs.iniad.org/courses/2026/COT101/09-1/09-1-4",
+            "materials": [
+              {
+                "material_type": "google_slides",
+                "material_url": "https://docs.google.com/presentation/d/e/2PACX-1vS6-XY_RbrTcM7XBTdS846HpS94oiHrPB4YYd8_6ptoYJfamENt1RBxZjS0-QYGpQ/embed?start=false&loop=false&delayms=3000",
+                "retrieval_method": "iframe:google_slides"
+              }
+            ]
+          },
+          {
+            "page_title": "課題 09-1-1",
+            "page_url": "https://moocs.iniad.org/courses/2026/COT101/09-1/09-1-5",
+            "materials": [
+              {
+                "material_type": "google_slides",
+                "material_url": "https://docs.google.com/presentation/d/e/2PACX-1vQP_Wq71GEUujxxRcDioa86xMk4PR2DMcSYPEctqzOUaNWmanYeWv3tLIGNWqsNkw/embed?start=false&loop=false&delayms=3000",
+                "retrieval_method": "iframe:google_slides"
+              }
+            ]
+          },
+          {
+            "page_title": "重要なキーワード",
+            "page_url": "https://moocs.iniad.org/courses/2026/COT101/09-1/09-1-6",
+            "materials": [
+              {
+                "material_type": "google_slides",
+                "material_url": "https://docs.google.com/presentation/d/e/2PACX-1vQJ07gXnf_kKfv1JZu7u_Ku5l4XMzHeWS709EaK0zZUdK4NZlwjoAuJexEOBgx1qg/embed?start=false&loop=false&delayms=3000",
+                "retrieval_method": "iframe:google_slides"
+              }
+            ]
+          },
+          {
+            "page_title": "課題解説",
+            "page_url": "https://moocs.iniad.org/courses/2026/COT101/09-1/review",
+            "materials": []
+          }
+        ]
+      },
+      {
+        "lesson_title": "09-2: GitHubを用いたチーム開発",
+        "lesson_url": "https://moocs.iniad.org/courses/2026/COT101/09-2",
+        "pages": [
+          {
+            "page_title": "前回の確認",
+            "page_url": "https://moocs.iniad.org/courses/2026/COT101/09-2/00",
+            "materials": []
+          },
+          {
+            "page_title": "チームのレポジトリを作ろう",
+            "page_url": "https://moocs.iniad.org/courses/2026/COT101/09-2/09-2-1",
+            "materials": [
+              {
+                "material_type": "google_slides",
+                "material_url": "https://docs.google.com/presentation/d/e/2PACX-1vR_DUd-YueXOGbOfcCD8XBjtc6a_yEXL3v4osPfDGJ4RTinwa4HXiDScWRqQrK5Hg/embed?start=false&loop=false&delayms=3000",
+                "retrieval_method": "iframe:google_slides"
+              }
+            ]
+          },
+          {
+            "page_title": "イシュー(チケット)を使って仕事をしよう",
+            "page_url": "https://moocs.iniad.org/courses/2026/COT101/09-2/09-2-2",
+            "materials": [
+              {
+                "material_type": "google_slides",
+                "material_url": "https://docs.google.com/presentation/d/e/2PACX-1vTpW9np072jaLncmIDkOgy-IE7aJbEL89Y52ntSHuP6Qxppe51PRd8ultCQQarIsQ/embed?start=false&loop=false&delayms=3000",
+                "retrieval_method": "iframe:google_slides"
+              }
+            ]
+          },
+          {
+            "page_title": "課題 09-2-1",
+            "page_url": "https://moocs.iniad.org/courses/2026/COT101/09-2/09-2-3",
+            "materials": [
+              {
+                "material_type": "google_slides",
+                "material_url": "https://docs.google.com/presentation/d/e/2PACX-1vTwLqPNdU2ltccwzAL4_O9nz_rJB5UkqAyZjsp2ZqgWwhW52qee52pWe5RGWhon-g/embed?start=false&loop=false&delayms=3000",
+                "retrieval_method": "iframe:google_slides"
+              }
+            ]
+          },
+          {
+            "page_title": "重要なキーワード",
+            "page_url": "https://moocs.iniad.org/courses/2026/COT101/09-2/09-2-4",
+            "materials": [
+              {
+                "material_type": "google_slides",
+                "material_url": "https://docs.google.com/presentation/d/e/2PACX-1vS3EtIh-_TxAgTPwF1B48C02EO6uaFGHfVsVW7snRdXofIo0r9FvEteSGQCbasWwg/embed?start=false&loop=false&delayms=3000",
+                "retrieval_method": "iframe:google_slides"
+              }
+            ]
+          },
+          {
+            "page_title": "課題解説",
+            "page_url": "https://moocs.iniad.org/courses/2026/COT101/09-2/review",
+            "materials": []
+          }
+        ]
+      },
+      {
+        "lesson_title": "10-1: コンフリクトの解決とブランチ",
+        "lesson_url": "https://moocs.iniad.org/courses/2026/COT101/10-1",
+        "pages": [
+          {
+            "page_title": "前回の確認",
+            "page_url": "https://moocs.iniad.org/courses/2026/COT101/10-1/00",
+            "materials": []
+          },
+          {
+            "page_title": "チームでのコミットとプッシュ",
+            "page_url": "https://moocs.iniad.org/courses/2026/COT101/10-1/10-1-1",
+            "materials": [
+              {
+                "material_type": "google_slides",
+                "material_url": "https://docs.google.com/presentation/d/e/2PACX-1vQNOroWZ1A87bVPxcAK_4sSfMY2EtnU7q44K_TEUrZg_uPMYeV9-Hpjsbh63t09Og/embed?start=false&loop=false&delayms=3000",
+                "retrieval_method": "iframe:google_slides"
+              }
+            ]
+          },
+          {
+            "page_title": "プッシュとマージを体験しよう",
+            "page_url": "https://moocs.iniad.org/courses/2026/COT101/10-1/10-1-2",
+            "materials": [
+              {
+                "material_type": "google_slides",
+                "material_url": "https://docs.google.com/presentation/d/e/2PACX-1vQZnaf_1Ov9LGEgqevniGYmM1j_az82pkXrk5di3wvxNAUMom1MkHUJ-Vl-rI7qKQ/embed?start=false&loop=false&delayms=3000",
+                "retrieval_method": "iframe:google_slides"
+              }
+            ]
+          },
+          {
+            "page_title": "ブランチを用いた開発",
+            "page_url": "https://moocs.iniad.org/courses/2026/COT101/10-1/10-1-3",
+            "materials": [
+              {
+                "material_type": "google_slides",
+                "material_url": "https://docs.google.com/presentation/d/e/2PACX-1vRahnzrqv1VekNcpFAP6JQrTKCLk-P62O4lb_G5xNiajzqnmXC_9OAh6yhChWT96A/embed?start=false&loop=false&delayms=3000",
+                "retrieval_method": "iframe:google_slides"
+              }
+            ]
+          },
+          {
+            "page_title": "コンフリクトの解消を体験",
+            "page_url": "https://moocs.iniad.org/courses/2026/COT101/10-1/10-1-4",
+            "materials": [
+              {
+                "material_type": "google_slides",
+                "material_url": "https://docs.google.com/presentation/d/e/2PACX-1vR0cSW-t3s20xUIcDOIG9o8539upn3_NEXPvjrb60ASBFOPe3FMOnmfpZK4G07lpg/embed?start=false&loop=false&delayms=3000",
+                "retrieval_method": "iframe:google_slides"
+              }
+            ]
+          },
+          {
+            "page_title": "おまけ. Gitを使いこなすために (発展)",
+            "page_url": "https://moocs.iniad.org/courses/2026/COT101/10-1/10-1-5",
+            "materials": [
+              {
+                "material_type": "google_slides",
+                "material_url": "https://docs.google.com/presentation/d/e/2PACX-1vRRgkBgXUoVUAmXu8cptj24pr3P-utDWzNYZZBe9E3HlCfqjDonz_k2F1-QYjbfzQ/embed?start=false&loop=false&delayms=3000",
+                "retrieval_method": "iframe:google_slides"
+              }
+            ]
+          },
+          {
+            "page_title": "課題 10-1-1",
+            "page_url": "https://moocs.iniad.org/courses/2026/COT101/10-1/10-1-6",
+            "materials": [
+              {
+                "material_type": "google_slides",
+                "material_url": "https://docs.google.com/presentation/d/e/2PACX-1vQPYQ3HSpWSR3JpGwUb_mL2TlV6QgRVoMZ4BNNBuEMof-A7ILQuRp-u7x9z7hCGKw/embed?start=false&loop=false&delayms=3000",
+                "retrieval_method": "iframe:google_slides"
+              }
+            ]
+          },
+          {
+            "page_title": "重要なキーワード",
+            "page_url": "https://moocs.iniad.org/courses/2026/COT101/10-1/10-1-8",
+            "materials": [
+              {
+                "material_type": "google_slides",
+                "material_url": "https://docs.google.com/presentation/d/e/2PACX-1vT2xcJyM7RgRyVxMqRiyQZOdOffh0ThqcubljPDZpnCjUQfCQIWu6Ks4daRtFlZqg/embed?start=false&loop=false&delayms=3000",
+                "retrieval_method": "iframe:google_slides"
+              }
+            ]
+          },
+          {
+            "page_title": "課題解説",
+            "page_url": "https://moocs.iniad.org/courses/2026/COT101/10-1/review",
+            "materials": []
+          }
+        ]
+      },
+      {
+        "lesson_title": "10-2: アジャイルソフトウェア開発",
+        "lesson_url": "https://moocs.iniad.org/courses/2026/COT101/10-2",
+        "pages": [
+          {
+            "page_title": "前回の確認",
+            "page_url": "https://moocs.iniad.org/courses/2026/COT101/10-2/00",
+            "materials": []
+          },
+          {
+            "page_title": "アジャイルソフトウェア開発とは？",
+            "page_url": "https://moocs.iniad.org/courses/2026/COT101/10-2/01",
+            "materials": [
+              {
+                "material_type": "google_slides",
+                "material_url": "https://docs.google.com/presentation/d/e/2PACX-1vSjfYBIN_fSVGVjp01JARVFT4aqGbiNRi9sm-V8ndZc8nsfGeEWs05UMEP00pzOqg/embed?start=false&loop=false&delayms=3000",
+                "retrieval_method": "iframe:google_slides"
+              }
+            ]
+          },
+          {
+            "page_title": "インセプションデッキ",
+            "page_url": "https://moocs.iniad.org/courses/2026/COT101/10-2/02",
+            "materials": [
+              {
+                "material_type": "google_slides",
+                "material_url": "https://docs.google.com/presentation/d/e/2PACX-1vRpyNB9heKs3-6ZAvCPmFHF1Ldv62vbvj5MCeB4d4CGV-f3owZr9GAvsasT-oq_0Q/embed?start=false&loop=false&delayms=3000",
+                "retrieval_method": "iframe:google_slides"
+              }
+            ]
+          },
+          {
+            "page_title": "カンバンボードによるプロジェクトの可視化",
+            "page_url": "https://moocs.iniad.org/courses/2026/COT101/10-2/03",
+            "materials": [
+              {
+                "material_type": "google_slides",
+                "material_url": "https://docs.google.com/presentation/d/e/2PACX-1vTJUz9vwNp050-S2o-TXzeeCNVVYsA_cOMZyayoPK-er3ufPvA5v0pm60Bnp92W5w/pubembed?start=false&loop=false&delayms=3000",
+                "retrieval_method": "iframe:google_slides"
+              }
+            ]
+          },
+          {
+            "page_title": "スクラムとプロジェクトの組織化",
+            "page_url": "https://moocs.iniad.org/courses/2026/COT101/10-2/04",
+            "materials": [
+              {
+                "material_type": "google_slides",
+                "material_url": "https://docs.google.com/presentation/d/e/2PACX-1vT8FoK1_XcgOtXDrKsssZ1-zYSg_CZmwE8SzKywsxhC4YhcxKBOaX9eeHhjEUFk4Q/embed?start=false&loop=false&delayms=3000",
+                "retrieval_method": "iframe:google_slides"
+              }
+            ]
+          },
+          {
+            "page_title": "課題",
+            "page_url": "https://moocs.iniad.org/courses/2026/COT101/10-2/ex1",
+            "materials": []
+          },
+          {
+            "page_title": "課題解説",
+            "page_url": "https://moocs.iniad.org/courses/2026/COT101/10-2/review",
+            "materials": []
+          }
+        ]
+      },
+      {
+        "lesson_title": "11-1: 正規表現を学ぼう",
+        "lesson_url": "https://moocs.iniad.org/courses/2026/COT101/11-1",
+        "pages": [
+          {
+            "page_title": "前回の確認",
+            "page_url": "https://moocs.iniad.org/courses/2026/COT101/11-1/11-1-0",
+            "materials": []
+          },
+          {
+            "page_title": "文字列のいろいろ",
+            "page_url": "https://moocs.iniad.org/courses/2026/COT101/11-1/11-1-1",
+            "materials": [
+              {
+                "material_type": "google_slides",
+                "material_url": "https://docs.google.com/presentation/d/e/2PACX-1vQ2-GNz4FF4SCyht0u8PWJGb3LSWdr3L4F_ulIj3Ecwq2TMqtUncwv9YzyP9Vm6Lw/embed?start=false&loop=false&delayms=3000",
+                "retrieval_method": "iframe:google_slides"
+              }
+            ]
+          },
+          {
+            "page_title": "課題 1",
+            "page_url": "https://moocs.iniad.org/courses/2026/COT101/11-1/11-1-ex1",
+            "materials": [
+              {
+                "material_type": "google_slides",
+                "material_url": "https://docs.google.com/presentation/d/e/2PACX-1vQ0YgXDvhlSay9s5pMMNcwj8ACBol-IKj0ZS4WMIPGJinIjfqv3s9hD-gDI3vhvU6fp2t0HiYOEKEit/embed?start=false&loop=false&delayms=3000",
+                "retrieval_method": "iframe:google_slides"
+              }
+            ]
+          },
+          {
+            "page_title": "正規表現によるパターンの表現",
+            "page_url": "https://moocs.iniad.org/courses/2026/COT101/11-1/11-1-2",
+            "materials": [
+              {
+                "material_type": "google_slides",
+                "material_url": "https://docs.google.com/presentation/d/e/2PACX-1vTyIdM5Osxuk4pOzXRMxtX0vZWts191pgkcX_qfhwffsdcHRing0DoTs5sNjD5ooQ/embed?start=false&loop=false&delayms=3000",
+                "retrieval_method": "iframe:google_slides"
+              }
+            ]
+          },
+          {
+            "page_title": "課題 2",
+            "page_url": "https://moocs.iniad.org/courses/2026/COT101/11-1/11-1-ex2",
+            "materials": [
+              {
+                "material_type": "google_slides",
+                "material_url": "https://docs.google.com/presentation/d/e/2PACX-1vRnAcf23ZOunEK0wsnMYvxUubrTUdF5FD3R6Kc6aD0iy9SpSOCORnRLy4hZQeEZHg/embed?start=false&loop=false&delayms=3000",
+                "retrieval_method": "iframe:google_slides"
+              }
+            ]
+          },
+          {
+            "page_title": "Pythonから正規表現を利用しよう",
+            "page_url": "https://moocs.iniad.org/courses/2026/COT101/11-1/11-1-3",
+            "materials": [
+              {
+                "material_type": "google_slides",
+                "material_url": "https://docs.google.com/presentation/d/e/2PACX-1vQc8zlTp3NtuLub7kr2XtIzFYbs4zimBkNy9mqlkiRx1tATVsbQ6kQ2lsoR3RUH-g/embed?start=false&loop=false&delayms=3000",
+                "retrieval_method": "iframe:google_slides"
+              }
+            ]
+          },
+          {
+            "page_title": "課題 3",
+            "page_url": "https://moocs.iniad.org/courses/2026/COT101/11-1/11-1-ex3",
+            "materials": [
+              {
+                "material_type": "google_slides",
+                "material_url": "https://docs.google.com/presentation/d/e/2PACX-1vRKR3Dbm_B2cZCB11wGc_V0R2T4a-gaRdvborfiFGgozyFOTHX8uuu73o5MxYSaCw/embed?start=false&loop=false&delayms=3000",
+                "retrieval_method": "iframe:google_slides"
+              }
+            ]
+          },
+          {
+            "page_title": "マッチした結果を利用しよう",
+            "page_url": "https://moocs.iniad.org/courses/2026/COT101/11-1/11-1-4",
+            "materials": [
+              {
+                "material_type": "google_slides",
+                "material_url": "https://docs.google.com/presentation/d/e/2PACX-1vTjJe2xDLKlAZfGfsjFAb-dtd6zQMwAxZDGZX_aLb3KbLrU-tJX93ZpuWOtCzB_rA/embed?start=false&loop=false&delayms=3000",
+                "retrieval_method": "iframe:google_slides"
+              }
+            ]
+          },
+          {
+            "page_title": "課題 4",
+            "page_url": "https://moocs.iniad.org/courses/2026/COT101/11-1/11-1-ex4",
+            "materials": [
+              {
+                "material_type": "google_slides",
+                "material_url": "https://docs.google.com/presentation/d/e/2PACX-1vSYKJJAqIiqRoffAFwLAzV-fNFLVpn8yaIJWTFw4M6s9XjXceFWxZtUITicxaQKAA/embed?start=false&loop=false&delayms=3000",
+                "retrieval_method": "iframe:google_slides"
+              }
+            ]
+          },
+          {
+            "page_title": "重要なキーワード",
+            "page_url": "https://moocs.iniad.org/courses/2026/COT101/11-1/11-1-kwd",
+            "materials": [
+              {
+                "material_type": "google_slides",
+                "material_url": "https://docs.google.com/presentation/d/e/2PACX-1vTAdD01v6FsdN2uj0vrEI0JeWERvoeQGR7egpp1GQZ0d8DIrr0gkr1YuR1bR4dPTppu8-ymmehwNg97/embed?start=false&loop=false&delayms=3000",
+                "retrieval_method": "iframe:google_slides"
+              }
+            ]
+          },
+          {
+            "page_title": "課題解説",
+            "page_url": "https://moocs.iniad.org/courses/2026/COT101/11-1/review",
+            "materials": []
+          }
+        ]
+      },
+      {
+        "lesson_title": "12-1: オブジェクト指向とインタフェースによる抽象化",
+        "lesson_url": "https://moocs.iniad.org/courses/2026/COT101/12-1",
+        "pages": [
+          {
+            "page_title": "前回の確認",
+            "page_url": "https://moocs.iniad.org/courses/2026/COT101/12-1/atnd",
+            "materials": []
+          },
+          {
+            "page_title": "複数の属性を1つの値にまとめよう",
+            "page_url": "https://moocs.iniad.org/courses/2026/COT101/12-1/12-1-1",
+            "materials": [
+              {
+                "material_type": "google_slides",
+                "material_url": "https://docs.google.com/presentation/d/e/2PACX-1vTEdsM4W1rnjACGqS20V1ZBfBQSZV0zWc6V8LDI4zFHj7SrWMpejQxjAAGKm0mzopqgSLCJqtk2FM6n/embed?start=false&loop=false&delayms=3000",
+                "retrieval_method": "iframe:google_slides"
+              }
+            ]
+          },
+          {
+            "page_title": "便利なメソッドを追加しよう",
+            "page_url": "https://moocs.iniad.org/courses/2026/COT101/12-1/12-1-2",
+            "materials": [
+              {
+                "material_type": "google_slides",
+                "material_url": "https://docs.google.com/presentation/d/e/2PACX-1vSf175s68x03-ATMTqT-eoCIMWfODBnahUbHz3tl4jEIDqR4D_67SkSeJvRZkGyF4k7WMtoLMYXrysM/embed?start=false&loop=false&delayms=3000",
+                "retrieval_method": "iframe:google_slides"
+              }
+            ]
+          },
+          {
+            "page_title": "オブジェクト指向とカプセル化",
+            "page_url": "https://moocs.iniad.org/courses/2026/COT101/12-1/12-1-3",
+            "materials": [
+              {
+                "material_type": "google_slides",
+                "material_url": "https://docs.google.com/presentation/d/e/2PACX-1vRVDwWiKOUQpGlV6cmwHLsUA1zpZJA9748-Kg3qH_Qm87FKP09j-QyAqRJOhOJopdXFe8SCtObXbpN3/embed?start=false&loop=false&delayms=3000",
+                "retrieval_method": "iframe:google_slides"
+              }
+            ]
+          },
+          {
+            "page_title": "課題 1",
+            "page_url": "https://moocs.iniad.org/courses/2026/COT101/12-1/12-1-4",
+            "materials": [
+              {
+                "material_type": "google_slides",
+                "material_url": "https://docs.google.com/presentation/d/e/2PACX-1vSOVn9UyIKqlS7V3npx69ArpRL7DoJ-Kg3qyKrJi53Oh6rm3zYddXd1tV1PsIiwGJqyddhyUFyo2LvG/embed?start=false&loop=false&delayms=3000",
+                "retrieval_method": "iframe:google_slides"
+              }
+            ]
+          },
+          {
+            "page_title": "クラスにまつわるまとめと 用語の確認",
+            "page_url": "https://moocs.iniad.org/courses/2026/COT101/12-1/12-1-5",
+            "materials": [
+              {
+                "material_type": "google_slides",
+                "material_url": "https://docs.google.com/presentation/d/e/2PACX-1vTVyCyCp96t6LLkx44nE2w0q7oyDLp4gLHRJeqaFqHx-A0xMZUamcDJ24DRuUDJq283f-7nPXcLmM5y/embed?start=false&loop=false&delayms=3000",
+                "retrieval_method": "iframe:google_slides"
+              }
+            ]
+          },
+          {
+            "page_title": "オブジェクト指向に基づく プログラムの組み立て",
+            "page_url": "https://moocs.iniad.org/courses/2026/COT101/12-1/12-1-6",
+            "materials": [
+              {
+                "material_type": "google_slides",
+                "material_url": "https://docs.google.com/presentation/d/e/2PACX-1vTkPK0v0AbO8GFrNE4rqr5AtawPRvz1uMQLUIFZ2ACq8fvc_1MoGz4_m456v8ej92G02VAMqagHyDF3/embed?start=false&loop=false&delayms=3000",
+                "retrieval_method": "iframe:google_slides"
+              }
+            ]
+          },
+          {
+            "page_title": "課題 2",
+            "page_url": "https://moocs.iniad.org/courses/2026/COT101/12-1/12-1-7",
+            "materials": [
+              {
+                "material_type": "google_slides",
+                "material_url": "https://docs.google.com/presentation/d/e/2PACX-1vQJhpgJRkxesHitSTrv-ChhGU2WXOvDnF8TEztR5_pktjth1g3QHDcv-7in-tZTBSROuqYmnDdtb2bZ/embed?start=false&loop=false&delayms=3000",
+                "retrieval_method": "iframe:google_slides"
+              }
+            ]
+          },
+          {
+            "page_title": "重要なキーワード",
+            "page_url": "https://moocs.iniad.org/courses/2026/COT101/12-1/12-1-8",
+            "materials": [
+              {
+                "material_type": "google_slides",
+                "material_url": "https://docs.google.com/presentation/d/e/2PACX-1vSJtq1xtEt0MHDPr9joX2PuQjmh38k9SbsFxnzNkWJGErh5f-NxmA_F2m6ajpLp0P8cvUzzL65FuNwj/embed?start=false&loop=false&delayms=3000",
+                "retrieval_method": "iframe:google_slides"
+              }
+            ]
+          },
+          {
+            "page_title": "課題解説",
+            "page_url": "https://moocs.iniad.org/courses/2026/COT101/12-1/review",
+            "materials": []
+          }
+        ]
+      },
+      {
+        "lesson_title": "12-2: 例外処理と内包表記",
+        "lesson_url": "https://moocs.iniad.org/courses/2026/COT101/12-2",
+        "pages": [
+          {
+            "page_title": "前回の確認",
+            "page_url": "https://moocs.iniad.org/courses/2026/COT101/12-2/12-2-0",
+            "materials": []
+          },
+          {
+            "page_title": "例外を扱おう",
+            "page_url": "https://moocs.iniad.org/courses/2026/COT101/12-2/12-2-1",
+            "materials": [
+              {
+                "material_type": "google_slides",
+                "material_url": "https://docs.google.com/presentation/d/e/2PACX-1vTJzT_s6bTyDWUxBUZrymfguYLWEyW3vSvawNhSUpSPYnohLXH58N_iWzqXK-A9ryMmIj88sqBwdNh4/embed?start=false&loop=false&delayms=3000",
+                "retrieval_method": "iframe:google_slides"
+              }
+            ]
+          },
+          {
+            "page_title": "課題 1",
+            "page_url": "https://moocs.iniad.org/courses/2026/COT101/12-2/12-2-2",
+            "materials": [
+              {
+                "material_type": "google_slides",
+                "material_url": "https://docs.google.com/presentation/d/e/2PACX-1vSOOWEMvIveS_C-ngDEJ2-b-w5shwVsyWUcRW12BwUIVp-2TqJbL5la--z5b1FWLXXPBmEDXrzdRPId/embed?start=false&loop=false&delayms=3000",
+                "retrieval_method": "iframe:google_slides"
+              }
+            ]
+          },
+          {
+            "page_title": "内包表記とリスト操作関数",
+            "page_url": "https://moocs.iniad.org/courses/2026/COT101/12-2/12-2-3",
+            "materials": [
+              {
+                "material_type": "google_slides",
+                "material_url": "https://docs.google.com/presentation/d/e/2PACX-1vRM2TDJQ3L5nx-aPrRS4wLNbKDBlC60n0kkuiVbsPmkdB07kkuD3wYB4fIkd31piyxY6wyTM62SxURx/embed?start=false&loop=false&delayms=3000",
+                "retrieval_method": "iframe:google_slides"
+              }
+            ]
+          },
+          {
+            "page_title": "課題 2",
+            "page_url": "https://moocs.iniad.org/courses/2026/COT101/12-2/12-2-4",
+            "materials": [
+              {
+                "material_type": "google_slides",
+                "material_url": "https://docs.google.com/presentation/d/e/2PACX-1vSMoo6qQlmJchAwdXg7KZizxOX8Bm6U70xdk4MC4a5UnZ8icXU4-Ta5fdB2P6UESwaTZDRKnvyQ4-4p/embed?start=false&loop=false&delayms=3000",
+                "retrieval_method": "iframe:google_slides"
+              }
+            ]
+          },
+          {
+            "page_title": "その他のPythonの機能【発展】",
+            "page_url": "https://moocs.iniad.org/courses/2026/COT101/12-2/12-2-5",
+            "materials": [
+              {
+                "material_type": "google_slides",
+                "material_url": "https://docs.google.com/presentation/d/e/2PACX-1vRh_B8Q0IPtZABC-S-il8ltEpgSFR5wyyAslrt3f49ZJPUZ7OFlFuR8vI0m8jQJiOkhJHcVDvpZmIfx/embed?start=false&loop=false&delayms=3000",
+                "retrieval_method": "iframe:google_slides"
+              }
+            ]
+          },
+          {
+            "page_title": "問題集",
+            "page_url": "https://moocs.iniad.org/courses/2026/COT101/12-2/12-2-6",
+            "materials": [
+              {
+                "material_type": "google_slides",
+                "material_url": "https://docs.google.com/presentation/d/e/2PACX-1vSuWx4WYPg7myOck5h1GNejqj_0q5CyuIyO-3TGgJRC3U1r760Z6pqM3w528h6l7Q/embed?start=false&loop=false&delayms=3000",
+                "retrieval_method": "iframe:google_slides"
+              }
+            ]
+          },
+          {
+            "page_title": "重要なキーワード",
+            "page_url": "https://moocs.iniad.org/courses/2026/COT101/12-2/12-2-7",
+            "materials": [
+              {
+                "material_type": "google_slides",
+                "material_url": "https://docs.google.com/presentation/d/e/2PACX-1vTlU6zrSWmdOg_91Hnv24_1_n7FJ43PF6N6BDlZk3X6btvvUB1XOgswhw2Yjv6coW85lTqEMomNq_hi/embed?start=false&loop=false&delayms=3000",
+                "retrieval_method": "iframe:google_slides"
+              }
+            ]
+          },
+          {
+            "page_title": "課題解説",
+            "page_url": "https://moocs.iniad.org/courses/2026/COT101/12-2/review",
+            "materials": []
+          }
+        ]
+      },
+      {
+        "lesson_title": "13-1: プログラミング言語JavaScript",
+        "lesson_url": "https://moocs.iniad.org/courses/2026/COT101/13-1",
+        "pages": [
+          {
+            "page_title": "出席確認",
+            "page_url": "https://moocs.iniad.org/courses/2026/COT101/13-1/00",
+            "materials": []
+          },
+          {
+            "page_title": "JavaScriptの基本",
+            "page_url": "https://moocs.iniad.org/courses/2026/COT101/13-1/01",
+            "materials": [
+              {
+                "material_type": "google_slides",
+                "material_url": "https://docs.google.com/presentation/d/e/2PACX-1vSp5ZXdCsLlTNW5uTQRYvCYnxnnr9CqPEeXCamN8x7r0mEggMlWHwZy2srSH5DPjA/embed?start=false&loop=false&delayms=60000",
+                "retrieval_method": "iframe:google_slides"
+              }
+            ]
+          },
+          {
+            "page_title": "変数、代入、演算子",
+            "page_url": "https://moocs.iniad.org/courses/2026/COT101/13-1/02",
+            "materials": [
+              {
+                "material_type": "google_slides",
+                "material_url": "https://docs.google.com/presentation/d/e/2PACX-1vRysIVvpK07_CI3BGXI5-vvVm3I9jB03esA96WfqVeEalU7vjB_Wnu3iWW2zvcSoQ/embed?start=false&loop=false&delayms=60000",
+                "retrieval_method": "iframe:google_slides"
+              }
+            ]
+          },
+          {
+            "page_title": "課題1",
+            "page_url": "https://moocs.iniad.org/courses/2026/COT101/13-1/03",
+            "materials": [
+              {
+                "material_type": "google_slides",
+                "material_url": "https://docs.google.com/presentation/d/e/2PACX-1vS9B7tccCfUGR5jtuhs6McBeOgjGXu8QWnmzCWN1F060I1i-owHWdzrlF2AMjbqUA/embed?start=false&loop=false&delayms=60000",
+                "retrieval_method": "iframe:google_slides"
+              }
+            ]
+          },
+          {
+            "page_title": "JavaScriptのプログラム",
+            "page_url": "https://moocs.iniad.org/courses/2026/COT101/13-1/04",
+            "materials": [
+              {
+                "material_type": "google_slides",
+                "material_url": "https://docs.google.com/presentation/d/e/2PACX-1vRAuH-ogpAAnc1Pic3YrzsxOyzcCd8WSbRiEwiSEHO21aAs0JXSVSyDjp2GfwPVNg/embed?start=false&loop=false&delayms=60000",
+                "retrieval_method": "iframe:google_slides"
+              }
+            ]
+          },
+          {
+            "page_title": "課題2",
+            "page_url": "https://moocs.iniad.org/courses/2026/COT101/13-1/05",
+            "materials": [
+              {
+                "material_type": "google_slides",
+                "material_url": "https://docs.google.com/presentation/d/e/2PACX-1vSPYEN-UVos151miU2yGtX-c9u2YASdunic0DyEEPx0OQoyNx7QX6a3stGA6JbZEA/embed?start=false&loop=false&delayms=60000",
+                "retrieval_method": "iframe:google_slides"
+              }
+            ]
+          },
+          {
+            "page_title": "文字列、配列、オブジェクト",
+            "page_url": "https://moocs.iniad.org/courses/2026/COT101/13-1/06",
+            "materials": [
+              {
+                "material_type": "google_slides",
+                "material_url": "https://docs.google.com/presentation/d/e/2PACX-1vSjORH2moyRD0KdWYF5L-hbr0l7bZCV-n28Spkts_2ZPx5datWmB4h0z1SKoF_p9w/embed?start=false&loop=false&delayms=60000",
+                "retrieval_method": "iframe:google_slides"
+              }
+            ]
+          },
+          {
+            "page_title": "課題3",
+            "page_url": "https://moocs.iniad.org/courses/2026/COT101/13-1/07",
+            "materials": [
+              {
+                "material_type": "google_slides",
+                "material_url": "https://docs.google.com/presentation/d/e/2PACX-1vQJ-cznChK7CSiCs0bJYUgN7QEKXF6qIOsWW4ScdoL_XlandIxEfj2tQTeAxFybMw/embed?start=false&loop=false&delayms=60000",
+                "retrieval_method": "iframe:google_slides"
+              }
+            ]
+          },
+          {
+            "page_title": "キーワード",
+            "page_url": "https://moocs.iniad.org/courses/2026/COT101/13-1/08",
+            "materials": [
+              {
+                "material_type": "google_slides",
+                "material_url": "https://docs.google.com/presentation/d/e/2PACX-1vQekPm09EO5EtIxQJjoB_E10OfAFdPOpv9L4Rp86xzWmV0qkh3B6WymWTQAdkJtaQ/embed?start=false&loop=false&delayms=60000",
+                "retrieval_method": "iframe:google_slides"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "lesson_title": "13-2: HTML/CSSとJavaScriptの連携",
+        "lesson_url": "https://moocs.iniad.org/courses/2026/COT101/13-2",
+        "pages": [
+          {
+            "page_title": "前回の確認",
+            "page_url": "https://moocs.iniad.org/courses/2026/COT101/13-2/00",
+            "materials": []
+          },
+          {
+            "page_title": "HTMLにJavaScriptを組込む",
+            "page_url": "https://moocs.iniad.org/courses/2026/COT101/13-2/01",
+            "materials": [
+              {
+                "material_type": "google_slides",
+                "material_url": "https://docs.google.com/presentation/d/e/2PACX-1vT17IfI_LQD3uC8fCH_vHtWilTEJv2YyvcHEuGryuJATnaCJ2VtvYuhsmwZ_9ZHuQ/embed?start=false&loop=false&delayms=60000",
+                "retrieval_method": "iframe:google_slides"
+              }
+            ]
+          },
+          {
+            "page_title": "課題1",
+            "page_url": "https://moocs.iniad.org/courses/2026/COT101/13-2/02",
+            "materials": [
+              {
+                "material_type": "google_slides",
+                "material_url": "https://docs.google.com/presentation/d/e/2PACX-1vQmzS-PIlHjoRlQU7uFkx5_TbEd_masQtxQUr4Eloc8TAzl9VByNV8MUkD54BmCGg/embed?start=false&loop=false&delayms=60000",
+                "retrieval_method": "iframe:google_slides"
+              }
+            ]
+          },
+          {
+            "page_title": "DOM (Document Object Model)",
+            "page_url": "https://moocs.iniad.org/courses/2026/COT101/13-2/03",
+            "materials": [
+              {
+                "material_type": "google_slides",
+                "material_url": "https://docs.google.com/presentation/d/e/2PACX-1vRBYRvM8CKa721T8jZv3EdZnK7YzzYdguRuGBW62Hb4HRIHjflsjixpx3s8XAFLZg/embed?start=false&loop=false&delayms=60000",
+                "retrieval_method": "iframe:google_slides"
+              }
+            ]
+          },
+          {
+            "page_title": "要素を確認する",
+            "page_url": "https://moocs.iniad.org/courses/2026/COT101/13-2/04",
+            "materials": [
+              {
+                "material_type": "google_slides",
+                "material_url": "https://docs.google.com/presentation/d/e/2PACX-1vTmsfUqx4AAEzrYgeNcrLW3AbqBpCOL3kEhd_sZD17y-6xYYcvXoGCoJBph7yglAw/embed?start=false&loop=false&delayms=3000",
+                "retrieval_method": "iframe:google_slides"
+              }
+            ]
+          },
+          {
+            "page_title": "課題2",
+            "page_url": "https://moocs.iniad.org/courses/2026/COT101/13-2/05",
+            "materials": [
+              {
+                "material_type": "google_slides",
+                "material_url": "https://docs.google.com/presentation/d/e/2PACX-1vR-uIy_pvHnL_7CWv5MHJmi_dKAqKjIf8lRQYQHQdk8rXeUvW_NUfd2D3rgmYN0eQ/embed?start=false&loop=false&delayms=60000",
+                "retrieval_method": "iframe:google_slides"
+              }
+            ]
+          },
+          {
+            "page_title": "要素にアクセスする",
+            "page_url": "https://moocs.iniad.org/courses/2026/COT101/13-2/06",
+            "materials": [
+              {
+                "material_type": "google_slides",
+                "material_url": "https://docs.google.com/presentation/d/e/2PACX-1vROksuqJAyJcYCqSeUhxz4aTfpyX6VK0BwgBEJl8y_LQZXWtxLg5ucXM-Rwdg8eTQ/embed?start=false&loop=false&delayms=60000",
+                "retrieval_method": "iframe:google_slides"
+              }
+            ]
+          },
+          {
+            "page_title": "イベントを扱う",
+            "page_url": "https://moocs.iniad.org/courses/2026/COT101/13-2/07",
+            "materials": [
+              {
+                "material_type": "google_slides",
+                "material_url": "https://docs.google.com/presentation/d/e/2PACX-1vRldCCMPigB3iP8AbKFJE2K1gFYx4X59QGALHz1gG8I8OABEQZPy7IN9PvCTXNcdQ/embed?start=false&loop=false&delayms=60000",
+                "retrieval_method": "iframe:google_slides"
+              }
+            ]
+          },
+          {
+            "page_title": "課題3",
+            "page_url": "https://moocs.iniad.org/courses/2026/COT101/13-2/08",
+            "materials": [
+              {
+                "material_type": "google_slides",
+                "material_url": "https://docs.google.com/presentation/d/e/2PACX-1vSm6HqW1302KXQhZgWFI7Nz0Xo0krE3iepMB4PkdcyX1Xm-8P-I8KKlfkXz0ibRCg/embed?start=false&loop=false&delayms=60000",
+                "retrieval_method": "iframe:google_slides"
+              }
+            ]
+          },
+          {
+            "page_title": "タイマー",
+            "page_url": "https://moocs.iniad.org/courses/2026/COT101/13-2/09",
+            "materials": [
+              {
+                "material_type": "google_slides",
+                "material_url": "https://docs.google.com/presentation/d/e/2PACX-1vTPL8RQBW_9gtNEGpIgrqkDkMKK1-XUzoYRnZUTOZRH08eR1bQX_IaHYaCE5s3hxA/embed?start=false&loop=false&delayms=60000",
+                "retrieval_method": "iframe:google_slides"
+              }
+            ]
+          },
+          {
+            "page_title": "課題4",
+            "page_url": "https://moocs.iniad.org/courses/2026/COT101/13-2/10",
+            "materials": [
+              {
+                "material_type": "google_slides",
+                "material_url": "https://docs.google.com/presentation/d/e/2PACX-1vSe8SDu08WD0_8u4kMcbJLvllKgj5-qZaaPbuoreDYxqTNBf6PnEkrAr0KzSNSoJw/embed?start=false&loop=false&delayms=3000",
+                "retrieval_method": "iframe:google_slides"
+              }
+            ]
+          },
+          {
+            "page_title": "キーワード",
+            "page_url": "https://moocs.iniad.org/courses/2026/COT101/13-2/11",
+            "materials": [
+              {
+                "material_type": "google_slides",
+                "material_url": "https://docs.google.com/presentation/d/e/2PACX-1vRV3zM0jyakjB_1AFha1254K1cfBFvjrdmhh3aq9N2GWWSrrE2_2HBaD_F8t2X5ZQ/embed?start=false&loop=false&delayms=60000",
+                "retrieval_method": "iframe:google_slides"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "lesson_title": "14-1: Web API とマッシュアップ",
+        "lesson_url": "https://moocs.iniad.org/courses/2026/COT101/14-1",
+        "pages": [
+          {
+            "page_title": "出席確認",
+            "page_url": "https://moocs.iniad.org/courses/2026/COT101/14-1/00",
+            "materials": []
+          },
+          {
+            "page_title": "Web APIとは",
+            "page_url": "https://moocs.iniad.org/courses/2026/COT101/14-1/01",
+            "materials": [
+              {
+                "material_type": "google_slides",
+                "material_url": "https://docs.google.com/presentation/d/e/2PACX-1vSl9Cz4FNg58_G3Egt-csdM0osferrFZxMbD5rUYn8zPtGnfzl4y5J8xze6WfdLgA/embed?start=false&loop=false&delayms=60000",
+                "retrieval_method": "iframe:google_slides"
+              }
+            ]
+          },
+          {
+            "page_title": "HTTPとRESTの基礎知識",
+            "page_url": "https://moocs.iniad.org/courses/2026/COT101/14-1/02",
+            "materials": [
+              {
+                "material_type": "google_slides",
+                "material_url": "https://docs.google.com/presentation/d/e/2PACX-1vQA_A8hfQaVy2FqYxM9Mhfe8KQUYdJGlsqlWNAhe79KvX5rLoHp3c35wsdWF8j6Zw/embed?start=false&loop=false&delayms=60000",
+                "retrieval_method": "iframe:google_slides"
+              }
+            ]
+          },
+          {
+            "page_title": "REST APIを使ってみよう",
+            "page_url": "https://moocs.iniad.org/courses/2026/COT101/14-1/03",
+            "materials": [
+              {
+                "material_type": "google_slides",
+                "material_url": "https://docs.google.com/presentation/d/e/2PACX-1vSv_4pari7ZmSOqrSmXEjERNMCZUcNJqfjUGrS-VxUYhF9aGCh2Z8FkQIF89QV5dw/embed?start=false&loop=false&delayms=60000",
+                "retrieval_method": "iframe:google_slides"
+              }
+            ]
+          },
+          {
+            "page_title": "課題1",
+            "page_url": "https://moocs.iniad.org/courses/2026/COT101/14-1/04",
+            "materials": [
+              {
+                "material_type": "google_slides",
+                "material_url": "https://docs.google.com/presentation/d/e/2PACX-1vT5cpzyTifMfxE8avvdLh3Z6RFTPkpPPwGMFEUpeyRUECjz-0OivLv70dAISYGsMw/embed?start=false&loop=false&delayms=60000",
+                "retrieval_method": "iframe:google_slides"
+              }
+            ]
+          },
+          {
+            "page_title": "APIをHTMLに組み込む",
+            "page_url": "https://moocs.iniad.org/courses/2026/COT101/14-1/05",
+            "materials": [
+              {
+                "material_type": "google_slides",
+                "material_url": "https://docs.google.com/presentation/d/e/2PACX-1vR8mIDPFqlwHSAIPcOKUNxAH3mxGwMJNTz1F3iFyhHYpVIFx-h0dwHr-V0mvUkYLQ/embed?start=false&loop=false&delayms=3000",
+                "retrieval_method": "iframe:google_slides"
+              }
+            ]
+          },
+          {
+            "page_title": "課題2",
+            "page_url": "https://moocs.iniad.org/courses/2026/COT101/14-1/06",
+            "materials": [
+              {
+                "material_type": "google_slides",
+                "material_url": "https://docs.google.com/presentation/d/e/2PACX-1vRbrtqDUzEvMxu2-_K537DxM4Ufdo_HBScXDgm7yFLH9ZNccZpfK40rmTWk2zpWKg/embed?start=false&loop=false&delayms=60000",
+                "retrieval_method": "iframe:google_slides"
+              }
+            ]
+          },
+          {
+            "page_title": "キーワード",
+            "page_url": "https://moocs.iniad.org/courses/2026/COT101/14-1/07",
+            "materials": [
+              {
+                "material_type": "google_slides",
+                "material_url": "https://docs.google.com/presentation/d/e/2PACX-1vRcj_50jXEQFhxI8bnq1l9KD4GBt7p8AeKEJxu777KPakPg_joLY-gH-d87fisA6Q/embed?start=false&loop=false&delayms=3000",
+                "retrieval_method": "iframe:google_slides"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "lesson_title": "14-2: Web APIの作成とIoT",
+        "lesson_url": "https://moocs.iniad.org/courses/2026/COT101/14-2",
+        "pages": [
+          {
+            "page_title": "前回の確認",
+            "page_url": "https://moocs.iniad.org/courses/2026/COT101/14-2/atnd",
+            "materials": []
+          },
+          {
+            "page_title": "1. Web APIを作ってみよう",
+            "page_url": "https://moocs.iniad.org/courses/2026/COT101/14-2/01",
+            "materials": [
+              {
+                "material_type": "google_slides",
+                "material_url": "https://docs.google.com/presentation/d/e/2PACX-1vQK3SaOKL1sH9DSR2v4V6aatrOcpygUAipvMzWwaWtuzHbahMF_0GU46joSQe_Haw/embed?start=false&loop=false&delayms=3000",
+                "retrieval_method": "iframe:google_slides"
+              }
+            ]
+          },
+          {
+            "page_title": "2. IoTとINIAD API",
+            "page_url": "https://moocs.iniad.org/courses/2026/COT101/14-2/02",
+            "materials": [
+              {
+                "material_type": "google_slides",
+                "material_url": "https://docs.google.com/presentation/d/e/2PACX-1vRvaRLBUfqtXYa8cd3fhIAqsFjIQNn-wjWbAM5d7fVDMHEBX27elIdb4jlW1Ikk2A/embed?start=false&loop=false&delayms=3000",
+                "retrieval_method": "iframe:google_slides"
+              }
+            ]
+          },
+          {
+            "page_title": "3. サイネージを利用してみよう",
+            "page_url": "https://moocs.iniad.org/courses/2026/COT101/14-2/03",
+            "materials": [
+              {
+                "material_type": "google_slides",
+                "material_url": "https://docs.google.com/presentation/d/e/2PACX-1vQMJKQisBl0p-Q1tGF5QeY1vmnTJKrzRuO7aNzb3p7GgGi8zVfLNNYAkiVSg9rS4Q/embed?start=false&loop=false&delayms=3000",
+                "retrieval_method": "iframe:google_slides"
+              }
+            ]
+          },
+          {
+            "page_title": "(参考) INIADサイネージAPI",
+            "page_url": "https://moocs.iniad.org/courses/2026/COT101/14-2/sinage_api",
+            "materials": []
+          }
+        ]
       }
     ],
-    "fetched_at": "2026-06-07T05:32:05.818480+00:00"
+    "fetched_at": "2026-06-09T02:27:55.059543+00:00"
   }
 ]

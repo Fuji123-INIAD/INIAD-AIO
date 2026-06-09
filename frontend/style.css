@@ -62,7 +62,7 @@ h1 {
   padding: 24px;
   background: var(--card);
   border: 1px solid rgba(223, 229, 239, 0.9);
-  border-radius: 18px;
+  border-radius: 8px;
   box-shadow: var(--shadow);
 }
 
@@ -76,7 +76,7 @@ h1 {
 textarea {
   display: block;
   width: 100%;
-  min-height: 190px;
+  min-height: 240px;
   padding: 16px;
   color: var(--text);
   font: inherit;
@@ -85,12 +85,26 @@ textarea {
   resize: vertical;
   background: #fbfdff;
   border: 1px solid var(--line);
-  border-radius: 14px;
+  border-radius: 8px;
   outline: none;
   transition: border-color 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
 }
 
-textarea:focus {
+input[type="search"] {
+  width: 100%;
+  min-width: 0;
+  padding: 13px 14px;
+  color: var(--text);
+  font: inherit;
+  background: #fbfdff;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  outline: none;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
+}
+
+textarea:focus,
+input[type="search"]:focus {
   background: #ffffff;
   border-color: var(--primary);
   box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.13);
@@ -118,7 +132,7 @@ button {
   font-weight: 700;
   background: var(--primary);
   border: 0;
-  border-radius: 999px;
+  border-radius: 8px;
   cursor: pointer;
   box-shadow: 0 10px 24px rgba(37, 99, 235, 0.25);
   transition: transform 0.2s ease, background-color 0.2s ease, box-shadow 0.2s ease;
@@ -140,6 +154,59 @@ button:disabled {
   border-left: 5px solid var(--primary);
 }
 
+.question-card {
+  padding: 28px;
+  border-left: 5px solid var(--primary);
+}
+
+.search-card {
+  padding: 0;
+  border-left: 5px solid #0891b2;
+  box-shadow: none;
+}
+
+.search-summary {
+  display: block;
+  padding: 16px 20px;
+  color: #0f172a;
+  font-weight: 800;
+  cursor: pointer;
+  list-style: none;
+}
+
+.search-summary::-webkit-details-marker {
+  display: none;
+}
+
+.search-summary::after {
+  content: "+";
+  float: right;
+  color: #0891b2;
+  font-weight: 900;
+}
+
+.search-card[open] .search-summary::after {
+  content: "-";
+}
+
+.search-panel {
+  padding: 0 20px 20px;
+  border-top: 1px solid var(--line);
+}
+
+.search-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 12px;
+}
+
+.status-line {
+  min-height: 1.5rem;
+  margin-top: 12px;
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
 pre {
   min-height: 150px;
   margin: 0;
@@ -152,7 +219,7 @@ pre {
   line-height: 1.8;
   background: #f8fbff;
   border: 1px solid var(--line);
-  border-radius: 14px;
+  border-radius: 8px;
 }
 
 pre.is-loading {
@@ -177,6 +244,10 @@ pre.is-loading {
   font-weight: 700;
 }
 
+.answer-sources-title {
+  margin-top: 20px;
+}
+
 .sources-list {
   display: grid;
   gap: 12px;
@@ -185,10 +256,37 @@ pre.is-loading {
 }
 
 .source-item {
+  position: relative;
   padding: 14px 16px;
   background: #ffffff;
   border: 1px solid var(--line);
-  border-radius: 12px;
+  border-radius: 8px;
+}
+
+.source-item-task {
+  border-color: rgba(8, 145, 178, 0.35);
+  background: #f6fcfd;
+}
+
+.type-badge {
+  display: inline-flex;
+  align-items: center;
+  min-height: 24px;
+  margin-bottom: 9px;
+  padding: 3px 9px;
+  color: #334155;
+  font-size: 0.78rem;
+  font-weight: 800;
+  line-height: 1;
+  background: #eef2f7;
+  border: 1px solid #d9e2ee;
+  border-radius: 999px;
+}
+
+.type-badge-task {
+  color: #075985;
+  background: #e0f2fe;
+  border-color: #bae6fd;
 }
 
 .source-heading {
@@ -198,11 +296,52 @@ pre.is-loading {
   line-height: 1.5;
 }
 
-.source-meta {
-  margin: 3px 0;
+.source-meta-list {
+  display: grid;
+  grid-template-columns: max-content minmax(0, 1fr);
+  gap: 5px 12px;
+  margin: 0;
   color: var(--muted);
   font-size: 0.88rem;
   line-height: 1.5;
+}
+
+.source-meta-list dt {
+  color: #475569;
+  font-weight: 700;
+}
+
+.source-meta-list dd {
+  min-width: 0;
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+.source-url-row {
+  display: grid;
+  grid-template-columns: max-content minmax(0, 1fr);
+  gap: 5px 12px;
+  margin-top: 7px;
+  font-size: 0.88rem;
+  line-height: 1.5;
+}
+
+.source-url-label {
+  color: #475569;
+  font-weight: 700;
+}
+
+.source-url-row a {
+  color: var(--primary-dark);
+  overflow-wrap: anywhere;
+}
+
+.source-snippet {
+  margin: 10px 0 0;
+  color: #243047;
+  font-size: 0.92rem;
+  line-height: 1.65;
+  overflow-wrap: anywhere;
 }
 
 .source-content {
@@ -229,11 +368,13 @@ footer {
 
   .card {
     padding: 18px;
-    border-radius: 16px;
+    border-radius: 8px;
   }
 
-  .actions {
+  .actions,
+  .search-row {
     align-items: stretch;
+    display: flex;
     flex-direction: column;
   }
 

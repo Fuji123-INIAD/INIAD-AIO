@@ -16,34 +16,51 @@ def _get_client():
     return genai.Client(api_key=api_key)
 
 
-def generate_answer(question, sources):
+def _display(value):
+    return "" if value is None else value
+
+
+def _excerpt(value, limit=1000):
+    text = " ".join(str(value or "").split())
+    if len(text) <= limit:
+        return text
+    return text[:limit].rstrip() + "..."
+
+
+def build_context(sources):
     context_lines = []
 
     for index, source in enumerate(sources, start=1):
+        excerpt = source.get("content_excerpt") or source.get("snippet") or ""
         context_lines.append(
             "\n".join(
                 [
                     f"source_index: {index}",
-                    f"type: {source.get('type', '')}",
-                    f"id: {source.get('id', '')}",
-                    f"course_code: {source.get('course_code', '')}",
-                    f"course_title: {source.get('course_title', '')}",
-                    f"course_id: {source.get('course_id', '')}",
-                    f"lecture_title: {source.get('lecture_title', '')}",
-                    f"lecture_id: {source.get('lecture_id', '')}",
-                    f"lecture_number: {source.get('lecture_number', '')}",
-                    f"title: {source.get('title', '')}",
-                    f"source_url: {source.get('source_url', '')}",
+                    f"type: {_display(source.get('type', ''))}",
+                    f"id: {_display(source.get('id', ''))}",
+                    f"course_code: {_display(source.get('course_code', ''))}",
+                    f"course_title: {_display(source.get('course_title', ''))}",
+                    f"course_id: {_display(source.get('course_id', ''))}",
+                    f"lecture_title: {_display(source.get('lecture_title', ''))}",
+                    f"lecture_id: {_display(source.get('lecture_id', ''))}",
+                    f"lecture_number: {_display(source.get('lecture_number', ''))}",
+                    f"title: {_display(source.get('title', ''))}",
+                    f"source_url: {_display(source.get('source_url', ''))}",
+                    f"content_excerpt: {_excerpt(excerpt)}",
                 ]
             )
         )
 
-    context = "\n\n---\n\n".join(context_lines)
+    if not context_lines:
+        return "PostgreSQL検索で該当するMOOCs情報は見つかりませんでした。"
 
-    if not context:
-        context = "PostgreSQL検索で該当するMOOCs情報は見つかりませんでした。"
+    return "\n\n---\n\n".join(context_lines)
 
-    prompt = f"""
+
+def build_prompt(question, sources):
+    context = build_context(sources)
+
+    return f"""
 あなたはINIAD-AIOのデモ用アシスタントです。
 以下のPostgreSQL検索結果だけを根拠に、質問へ日本語で簡潔に回答してください。
 
@@ -60,10 +77,37 @@ def generate_answer(question, sources):
 {context}
 """
 
+
+def _parts_text(parts):
+    texts = []
+    for part in parts or []:
+        text = getattr(part, "text", None)
+        if text:
+            texts.append(text)
+    return "".join(texts)
+
+
+def extract_response_text(response):
+    text = getattr(response, "text", None)
+    if text:
+        return text
+
+    candidates = getattr(response, "candidates", None) or []
+    extracted = []
+    for candidate in candidates:
+        content = getattr(candidate, "content", None)
+        extracted.append(_parts_text(getattr(content, "parts", None)))
+
+    return "".join(extracted)
+
+
+def generate_answer(question, sources):
+    prompt = build_prompt(question, sources)
+
     client = _get_client()
     response = client.models.generate_content(
         model="gemini-3.1-flash-lite",
         contents=prompt,
     )
 
-    return response.text or ""
+    return extract_response_text(response)

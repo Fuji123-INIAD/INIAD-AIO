@@ -48,3 +48,6 @@ ALTER TABLE tasks ADD COLUMN IF NOT EXISTS lecture_id INTEGER REFERENCES lecture
 ALTER TABLE tasks ADD COLUMN IF NOT EXISTS source_type TEXT;
 ALTER TABLE tasks ADD COLUMN IF NOT EXISTS source_url TEXT;
 ALTER TABLE tasks ADD COLUMN IF NOT EXISTS raw_json JSONB;
+
+CREATE UNIQUE INDEX IF NOT EXISTS tasks_course_title_source_url_idx
+ON tasks (course_id, title, COALESCE(source_url, ''));
