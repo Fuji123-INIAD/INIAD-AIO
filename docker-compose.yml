@@ -3,9 +3,10 @@ services:
     build:
       context: .
       dockerfile: backend/Dockerfile
+    env_file:
+      - backend/.env
     environment:
       DATABASE_URL: ${DATABASE_URL:-postgresql://aio_user:aio_password@db:5432/aio_db}
-      GEMINI_API_KEY: ${GEMINI_API_KEY:-}
     ports:
       - "8000:8000"
     depends_on:

@@ -19,14 +19,21 @@ def _get_client():
 def generate_answer(question, sources):
     context_lines = []
 
-    for source in sources:
+    for index, source in enumerate(sources, start=1):
         context_lines.append(
             "\n".join(
                 [
-                    f"course: {source.get('course', '')}",
+                    f"source_index: {index}",
+                    f"type: {source.get('type', '')}",
+                    f"id: {source.get('id', '')}",
+                    f"course_code: {source.get('course_code', '')}",
+                    f"course_title: {source.get('course_title', '')}",
+                    f"course_id: {source.get('course_id', '')}",
+                    f"lecture_title: {source.get('lecture_title', '')}",
+                    f"lecture_id: {source.get('lecture_id', '')}",
+                    f"lecture_number: {source.get('lecture_number', '')}",
                     f"title: {source.get('title', '')}",
-                    f"deadline: {source.get('deadline', '')}",
-                    f"content: {source.get('content') or ''}",
+                    f"source_url: {source.get('source_url', '')}",
                 ]
             )
         )
@@ -34,11 +41,17 @@ def generate_answer(question, sources):
     context = "\n\n---\n\n".join(context_lines)
 
     if not context:
-        context = "SQLite検索で該当する情報は見つかりませんでした。"
+        context = "PostgreSQL検索で該当するMOOCs情報は見つかりませんでした。"
 
     prompt = f"""
-以下のSQLite検索結果を参考に、質問へ日本語で回答してください。
-検索結果に十分な情報がない場合は、その旨を簡潔に伝えてください。
+あなたはINIAD-AIOのデモ用アシスタントです。
+以下のPostgreSQL検索結果だけを根拠に、質問へ日本語で簡潔に回答してください。
+
+制約:
+- 検索結果にない情報は推測しないでください。
+- 分からない場合は「検索結果からは分かりません」と明記してください。
+- 回答には可能な範囲で course_code, lecture_title, type, title, source_url を含めてください。
+- source_url がある場合は、ユーザーが確認できるリンクとして示してください。
 
 質問:
 {question}

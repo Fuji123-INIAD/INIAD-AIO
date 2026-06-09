@@ -11,7 +11,6 @@ from pydantic import BaseModel
 
 from ai_module import generate_answer
 from database import init_db
-from search_backend import search
 
 app = FastAPI()
 init_db()
@@ -307,7 +306,15 @@ def ask(request: AskRequest):
     sources = []
 
     try:
-        sources = search(question)
+        search_response = search_database(question, limit=12)
+        if search_response.get("status") != "ok":
+            return {
+                "answer": "",
+                "sources": [],
+                "error": search_response.get("detail", "search failed"),
+            }
+
+        sources = search_response.get("results", [])
         answer = generate_answer(question, sources)
     except Exception as exc:
         return {
@@ -1146,7 +1153,6 @@ def search_database(q: str = "", limit: int = 50):
         return error
 
     normalized_limit = max(1, min(limit, 100))
-    pattern = f"%{query}%"
     task_search_words = {
         "課題",
         "宿題",
@@ -1163,6 +1169,36 @@ def search_database(q: str = "", limit: int = 50):
         "quizzes",
     }
     task_query = any(word in query.lower() for word in task_search_words)
+
+    search_keyword = query
+    normalized_query = (
+        query.lower()
+        .replace("１", "1")
+        .replace("Ⅰ", "i")
+        .replace("ⅰ", "i")
+    )
+    if any(
+        alias in normalized_query
+        for alias in (
+            "cs概論",
+            "cs演習",
+            "cot101",
+            "コンピュータ・サイエンス",
+        )
+    ):
+        search_keyword = "COT101"
+    elif "システムガイダンス" in query:
+        search_keyword = "システムガイダンス"
+    elif "システム" in query:
+        search_keyword = "システム"
+    elif "ガイダンス" in query:
+        search_keyword = "ガイダンス"
+    elif "受講方法" in query:
+        search_keyword = "受講方法"
+    elif task_query:
+        search_keyword = "課題"
+
+    pattern = f"%{search_keyword}%"
 
     try:
         with psycopg.connect(database_url) as conn:
