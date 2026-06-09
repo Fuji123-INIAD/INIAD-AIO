@@ -1133,7 +1133,7 @@ def list_tasks():
 
 
 @app.get("/api/search")
-def search_database(q: str = ""):
+def search_database(q: str = "", limit: int = 50):
     query = q.strip()
     if not query:
         return {
@@ -1145,144 +1145,253 @@ def search_database(q: str = ""):
     if error:
         return error
 
+    normalized_limit = max(1, min(limit, 100))
     pattern = f"%{query}%"
-    results = []
+    task_search_words = {
+        "課題",
+        "宿題",
+        "提出",
+        "レポート",
+        "task",
+        "tasks",
+        "assignment",
+        "assignments",
+        "homework",
+        "deadline",
+        "deadlines",
+        "quiz",
+        "quizzes",
+    }
+    task_query = any(word in query.lower() for word in task_search_words)
 
     try:
         with psycopg.connect(database_url) as conn:
             with conn.cursor() as cur:
                 cur.execute(
                     """
-                    SELECT id, course_code, title
-                    FROM courses
-                    WHERE title ILIKE %s
-                       OR course_code ILIKE %s
-                    ORDER BY id
-                    LIMIT 10;
-                    """,
-                    (pattern, pattern),
-                )
-                results.extend(
-                    {
-                        "type": "course",
-                        "id": row[0],
-                        "course_code": row[1],
-                        "title": row[2],
-                    }
-                    for row in cur.fetchall()
-                )
+                    WITH search_results AS (
+                        SELECT
+                            'course' AS type,
+                            courses.id,
+                            courses.id AS course_id,
+                            NULL::integer AS lecture_id,
+                            courses.title,
+                            courses.course_code,
+                            NULL::text AS course_title,
+                            NULL::text AS lecture_title,
+                            NULL::integer AS lecture_number,
+                            NULL::integer AS page_id,
+                            NULL::integer AS page_number,
+                            NULL::text AS source_url,
+                            CASE
+                                WHEN courses.course_code ILIKE %s THEN 0
+                                WHEN courses.title ILIKE %s THEN 1
+                                ELSE 5
+                            END AS rank,
+                            1 AS type_order
+                        FROM courses
+                        WHERE courses.course_code ILIKE %s
+                           OR courses.title ILIKE %s
 
-                cur.execute(
-                    """
-                    SELECT id, course_id, lecture_number, title
-                    FROM lectures
-                    WHERE title ILIKE %s
-                    ORDER BY course_id, lecture_number, id
-                    LIMIT 10;
-                    """,
-                    (pattern,),
-                )
-                results.extend(
-                    {
-                        "type": "lecture",
-                        "id": row[0],
-                        "course_id": row[1],
-                        "lecture_number": row[2],
-                        "title": row[3],
-                    }
-                    for row in cur.fetchall()
-                )
+                        UNION ALL
 
-                cur.execute(
-                    """
-                    SELECT pages.id, lectures.course_id, pages.lecture_id,
-                           pages.page_number, pages.title, pages.url
-                    FROM pages
-                    LEFT JOIN lectures ON lectures.id = pages.lecture_id
-                    WHERE pages.title ILIKE %s
-                    ORDER BY lectures.course_id, pages.lecture_id,
-                             pages.page_number, pages.id
-                    LIMIT 10;
+                        SELECT
+                            'lecture' AS type,
+                            lectures.id,
+                            lectures.course_id,
+                            lectures.id AS lecture_id,
+                            lectures.title,
+                            courses.course_code,
+                            courses.title AS course_title,
+                            lectures.title AS lecture_title,
+                            lectures.lecture_number,
+                            NULL::integer AS page_id,
+                            NULL::integer AS page_number,
+                            NULL::text AS source_url,
+                            CASE
+                                WHEN lectures.title ILIKE %s THEN 0
+                                WHEN courses.course_code ILIKE %s THEN 1
+                                WHEN courses.title ILIKE %s THEN 2
+                                ELSE 5
+                            END AS rank,
+                            2 AS type_order
+                        FROM lectures
+                        LEFT JOIN courses ON courses.id = lectures.course_id
+                        WHERE lectures.title ILIKE %s
+                           OR CAST(lectures.lecture_number AS text) ILIKE %s
+                           OR courses.course_code ILIKE %s
+                           OR courses.title ILIKE %s
+
+                        UNION ALL
+
+                        SELECT
+                            'task' AS type,
+                            tasks.id,
+                            tasks.course_id,
+                            tasks.lecture_id,
+                            tasks.title,
+                            courses.course_code,
+                            courses.title AS course_title,
+                            lectures.title AS lecture_title,
+                            lectures.lecture_number,
+                            NULL::integer AS page_id,
+                            NULL::integer AS page_number,
+                            tasks.source_url,
+                            CASE
+                                WHEN tasks.title ILIKE %s THEN 0
+                                WHEN tasks.source_url ILIKE %s THEN 1
+                                WHEN courses.course_code ILIKE %s THEN 2
+                                WHEN courses.title ILIKE %s THEN 3
+                                WHEN lectures.title ILIKE %s THEN 4
+                                ELSE 8
+                            END AS rank,
+                            3 AS type_order
+                        FROM tasks
+                        LEFT JOIN courses ON courses.id = tasks.course_id
+                        LEFT JOIN lectures ON lectures.id = tasks.lecture_id
+                        WHERE tasks.title ILIKE %s
+                           OR COALESCE(tasks.source_type, '') ILIKE %s
+                           OR COALESCE(tasks.source_url, '') ILIKE %s
+                           OR COALESCE(tasks.raw_json::text, '') ILIKE %s
+                           OR courses.course_code ILIKE %s
+                           OR courses.title ILIKE %s
+                           OR lectures.title ILIKE %s
+                           OR %s
+
+                        UNION ALL
+
+                        SELECT
+                            'page' AS type,
+                            pages.id,
+                            lectures.course_id,
+                            pages.lecture_id,
+                            COALESCE(pages.title, pages.url, '(untitled page)') AS title,
+                            courses.course_code,
+                            courses.title AS course_title,
+                            lectures.title AS lecture_title,
+                            lectures.lecture_number,
+                            pages.id AS page_id,
+                            pages.page_number,
+                            pages.url AS source_url,
+                            CASE
+                                WHEN pages.title ILIKE %s THEN 0
+                                WHEN pages.url ILIKE %s THEN 1
+                                WHEN lectures.title ILIKE %s THEN 2
+                                WHEN courses.course_code ILIKE %s THEN 3
+                                WHEN courses.title ILIKE %s THEN 4
+                                ELSE 8
+                            END AS rank,
+                            4 AS type_order
+                        FROM pages
+                        LEFT JOIN lectures ON lectures.id = pages.lecture_id
+                        LEFT JOIN courses ON courses.id = lectures.course_id
+                        WHERE COALESCE(pages.title, '') ILIKE %s
+                           OR COALESCE(pages.url, '') ILIKE %s
+                           OR COALESCE(pages.raw_json::text, '') ILIKE %s
+                           OR lectures.title ILIKE %s
+                           OR courses.course_code ILIKE %s
+                           OR courses.title ILIKE %s
+
+                        UNION ALL
+
+                        SELECT
+                            'material' AS type,
+                            materials.id,
+                            lectures.course_id,
+                            pages.lecture_id,
+                            COALESCE(
+                                materials.raw_json->>'material_title',
+                                materials.raw_json->>'title',
+                                materials.raw_json->>'name',
+                                materials.material_type,
+                                materials.url,
+                                '(untitled material)'
+                            ) AS title,
+                            courses.course_code,
+                            courses.title AS course_title,
+                            lectures.title AS lecture_title,
+                            lectures.lecture_number,
+                            materials.page_id,
+                            pages.page_number,
+                            materials.url AS source_url,
+                            CASE
+                                WHEN COALESCE(
+                                    materials.raw_json->>'material_title',
+                                    materials.raw_json->>'title',
+                                    materials.raw_json->>'name',
+                                    materials.material_type,
+                                    materials.url,
+                                    ''
+                                ) ILIKE %s THEN 0
+                                WHEN pages.title ILIKE %s THEN 1
+                                WHEN lectures.title ILIKE %s THEN 2
+                                WHEN courses.course_code ILIKE %s THEN 3
+                                WHEN courses.title ILIKE %s THEN 4
+                                ELSE 8
+                            END AS rank,
+                            5 AS type_order
+                        FROM materials
+                        LEFT JOIN pages ON pages.id = materials.page_id
+                        LEFT JOIN lectures ON lectures.id = pages.lecture_id
+                        LEFT JOIN courses ON courses.id = lectures.course_id
+                        WHERE COALESCE(
+                                  materials.raw_json->>'material_title',
+                                  materials.raw_json->>'title',
+                                  materials.raw_json->>'name',
+                                  materials.material_type,
+                                  materials.url,
+                                  ''
+                              ) ILIKE %s
+                           OR COALESCE(materials.retrieval_method, '') ILIKE %s
+                           OR COALESCE(materials.raw_json::text, '') ILIKE %s
+                           OR COALESCE(pages.title, '') ILIKE %s
+                           OR COALESCE(pages.url, '') ILIKE %s
+                           OR lectures.title ILIKE %s
+                           OR courses.course_code ILIKE %s
+                           OR courses.title ILIKE %s
+                    )
+                    SELECT
+                        type,
+                        id,
+                        course_id,
+                        lecture_id,
+                        title,
+                        course_code,
+                        course_title,
+                        lecture_title,
+                        lecture_number,
+                        page_id,
+                        page_number,
+                        source_url
+                    FROM search_results
+                    ORDER BY rank, type_order, course_id NULLS LAST,
+                             lecture_number NULLS LAST, id
+                    LIMIT %s;
                     """,
-                    (pattern,),
+                    tuple(
+                        [pattern] * 23
+                        + [task_query]
+                        + [pattern] * 24
+                        + [normalized_limit]
+                    ),
                 )
-                results.extend(
+                results = [
                     {
-                        "type": "page",
-                        "id": row[0],
-                        "course_id": row[1],
-                        "lecture_id": row[2],
-                        "page_number": row[3],
+                        "type": row[0],
+                        "id": row[1],
+                        "course_id": row[2],
+                        "lecture_id": row[3],
                         "title": row[4],
-                        "source_url": row[5],
+                        "course_code": row[5],
+                        "course_title": row[6],
+                        "lecture_title": row[7],
+                        "lecture_number": row[8],
+                        "page_id": row[9],
+                        "page_number": row[10],
+                        "source_url": row[11],
                     }
                     for row in cur.fetchall()
-                )
-
-                cur.execute(
-                    """
-                    SELECT materials.id, lectures.course_id, pages.lecture_id,
-                           materials.page_id,
-                           COALESCE(
-                               materials.raw_json->>'material_title',
-                               materials.raw_json->>'title',
-                               materials.raw_json->>'name',
-                               materials.material_type,
-                               materials.url
-                           ) AS title,
-                           materials.url
-                    FROM materials
-                    LEFT JOIN pages ON pages.id = materials.page_id
-                    LEFT JOIN lectures ON lectures.id = pages.lecture_id
-                    WHERE COALESCE(
-                              materials.raw_json->>'material_title',
-                              materials.raw_json->>'title',
-                              materials.raw_json->>'name',
-                              materials.material_type,
-                              materials.url,
-                              ''
-                          ) ILIKE %s
-                    ORDER BY lectures.course_id, pages.lecture_id,
-                             materials.page_id, materials.material_number,
-                             materials.id
-                    LIMIT 10;
-                    """,
-                    (pattern,),
-                )
-                results.extend(
-                    {
-                        "type": "material",
-                        "id": row[0],
-                        "course_id": row[1],
-                        "lecture_id": row[2],
-                        "page_id": row[3],
-                        "title": row[4],
-                        "source_url": row[5],
-                    }
-                    for row in cur.fetchall()
-                )
-
-                cur.execute(
-                    """
-                    SELECT id, course_id, lecture_id, title, source_url
-                    FROM tasks
-                    WHERE title ILIKE %s
-                    ORDER BY course_id, lecture_id, id
-                    LIMIT 10;
-                    """,
-                    (pattern,),
-                )
-                results.extend(
-                    {
-                        "type": "task",
-                        "id": row[0],
-                        "course_id": row[1],
-                        "lecture_id": row[2],
-                        "title": row[3],
-                        "source_url": row[4],
-                    }
-                    for row in cur.fetchall()
-                )
+                ]
     except Exception as exc:
         return {
             "status": "error",
@@ -1292,7 +1401,7 @@ def search_database(q: str = ""):
     return {
         "status": "ok",
         "query": query,
-        "results": results[:50],
+        "results": results,
     }
 
 
