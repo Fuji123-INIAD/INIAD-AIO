@@ -232,3 +232,10 @@ data/probe/*.json
 data/probe/moocs_profile/
 data/probe/*storage_state*.json
 data/probe/moocs_storage_state.json
+
+# Local browser login state for MOOCs probing
+data/probe/moocs_profile/
+data/probe/moocs_profile_*
+data/probe/moocs_profile_*/**
+data/probe/*storage_state*.json
+data/probe/moocs_storage_state.json
