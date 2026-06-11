@@ -3053,5 +3053,388 @@
       }
     ],
     "fetched_at": "2026-06-09T02:27:55.059543+00:00"
+  },
+  {
+    "course_title": "情報連携学概論 I",
+    "course_url": "https://moocs.iniad.org/courses/2026/COT105",
+    "lessons": [
+      {
+        "lesson_title": "00: ガイダンス",
+        "lesson_url": "https://moocs.iniad.org/courses/2026/COT105/00",
+        "pages": [
+          {
+            "page_title": "課題",
+            "page_url": "https://moocs.iniad.org/courses/2026/COT105/00/exercise",
+            "materials": []
+          }
+        ]
+      },
+      {
+        "lesson_title": "01: 哲学について-1",
+        "lesson_url": "https://moocs.iniad.org/courses/2026/COT105/01",
+        "pages": [
+          {
+            "page_title": "講義資料",
+            "page_url": "https://moocs.iniad.org/courses/2026/COT105/01/lecture",
+            "materials": [
+              {
+                "material_type": "google_slides",
+                "material_url": "https://docs.google.com/presentation/d/e/2PACX-1vQbe8q3T9EQf7NizK4TwGLiBRbXdTQAhalnMPN7WP2gSHArj_O6SxtM4YNacoVpzB-zj2zciwgebFea/pubembed?start=false&loop=false&delayms=3000",
+                "retrieval_method": "iframe:google_slides"
+              }
+            ]
+          },
+          {
+            "page_title": "INIAD AI-MOP利用ガイド",
+            "page_url": "https://moocs.iniad.org/courses/2026/COT105/01/aimop",
+            "materials": [
+              {
+                "material_type": "google_slides",
+                "material_url": "https://docs.google.com/presentation/d/e/2PACX-1vS0Vc0wi1kcddMUCj2xh1L0sf5Bwb2jszVtwwlh1FYGoxyxY4S1TpGGg7dta_NWiw/pubembed?start=false&loop=false&delayms=3000",
+                "retrieval_method": "iframe:google_slides"
+              }
+            ]
+          },
+          {
+            "page_title": "クイズ１",
+            "page_url": "https://moocs.iniad.org/courses/2026/COT105/01/q1",
+            "materials": []
+          },
+          {
+            "page_title": "クイズ２",
+            "page_url": "https://moocs.iniad.org/courses/2026/COT105/01/q2",
+            "materials": []
+          },
+          {
+            "page_title": "クイズ３",
+            "page_url": "https://moocs.iniad.org/courses/2026/COT105/01/q3",
+            "materials": []
+          },
+          {
+            "page_title": "クイズ４",
+            "page_url": "https://moocs.iniad.org/courses/2026/COT105/01/q4",
+            "materials": []
+          },
+          {
+            "page_title": "レポート課題",
+            "page_url": "https://moocs.iniad.org/courses/2026/COT105/01/report",
+            "materials": []
+          }
+        ]
+      },
+      {
+        "lesson_title": "02: 哲学について-2",
+        "lesson_url": "https://moocs.iniad.org/courses/2026/COT105/02",
+        "pages": [
+          {
+            "page_title": "講義資料",
+            "page_url": "https://moocs.iniad.org/courses/2026/COT105/02/00",
+            "materials": [
+              {
+                "material_type": "google_slides",
+                "material_url": "https://docs.google.com/presentation/d/e/2PACX-1vSzNCdMBmLwyqZYOnDC8VpFCysj7qUs0KXwLPPM1F1S8ZJls06mwwB5OW4_NJpGFG50eTKnhtCLsUIB/pubembed?start=false&loop=false&delayms=3000",
+                "retrieval_method": "iframe:google_slides"
+              }
+            ]
+          },
+          {
+            "page_title": "クイズ1",
+            "page_url": "https://moocs.iniad.org/courses/2026/COT105/02/q1",
+            "materials": []
+          },
+          {
+            "page_title": "クイズ2",
+            "page_url": "https://moocs.iniad.org/courses/2026/COT105/02/q2",
+            "materials": []
+          },
+          {
+            "page_title": "クイズ3",
+            "page_url": "https://moocs.iniad.org/courses/2026/COT105/02/q3",
+            "materials": []
+          },
+          {
+            "page_title": "クイズ4",
+            "page_url": "https://moocs.iniad.org/courses/2026/COT105/02/q4",
+            "materials": []
+          },
+          {
+            "page_title": "レポート課題",
+            "page_url": "https://moocs.iniad.org/courses/2026/COT105/02/05",
+            "materials": []
+          }
+        ]
+      },
+      {
+        "lesson_title": "03: LLMの仕組みとプロンプトエンジニアリング",
+        "lesson_url": "https://moocs.iniad.org/courses/2026/COT105/03",
+        "pages": [
+          {
+            "page_title": "講義資料",
+            "page_url": "https://moocs.iniad.org/courses/2026/COT105/03/01",
+            "materials": [
+              {
+                "material_type": "google_slides",
+                "material_url": "https://docs.google.com/presentation/d/e/2PACX-1vREx3uf6TygYKDGiywVdAO5EQ7IQi7kt8ywIIT-RifbMQsrJA7qOI389eHcEVhc9gxBw02o8sFCBQKW/pubembed?start=false&loop=false&delayms=3000",
+                "retrieval_method": "iframe:google_slides"
+              }
+            ]
+          },
+          {
+            "page_title": "クイズ1",
+            "page_url": "https://moocs.iniad.org/courses/2026/COT105/03/q1",
+            "materials": []
+          },
+          {
+            "page_title": "クイズ2",
+            "page_url": "https://moocs.iniad.org/courses/2026/COT105/03/q2",
+            "materials": []
+          },
+          {
+            "page_title": "クイズ3",
+            "page_url": "https://moocs.iniad.org/courses/2026/COT105/03/q3",
+            "materials": []
+          },
+          {
+            "page_title": "レポート課題",
+            "page_url": "https://moocs.iniad.org/courses/2026/COT105/03/report",
+            "materials": []
+          }
+        ]
+      },
+      {
+        "lesson_title": "04: 哲学について-3",
+        "lesson_url": "https://moocs.iniad.org/courses/2026/COT105/04",
+        "pages": [
+          {
+            "page_title": "講義資料",
+            "page_url": "https://moocs.iniad.org/courses/2026/COT105/04/00",
+            "materials": [
+              {
+                "material_type": "google_slides",
+                "material_url": "https://docs.google.com/presentation/d/e/2PACX-1vRful_bmYpujyKhDLODZl91R8z1M1RuSgaU_XyimsgHNip7JLU5yT5_bAmDEYVuOvdR_3zvwtapXHD1/pubembed?start=false&loop=false&delayms=3000",
+                "retrieval_method": "iframe:google_slides"
+              }
+            ]
+          },
+          {
+            "page_title": "クイズ1",
+            "page_url": "https://moocs.iniad.org/courses/2026/COT105/04/q1",
+            "materials": []
+          },
+          {
+            "page_title": "クイズ2",
+            "page_url": "https://moocs.iniad.org/courses/2026/COT105/04/q2",
+            "materials": []
+          },
+          {
+            "page_title": "クイズ3",
+            "page_url": "https://moocs.iniad.org/courses/2026/COT105/04/q3",
+            "materials": []
+          },
+          {
+            "page_title": "クイズ4",
+            "page_url": "https://moocs.iniad.org/courses/2026/COT105/04/q4",
+            "materials": []
+          },
+          {
+            "page_title": "クイズ5",
+            "page_url": "https://moocs.iniad.org/courses/2026/COT105/04/q5",
+            "materials": []
+          },
+          {
+            "page_title": "レポート課題",
+            "page_url": "https://moocs.iniad.org/courses/2026/COT105/04/report",
+            "materials": []
+          }
+        ]
+      },
+      {
+        "lesson_title": "05: AIにどう向き合うか",
+        "lesson_url": "https://moocs.iniad.org/courses/2026/COT105/05",
+        "pages": [
+          {
+            "page_title": "講義資料",
+            "page_url": "https://moocs.iniad.org/courses/2026/COT105/05/00",
+            "materials": [
+              {
+                "material_type": "google_slides",
+                "material_url": "https://docs.google.com/presentation/d/e/2PACX-1vQq0URcmrnMVLuGGLKcWTJXGJi-1dfhZ-qiFGy7U8OdVQQ90CLSanSf_i4WLEmo1uNVEZH1gyNu4Rl3/pubembed?start=false&loop=false&delayms=3000",
+                "retrieval_method": "iframe:google_slides"
+              }
+            ]
+          },
+          {
+            "page_title": "クイズ1",
+            "page_url": "https://moocs.iniad.org/courses/2026/COT105/05/q1",
+            "materials": []
+          },
+          {
+            "page_title": "クイズ2",
+            "page_url": "https://moocs.iniad.org/courses/2026/COT105/05/q2",
+            "materials": []
+          },
+          {
+            "page_title": "クイズ3",
+            "page_url": "https://moocs.iniad.org/courses/2026/COT105/05/q3",
+            "materials": []
+          },
+          {
+            "page_title": "クイズ4",
+            "page_url": "https://moocs.iniad.org/courses/2026/COT105/05/q4",
+            "materials": []
+          },
+          {
+            "page_title": "クイズ5",
+            "page_url": "https://moocs.iniad.org/courses/2026/COT105/05/q5",
+            "materials": []
+          },
+          {
+            "page_title": "レポート課題",
+            "page_url": "https://moocs.iniad.org/courses/2026/COT105/05/report",
+            "materials": []
+          }
+        ]
+      },
+      {
+        "lesson_title": "06: 生成AIの技術とこれから",
+        "lesson_url": "https://moocs.iniad.org/courses/2026/COT105/06",
+        "pages": [
+          {
+            "page_title": "講義資料",
+            "page_url": "https://moocs.iniad.org/courses/2026/COT105/06/00",
+            "materials": [
+              {
+                "material_type": "google_slides",
+                "material_url": "https://docs.google.com/presentation/d/e/2PACX-1vRughxe8OIJLCHPQmLOM2W6k6KFqYhm2HHdg8NvuFF0Jr6bozqIhPKaQWPY2xSoav5ohyKa9a88XOCa/pubembed?start=false&loop=false&delayms=3000",
+                "retrieval_method": "iframe:google_slides"
+              }
+            ]
+          },
+          {
+            "page_title": "クイズ1",
+            "page_url": "https://moocs.iniad.org/courses/2026/COT105/06/q1",
+            "materials": []
+          },
+          {
+            "page_title": "クイズ2",
+            "page_url": "https://moocs.iniad.org/courses/2026/COT105/06/q2",
+            "materials": []
+          },
+          {
+            "page_title": "クイズ3",
+            "page_url": "https://moocs.iniad.org/courses/2026/COT105/06/q3",
+            "materials": []
+          },
+          {
+            "page_title": "クイズ4",
+            "page_url": "https://moocs.iniad.org/courses/2026/COT105/06/q4",
+            "materials": []
+          },
+          {
+            "page_title": "レポート課題",
+            "page_url": "https://moocs.iniad.org/courses/2026/COT105/06/report",
+            "materials": []
+          }
+        ]
+      },
+      {
+        "lesson_title": "07: 組込みシステムとIoT",
+        "lesson_url": "https://moocs.iniad.org/courses/2026/COT105/07",
+        "pages": [
+          {
+            "page_title": "講義資料",
+            "page_url": "https://moocs.iniad.org/courses/2026/COT105/07/01",
+            "materials": [
+              {
+                "material_type": "google_slides",
+                "material_url": "https://docs.google.com/presentation/d/e/2PACX-1vR3m4gf_K0SCELPq2qsBgGxuFz94l3txpiAMWDEjHu0zDJmeDoUTIXjFmPVuIT4IMHUs0bMSGFhb_MQ/pubembed?start=false&loop=false&delayms=3000",
+                "retrieval_method": "iframe:google_slides"
+              }
+            ]
+          },
+          {
+            "page_title": "クイズ1",
+            "page_url": "https://moocs.iniad.org/courses/2026/COT105/07/01-q",
+            "materials": []
+          },
+          {
+            "page_title": "クイズ2",
+            "page_url": "https://moocs.iniad.org/courses/2026/COT105/07/02-q",
+            "materials": []
+          },
+          {
+            "page_title": "クイズ3",
+            "page_url": "https://moocs.iniad.org/courses/2026/COT105/07/03-q",
+            "materials": []
+          },
+          {
+            "page_title": "レポート",
+            "page_url": "https://moocs.iniad.org/courses/2026/COT105/07/report",
+            "materials": []
+          }
+        ]
+      },
+      {
+        "lesson_title": "08: セキュリティ",
+        "lesson_url": "https://moocs.iniad.org/courses/2026/COT105/08",
+        "pages": [
+          {
+            "page_title": "Part1",
+            "page_url": "https://moocs.iniad.org/courses/2026/COT105/08/01",
+            "materials": [
+              {
+                "material_type": "google_slides",
+                "material_url": "https://docs.google.com/presentation/d/e/2PACX-1vS04Dn6ANKSXJhh1mrQYu5zJ8y-MPCH9eSiw-vFOYgaFd8gaLkNrjIMAOfwtap3gg/pubembed?start=false&loop=false&delayms=3000",
+                "retrieval_method": "iframe:google_slides"
+              }
+            ]
+          },
+          {
+            "page_title": "Part1 Quiz",
+            "page_url": "https://moocs.iniad.org/courses/2026/COT105/08/02",
+            "materials": []
+          },
+          {
+            "page_title": "Part1 Report",
+            "page_url": "https://moocs.iniad.org/courses/2026/COT105/08/03",
+            "materials": [
+              {
+                "material_type": "google_slides",
+                "material_url": "https://docs.google.com/presentation/d/e/2PACX-1vR1pRy9mk-Mya2RMIcOPuw25q2ROBvlRdibWwbAwkOBX144vW2uA2d6PK03b4W7Iw/embed?start=false&loop=false&delayms=3000",
+                "retrieval_method": "iframe:google_slides"
+              }
+            ]
+          },
+          {
+            "page_title": "Part2",
+            "page_url": "https://moocs.iniad.org/courses/2026/COT105/08/04",
+            "materials": [
+              {
+                "material_type": "google_slides",
+                "material_url": "https://docs.google.com/presentation/d/e/2PACX-1vQ-WenvKSLM6oiEkZdKtfoVA7hXqlQGu4isE3wqZlGHYgcXvQX5IsJHYhK98RiliA/pubembed?start=false&loop=false&delayms=3000",
+                "retrieval_method": "iframe:google_slides"
+              }
+            ]
+          },
+          {
+            "page_title": "Part2 Quiz",
+            "page_url": "https://moocs.iniad.org/courses/2026/COT105/08/05",
+            "materials": []
+          },
+          {
+            "page_title": "Part2 Report",
+            "page_url": "https://moocs.iniad.org/courses/2026/COT105/08/06",
+            "materials": [
+              {
+                "material_type": "google_slides",
+                "material_url": "https://docs.google.com/presentation/d/e/2PACX-1vTzs01REh4Bu4qU5y_6I9PRKGLhxXW8XPlVtW-cjK2XVcsGNB5ty75U4ew0YpRlWA/embed?start=false&loop=false&delayms=3000",
+                "retrieval_method": "iframe:google_slides"
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "fetched_at": "2026-06-10T01:51:48.517483+00:00"
   }
 ]
