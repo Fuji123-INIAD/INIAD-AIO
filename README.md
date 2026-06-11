@@ -1,79 +1,88 @@
 # INIAD-AIO
 
-INIAD-AIO is an experimental assistant project for finding and asking about
-INIAD course information, lecture/page locations, assignments, and limited page
-body text.
+INIAD-AIO は、INIAD（東洋大学情報連携学部）向けの AI 情報アクセス基盤です。
 
-The project is currently **v0.2 Closed Alpha / experimental**. Behavior,
-coverage, and operations are not stable yet, and the repository should be
-treated as a proof of concept rather than a production-ready service.
+MOOCs を中心とした講義・課題・資料情報を収集・整理し、自然言語で検索・参照できる環境の構築を目的としています。
 
-## Documentation Policy
+現在は **v0.2 Closed Alpha** です。 
 
-This README is only a public entry point. For detailed understanding, give the
-project Overview / Context documents to an AI assistant together with the source
-code, and let the assistant inspect the current implementation.
+---
 
-Internal operation notes, authenticated page handling, local browser state, and
-raw probe data are intentionally not documented here.
+## はじめに
 
-## Current Scope
+このリポジトリは現在も大きく構造変更中です。
 
-INIAD-AIO currently focuses on:
+初見の場合、ソースコードを直接読む前に、まず Overview 系ドキュメントを参照してください。
 
-* Course, lecture, page, material, and assignment search.
-* Importing structured course metadata into PostgreSQL.
-* Search indexing with Meilisearch.
-* Search-backed answers through a FastAPI API.
-* Limited RAG over page body text when that text is available directly in HTML.
+---
 
-It should not yet be described as a full lecture-slide or PDF RAG system.
+## AI に読ませる場合
 
-## Tech Stack
+このリポジトリを AI アシスタントに説明・編集・解析させる場合は、GeeKEN Discord で共有されている Overview / Context documents を読ませてください。
 
-Current major components:
+これらには以下が定義されています。
 
-* FastAPI backend.
-* PostgreSQL as the source of truth.
-* Meilisearch for search indexing.
-* Gemini API integration for answer generation.
-* Playwright-based probing/import experiments.
-* Simple frontend served by the backend.
-* Docker Compose for local service startup.
+- INIAD-AIO の目的
+- 現在の実装状況
+- 未実装範囲
+- プロジェクト固有語彙
+- 初心者向け説明方針
 
-## Known Unstable / Incomplete Areas
+特定機能について扱う場合は、対応する Node Overview / Node Vocabulary も追加で参照してください。
 
-* Google Slides iframe text extraction is not implemented.
-* PDF extraction is not implemented.
-* OCR is not implemented.
-* Embeddings/vector search are not implemented.
-* Authenticated source retrieval is still experimental.
-* Import flows and probe data handling may change during Closed Alpha.
+ファイル名やディレクトリ構造のみから推測せず、Overview を優先的なコンテキストとして扱ってください。
 
-## Minimal Local Startup
+---
 
-Create a local `.env` from the example and set your own secret values:
+## 現在の状態（v0.2）
 
-```powershell
-Copy-Item .env.example .env
+現在実装・検証中の主な要素:
+
+- FastAPI backend
+- PostgreSQL database
+- MOOCs metadata ingestion
+- course / lecture / material / task 保存
+- 実験的自然言語検索
+
+現在は「情報取得基盤」の構築段階です。
+
+---
+
+## 未完成・未安定な要素
+
+以下は未完成、または実験段階です。
+
+- Embedding 検索
+- 本格 RAG
+- 本番認証基盤
+- 大規模 multi-source ingestion
+- 安定 UI
+- 権限管理
+
+---
+
+## 開発
+
+```bash
+docker compose up --build
 ```
 
-Build and start the local services:
+API:
 
-```powershell
-docker compose up --build -d
-```
-
-Initialize the database, then use the API endpoints exposed by the local backend
-for import and search workflows:
-
-```text
-http://localhost:8000/api/init-db
+```txt
 http://localhost:8000
 ```
 
-Stop the services:
+---
 
-```powershell
-docker compose down
-```
+## ドキュメント方針
+
+README は入口のみを担当します。
+
+詳細説明・意味構造・開発意図・変更履歴は以下に分離されています。
+
+- Overview
+- ACV (Atlas Compressed Vocabulary)
+- CEL（Concrete Edit Log）
+
+大規模変更時は README を肥大化させるのではなく、対応する Overview または CEL を更新してください。
