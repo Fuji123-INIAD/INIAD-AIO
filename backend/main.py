@@ -3,9 +3,10 @@ from datetime import datetime
 from concurrent.futures import ThreadPoolExecutor, TimeoutError
 import json
 import os
+import time
 from urllib.parse import urlparse
 
-from fastapi import FastAPI
+from fastapi import FastAPI, Query
 from fastapi.responses import Response
 from fastapi.staticfiles import StaticFiles
 from bs4 import BeautifulSoup
@@ -1165,10 +1166,28 @@ def import_lectures():
 
 
 @app.post("/api/import-pages")
-def import_pages():
+def import_pages(
+    course_code: str | None = Query(default=None),
+    page_limit: int | None = Query(default=None, ge=0),
+    dry_run: bool = Query(default=False),
+):
     database_url, error = get_database_url()
     if error:
         return error
+
+    if not isinstance(course_code, str):
+        course_code = None
+    if not isinstance(page_limit, int):
+        page_limit = None
+    if not isinstance(dry_run, bool):
+        dry_run = False
+
+    requested_course_code = (course_code or "").strip()
+    if not requested_course_code and not dry_run:
+        return {
+            "status": "error",
+            "detail": "course_code is required for /api/import-pages unless dry_run=true",
+        }
 
     if not COURSE_DETAILS_PATH.exists():
         return {
@@ -1180,9 +1199,11 @@ def import_pages():
         raw_courses = json.loads(COURSE_DETAILS_PATH.read_text(encoding="utf-8"))
         imported = 0
         updated = 0
+        planned = 0
+        skipped_missing_lecture = 0
         found_page_metadata = False
 
-        html_extractor = MoocsHtmlTextExtractor()
+        html_extractor = None if dry_run else MoocsHtmlTextExtractor()
         try:
             with psycopg.connect(database_url) as conn:
                 with conn.cursor() as cur:
@@ -1193,10 +1214,14 @@ def import_pages():
                         course_code = extract_course_code(course)
                         if not course_code:
                             continue
+                        if requested_course_code and course_code.lower() != requested_course_code.lower():
+                            continue
 
                         page_items = extract_page_items(course)
                         if not page_items:
                             continue
+                        if page_limit is not None:
+                            page_items = page_items[:page_limit]
 
                         found_page_metadata = True
 
@@ -1230,9 +1255,15 @@ def import_pages():
                             )
                             lecture_row = cur.fetchone()
                             if not lecture_row:
+                                skipped_missing_lecture += 1
                                 continue
 
                             lecture_id = lecture_row[0]
+                            planned += 1
+                            if dry_run:
+                                continue
+
+                            time.sleep(1)
                             page_raw_json = page_raw_json_with_extracted_text(
                                 page["raw_json"],
                                 page["url"],
@@ -1311,9 +1342,11 @@ def import_pages():
                                 ),
                             )
                             imported += 1
-                conn.commit()
+                if not dry_run:
+                    conn.commit()
         finally:
-            html_extractor.close()
+            if html_extractor is not None:
+                html_extractor.close()
     except Exception as exc:
         return {
             "status": "error",
@@ -1329,8 +1362,13 @@ def import_pages():
 
     return {
         "status": "ok",
+        "dry_run": dry_run,
+        "course_code": requested_course_code or None,
+        "page_limit": page_limit,
+        "planned": planned,
         "imported": imported,
         "updated": updated,
+        "skipped_missing_lecture": skipped_missing_lecture,
     }
 
 
@@ -1622,7 +1660,6 @@ def import_moocs_details():
     import_steps = [
         ("courses", import_courses),
         ("lectures", import_lectures),
-        ("pages", import_pages),
         ("materials", import_materials),
         ("tasks", import_tasks),
     ]

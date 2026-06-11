@@ -346,6 +346,10 @@ python backend\moocs_probe.py --details --course-code COT101 --user-data-dir dat
 curl.exe -X POST http://localhost:8000/api/import-moocs-details
 ```
 
+`/api/import-moocs-details` imports metadata only: courses, lectures, materials
+that can be linked to existing pages, and tasks. It intentionally does not run
+`/api/import-pages`.
+
 Limits:
 
 * `--details-limit N`: max courses to visit.
@@ -395,7 +399,7 @@ Then refresh/import only the COT101 page metadata and body text. Keep the order
 python backend\moocs_probe.py --details --course-code COT101 --user-data-dir data\probe\moocs_profile_content --headed --timeout-ms 30000
 curl.exe -X POST http://localhost:8001/api/import-courses
 curl.exe -X POST http://localhost:8001/api/import-lectures
-curl.exe -X POST http://localhost:8001/api/import-pages
+curl.exe -X POST "http://localhost:8001/api/import-pages?course_code=COT101&page_limit=20"
 curl.exe -X POST http://localhost:8001/api/reindex-search
 ```
 
@@ -408,6 +412,12 @@ Invoke-RestMethod -Uri http://localhost:8001/api/ask -Method Post -ContentType "
 
 `/api/import-pages` skips empty or login-page-looking body text, so a `/signin`
 redirect will not overwrite a previously good `raw_json.extracted_text`.
+`/api/import-pages` requires `course_code` for real imports. Use
+`dry_run=true` to count planned pages without fetching MOOCs pages:
+
+```powershell
+curl.exe -X POST "http://localhost:8001/api/import-pages?course_code=COT101&page_limit=20&dry_run=true"
+```
 
 ---
 
@@ -460,12 +470,15 @@ http://localhost:8000/api/init-db
 ```text
 http://localhost:8000/api/import-courses
 http://localhost:8000/api/import-lectures
-http://localhost:8000/api/import-pages
+http://localhost:8000/api/import-pages?course_code=COT101
 http://localhost:8000/api/import-materials
 http://localhost:8000/api/import-tasks
 ```
 
-`/api/import-moocs-details` also rebuilds the Meilisearch index after importing. PostgreSQL remains the source of truth; Meilisearch is a disposable search index.
+`/api/import-pages` requires `course_code` for real imports and waits at least
+one second between page fetches. `/api/import-moocs-details` imports metadata
+only and also rebuilds the Meilisearch index after importing. PostgreSQL remains
+the source of truth; Meilisearch is a disposable search index.
 
 7. Rebuild the search index from saved PostgreSQL data:
 
