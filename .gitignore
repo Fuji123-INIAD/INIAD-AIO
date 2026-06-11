@@ -226,7 +226,6 @@ __pycache__/
 
 # MOOCs probe local data
 data/probe/*.json
-!data/probe/moocs_course_details.json
 
 # Local browser login state for MOOCs probing
 data/probe/moocs_profile/
@@ -239,3 +238,21 @@ data/probe/moocs_profile_*
 data/probe/moocs_profile_*/**
 data/probe/*storage_state*.json
 data/probe/moocs_storage_state.json
+
+# Public release safety
+.env
+*.env
+.venv/
+__pycache__/
+node_modules/
+*.db
+*.sqlite
+*.sqlite3
+*.log
+data/raw/
+data/cache/
+data/probe/
+data/obsidian_testdata/
+*storage_state*.json
+*cookies*.json
+moocs_profile/
