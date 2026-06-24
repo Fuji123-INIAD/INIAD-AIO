@@ -19,7 +19,7 @@ class TaskStatusUpdate(BaseModel):
 
 
 @router.get("")
-def get_active_tasks() -> dict[str, list[dict[str, object]]]:
+def get_active_tasks() -> dict[str, object]:
     return list_active_tasks()
 
 
@@ -34,4 +34,3 @@ def update_task_status(task_id: str, body: TaskStatusUpdate) -> dict[str, str]:
         raise HTTPException(status_code=404, detail=str(error)) from error
 
     return {"task_id": task_id, "status": body.status}
-

@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import json
 import sqlite3
 from contextlib import closing
 from datetime import datetime, timezone
@@ -12,6 +13,7 @@ from backend.app.db.local_db import DEFAULT_DB_PATH, get_connection, init_db
 
 
 ALLOWED_TASK_STATUSES = frozenset({"open", "done", "ignored"})
+TASK_KINDS = frozenset({"submission", "review_or_feedback", "weak_candidate"})
 
 
 class TaskNotFoundError(ValueError):
@@ -39,8 +41,8 @@ def _normalize_now(now: str | datetime | None) -> str:
 def list_active_tasks(
     db_path: str | Path | None = None,
     now: str | datetime | None = None,
-) -> dict[str, list[dict[str, Any]]]:
-    """Return open future tasks and open tasks with no known deadline."""
+) -> dict[str, Any]:
+    """Return active tasks grouped by deadline and inferred action-item kind."""
     resolved_db_path = _resolve_db_path(db_path)
     init_db(resolved_db_path)
     now_iso = _normalize_now(now)
@@ -55,6 +57,7 @@ def list_active_tasks(
             tasks.description,
             tasks.deadline_at,
             tasks.moocs_url,
+            tasks.raw_json,
             COALESCE(user_task_status.status, 'open') AS status
         FROM tasks
         LEFT JOIN user_task_status
@@ -84,16 +87,48 @@ def list_active_tasks(
         connection.row_factory = sqlite3.Row
         rows = connection.execute(query, (now_iso,)).fetchall()
 
-    result: dict[str, list[dict[str, Any]]] = {
+    result: dict[str, Any] = {
         "upcoming": [],
         "unknown_deadline": [],
+        "review_or_feedback": [],
+        "weak_candidate": [],
+        "summary": {
+            "submission": 0,
+            "review_or_feedback": 0,
+            "weak_candidate": 0,
+        },
     }
     for row in rows:
         task = dict(row)
-        bucket = "unknown_deadline" if task["deadline_at"] is None else "upcoming"
+        raw_json = task.pop("raw_json", None)
+        kind = _task_kind_from_raw_json(raw_json)
+        task["kind"] = kind
+        result["summary"][kind] += 1
+
+        if kind == "submission":
+            bucket = "unknown_deadline" if task["deadline_at"] is None else "upcoming"
+        else:
+            bucket = kind
         result[bucket].append(task)
 
     return result
+
+
+def _task_kind_from_raw_json(raw_json: Any) -> str:
+    """Read the importer classification, defaulting old data to submission."""
+    if isinstance(raw_json, str):
+        try:
+            raw_json = json.loads(raw_json)
+        except (json.JSONDecodeError, TypeError):
+            return "submission"
+    if not isinstance(raw_json, dict):
+        return "submission"
+
+    task_meta = raw_json.get("_aio_task_meta")
+    if not isinstance(task_meta, dict):
+        return "submission"
+    kind = task_meta.get("kind")
+    return kind if kind in TASK_KINDS else "submission"
 
 
 def set_task_status(

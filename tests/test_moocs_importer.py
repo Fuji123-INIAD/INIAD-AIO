@@ -98,7 +98,17 @@ class MoocsImporterTests(unittest.TestCase):
                 ).fetchone()
 
             active = list_active_tasks(db_path=db_path, now="2026-06-24T00:00:00+00:00")
-            self.assertEqual(4, len(active["unknown_deadline"]))
+            self.assertEqual(2, len(active["unknown_deadline"]))
+            self.assertEqual(1, len(active["review_or_feedback"]))
+            self.assertEqual(1, len(active["weak_candidate"]))
+            self.assertEqual(
+                {
+                    "submission": 2,
+                    "review_or_feedback": 1,
+                    "weak_candidate": 1,
+                },
+                active["summary"],
+            )
             set_task_status(task_id, "done", db_path=db_path)
 
             second = import_moocs_course_details(
