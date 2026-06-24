@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import sqlite3
+from contextlib import closing
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
@@ -79,7 +80,7 @@ def list_active_tasks(
             tasks.title ASC
     """
 
-    with get_connection(resolved_db_path) as connection:
+    with closing(get_connection(resolved_db_path)) as connection:
         connection.row_factory = sqlite3.Row
         rows = connection.execute(query, (now_iso,)).fetchall()
 
@@ -109,24 +110,25 @@ def set_task_status(
     updated_at = _utc_now_iso()
     checked_done_at = updated_at if status == "done" else None
 
-    with get_connection(resolved_db_path) as connection:
-        task_exists = connection.execute(
-            "SELECT 1 FROM tasks WHERE id = ?",
-            (task_id,),
-        ).fetchone()
-        if task_exists is None:
-            raise TaskNotFoundError(f"Task not found: {task_id}")
+    with closing(get_connection(resolved_db_path)) as connection:
+        with connection:
+            task_exists = connection.execute(
+                "SELECT 1 FROM tasks WHERE id = ?",
+                (task_id,),
+            ).fetchone()
+            if task_exists is None:
+                raise TaskNotFoundError(f"Task not found: {task_id}")
 
-        connection.execute(
-            """
-            INSERT INTO user_task_status (
-                task_id, status, checked_done_at, updated_at
+            connection.execute(
+                """
+                INSERT INTO user_task_status (
+                    task_id, status, checked_done_at, updated_at
+                )
+                VALUES (?, ?, ?, ?)
+                ON CONFLICT(task_id) DO UPDATE SET
+                    status = excluded.status,
+                    checked_done_at = excluded.checked_done_at,
+                    updated_at = excluded.updated_at
+                """,
+                (task_id, status, checked_done_at, updated_at),
             )
-            VALUES (?, ?, ?, ?)
-            ON CONFLICT(task_id) DO UPDATE SET
-                status = excluded.status,
-                checked_done_at = excluded.checked_done_at,
-                updated_at = excluded.updated_at
-            """,
-            (task_id, status, checked_done_at, updated_at),
-        )

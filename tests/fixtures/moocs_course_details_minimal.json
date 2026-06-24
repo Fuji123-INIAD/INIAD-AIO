@@ -1,0 +1,51 @@
+[
+  {
+    "course_title": "コンピュータ・サイエンス概論",
+    "course_url": "https://moocs.iniad.org/courses/2026/COT101",
+    "fetched_at": "2026-06-24T00:00:00+00:00",
+    "lessons": [
+      {
+        "lesson_title": "第1回 ガイダンス",
+        "lesson_url": "https://moocs.iniad.org/courses/2026/COT101/01-1",
+        "pages": [
+          {
+            "page_title": "第1回の課題",
+            "page_url": "https://moocs.iniad.org/courses/2026/COT101/01-1/assignment",
+            "description": "講義内容を確認して回答してください。",
+            "materials": [
+              {
+                "material_title": "講義スライド",
+                "material_type": "google_slides",
+                "material_url": "https://docs.google.com/presentation/d/example-1/embed",
+                "retrieval_method": "iframe:google_slides"
+              }
+            ]
+          },
+          {
+            "page_title": "参考資料",
+            "page_url": "https://moocs.iniad.org/courses/2026/COT101/01-1/reference",
+            "materials": []
+          }
+        ]
+      },
+      {
+        "lesson_title": "第2回 情報の表現",
+        "lesson_url": "https://moocs.iniad.org/courses/2026/COT101/02-1",
+        "pages": [
+          {
+            "page_title": "授業資料",
+            "page_url": "https://moocs.iniad.org/courses/2026/COT101/02-1/materials",
+            "materials": [
+              {
+                "material_title": "復習 quiz",
+                "material_type": "link",
+                "material_url": "https://moocs.iniad.org/courses/2026/COT101/02-1/quiz",
+                "retrieval_method": "anchor"
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+]

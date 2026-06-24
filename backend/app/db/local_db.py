@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import json
 import sqlite3
+from contextlib import closing
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
@@ -26,7 +27,7 @@ def init_db(db_path: str | Path = DEFAULT_DB_PATH) -> Path:
     path.parent.mkdir(parents=True, exist_ok=True)
 
     schema = SCHEMA_PATH.read_text(encoding="utf-8")
-    with get_connection(path) as connection:
+    with closing(get_connection(path)) as connection:
         connection.executescript(schema)
 
     return path
@@ -42,17 +43,18 @@ def set_app_setting(
     value_json = json.dumps(value, ensure_ascii=False)
     updated_at = datetime.now(timezone.utc).isoformat()
 
-    with get_connection(db_path) as connection:
-        connection.execute(
-            """
-            INSERT INTO app_settings (key, value_json, updated_at)
-            VALUES (?, ?, ?)
-            ON CONFLICT(key) DO UPDATE SET
-                value_json = excluded.value_json,
-                updated_at = excluded.updated_at
-            """,
-            (key, value_json, updated_at),
-        )
+    with closing(get_connection(db_path)) as connection:
+        with connection:
+            connection.execute(
+                """
+                INSERT INTO app_settings (key, value_json, updated_at)
+                VALUES (?, ?, ?)
+                ON CONFLICT(key) DO UPDATE SET
+                    value_json = excluded.value_json,
+                    updated_at = excluded.updated_at
+                """,
+                (key, value_json, updated_at),
+            )
 
 
 def get_app_setting(
@@ -63,7 +65,7 @@ def get_app_setting(
     """Return a decoded application setting, or ``default`` if absent."""
     init_db(db_path)
 
-    with get_connection(db_path) as connection:
+    with closing(get_connection(db_path)) as connection:
         row = connection.execute(
             "SELECT value_json FROM app_settings WHERE key = ?",
             (key,),
