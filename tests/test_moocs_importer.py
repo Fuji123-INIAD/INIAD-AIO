@@ -8,6 +8,7 @@ from contextlib import closing
 from pathlib import Path
 
 from backend.app.core.moocs_sync.importer import (
+    classify_task_candidate,
     load_course_details_json,
     normalize_course_details,
     normalize_source_key,
@@ -25,6 +26,21 @@ TABLES = ("courses", "lectures", "pages", "materials", "tasks")
 
 
 class MoocsImporterTests(unittest.TestCase):
+    def test_task_candidate_classification(self) -> None:
+        self.assertEqual(
+            "review_or_feedback",
+            classify_task_candidate("課題解説")["kind"],
+        )
+        self.assertEqual(
+            "submission",
+            classify_task_candidate("Part 1 Quiz")["kind"],
+        )
+        self.assertEqual(
+            "weak_candidate",
+            classify_task_candidate("Python演習")["kind"],
+        )
+        self.assertIsNone(classify_task_candidate("受講方法について (CS演習1)"))
+
     def test_normalization_builds_stable_ids_and_fallback_keys(self) -> None:
         data = load_course_details_json(FIXTURE_PATH)
         first = normalize_course_details(data, now="2026-06-24T00:00:00+00:00")
@@ -68,7 +84,7 @@ class MoocsImporterTests(unittest.TestCase):
                 now="2026-06-24T00:00:00+00:00",
             )
             self.assertEqual(
-                {"courses": 1, "lectures": 2, "pages": 3, "materials": 2, "tasks": 2},
+                {"courses": 1, "lectures": 2, "pages": 6, "materials": 2, "tasks": 4},
                 first["counts"],
             )
 
@@ -82,7 +98,7 @@ class MoocsImporterTests(unittest.TestCase):
                 ).fetchone()
 
             active = list_active_tasks(db_path=db_path, now="2026-06-24T00:00:00+00:00")
-            self.assertEqual(2, len(active["unknown_deadline"]))
+            self.assertEqual(4, len(active["unknown_deadline"]))
             set_task_status(task_id, "done", db_path=db_path)
 
             second = import_moocs_course_details(
@@ -115,6 +131,20 @@ class MoocsImporterTests(unittest.TestCase):
             self.assertEqual("2026-06-25T00:00:00+00:00", task_times[2])
             self.assertEqual(["ok", "ok"], [row[0] for row in sync_runs])
             self.assertEqual(first["counts"], json.loads(sync_runs[0][1]))
+
+            with closing(sqlite3.connect(db_path)) as connection:
+                task_meta = {
+                    row[0]: json.loads(row[1])["_aio_task_meta"]
+                    for row in connection.execute("SELECT title, raw_json FROM tasks")
+                }
+            self.assertEqual("submission", task_meta["第1回の課題"]["kind"])
+            self.assertEqual("submission", task_meta["復習 quiz"]["kind"])
+            self.assertEqual("review_or_feedback", task_meta["課題解説"]["kind"])
+            self.assertEqual("weak_candidate", task_meta["Python演習"]["kind"])
+            self.assertNotIn("受講方法について (CS演習1)", task_meta)
+            for meta in task_meta.values():
+                self.assertIn("confidence", meta)
+                self.assertIn("reason", meta)
 
     def test_data_entry_point_and_error_sync_run(self) -> None:
         data = load_course_details_json(FIXTURE_PATH)

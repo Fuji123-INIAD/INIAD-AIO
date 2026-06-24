@@ -43,6 +43,21 @@
                 "retrieval_method": "anchor"
               }
             ]
+          },
+          {
+            "page_title": "課題解説",
+            "page_url": "https://moocs.iniad.org/courses/2026/COT101/02-1/review",
+            "materials": []
+          },
+          {
+            "page_title": "Python演習",
+            "page_url": "https://moocs.iniad.org/courses/2026/COT101/02-1/practice",
+            "materials": []
+          },
+          {
+            "page_title": "受講方法について (CS演習1)",
+            "page_url": "https://moocs.iniad.org/courses/2026/COT101/02-1/how-to-take",
+            "materials": []
           }
         ]
       }

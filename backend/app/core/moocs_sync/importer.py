@@ -11,21 +11,34 @@ from typing import Any, Iterable, Mapping
 from urllib.parse import urlsplit, urlunsplit
 
 
-TASK_KEYWORDS = (
+SUBMISSION_KEYWORDS = (
     "課題",
     "提出",
     "レポート",
     "小テスト",
-    "テスト",
-    "演習",
     "宿題",
     "assignment",
     "report",
     "homework",
     "quiz",
+    "submit",
+)
+REVIEW_OR_FEEDBACK_KEYWORDS = (
+    "課題解説",
+    "課題の解説",
+    "解説動画",
+    "自己採点",
+    "振り返り",
+    "feedback",
+)
+WEAK_CANDIDATE_KEYWORDS = (
+    "演習",
     "exercise",
     "task",
-    "submit",
+    "テスト",
+)
+WEAK_CANDIDATE_EXCLUSIONS = (
+    "受講方法",
 )
 DEADLINE_KEYS = (
     "deadline_at",
@@ -262,7 +275,8 @@ def extract_task_candidates(
     )
     page_type = _first_text(page, "page_type", "type", "kind")
 
-    if _looks_like_task(page_title, page_url, page_type):
+    page_meta = classify_task_candidate(page_title, page_url, page_type)
+    if page_meta is not None:
         candidates.append(
             _task_record(
                 source_key=str(page_record["source_key"]),
@@ -273,6 +287,7 @@ def extract_task_candidates(
                 page_id=str(page_record["id"]),
                 moocs_url=page_url or None,
                 timestamp=timestamp,
+                task_meta=page_meta,
             )
         )
 
@@ -283,7 +298,8 @@ def extract_task_candidates(
         title = str(material_record.get("title") or "").strip()
         material_url = str(material_record.get("moocs_url") or "").strip()
         material_type = str(material_record.get("material_type") or "").strip()
-        if not _looks_like_task(title, material_url, material_type):
+        material_meta = classify_task_candidate(title, material_url, material_type)
+        if material_meta is None:
             continue
         candidates.append(
             _task_record(
@@ -295,6 +311,7 @@ def extract_task_candidates(
                 page_id=str(page_record["id"]),
                 moocs_url=material_url or page_url or None,
                 timestamp=timestamp,
+                task_meta=material_meta,
             )
         )
 
@@ -311,9 +328,12 @@ def _task_record(
     page_id: str,
     moocs_url: str | None,
     timestamp: str,
+    task_meta: Mapping[str, str],
 ) -> dict[str, Any]:
     normalized_title = _normalized_title(title)
     task_source_key = normalize_source_key(f"{source_key}|{normalized_title}")
+    task_raw_json = dict(raw)
+    task_raw_json["_aio_task_meta"] = dict(task_meta)
     return {
         "id": stable_id("task", task_source_key),
         "course_id": course_id,
@@ -324,7 +344,7 @@ def _task_record(
         "deadline_at": _extract_deadline(raw),
         "moocs_url": moocs_url,
         "source_key": task_source_key,
-        "raw_json": dict(raw),
+        "raw_json": task_raw_json,
         "first_seen_at": timestamp,
         "last_seen_at": timestamp,
         "updated_at": timestamp,
@@ -396,9 +416,47 @@ def _normalized_title(value: str) -> str:
     return " ".join(value.lower().split())
 
 
-def _looks_like_task(*values: Any) -> bool:
+def classify_task_candidate(*values: Any) -> dict[str, str] | None:
+    """Classify task-like metadata without discarding review/feedback pages."""
     haystack = " ".join(str(value or "") for value in values).lower()
-    return any(keyword in haystack for keyword in TASK_KEYWORDS)
+
+    review_keyword = _first_matching_keyword(
+        haystack, REVIEW_OR_FEEDBACK_KEYWORDS
+    )
+    if review_keyword:
+        return {
+            "kind": "review_or_feedback",
+            "confidence": "medium",
+            "reason": f"matched review/feedback keyword: {review_keyword}",
+        }
+
+    submission_keyword = _first_matching_keyword(haystack, SUBMISSION_KEYWORDS)
+    if submission_keyword:
+        return {
+            "kind": "submission",
+            "confidence": "high",
+            "reason": f"matched submission keyword: {submission_keyword}",
+        }
+
+    weak_keyword = _first_matching_keyword(haystack, WEAK_CANDIDATE_KEYWORDS)
+    if weak_keyword:
+        exclusion = _first_matching_keyword(haystack, WEAK_CANDIDATE_EXCLUSIONS)
+        if exclusion:
+            return None
+        return {
+            "kind": "weak_candidate",
+            "confidence": "low",
+            "reason": f"matched weak keyword: {weak_keyword}",
+        }
+
+    return None
+
+
+def _first_matching_keyword(haystack: str, keywords: tuple[str, ...]) -> str | None:
+    for keyword in keywords:
+        if keyword.lower() in haystack:
+            return keyword
+    return None
 
 
 def _find_value_by_keys(value: Any, keys: tuple[str, ...]) -> Any:
