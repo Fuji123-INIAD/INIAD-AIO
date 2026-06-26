@@ -75,6 +75,67 @@ class MoocsImporterTests(unittest.TestCase):
             ),
         )
 
+    def test_html_evidence_is_added_to_task_meta_without_deadline_normalization(self) -> None:
+        data = {
+            "course_title": "Computer Science",
+            "course_url": "https://moocs.iniad.org/courses/2026/COT105",
+            "lessons": [
+                {
+                    "lesson_title": "Report lesson",
+                    "lesson_url": "https://moocs.iniad.org/courses/2026/COT105/01",
+                    "pages": [
+                        {
+                            "page_title": "Report: first assignment",
+                            "page_url": "https://moocs.iniad.org/courses/2026/COT105/01/report",
+                            "extracted_text": "Report body. Submit from the MOOCs page.",
+                            "keyword_contexts": [
+                                "Report body. Submit from the MOOCs page.",
+                                "x" * 500,
+                            ],
+                            "buttons": [
+                                {"text": "Submit", "type": "submit", "disabled": False}
+                            ],
+                            "submit_button_present": True,
+                            "deadline_text_candidates": ["4月21日火曜日23時59分"],
+                            "accepting_status_text": "現在回答を受け付けていません",
+                            "non_google_iframe_urls": [],
+                            "signin_redirect": False,
+                            "content_fetched_at": "2026-06-26T00:00:00+00:00",
+                            "content_retrieval_method": "dom:section.content",
+                            "materials": [],
+                        }
+                    ],
+                }
+            ],
+        }
+
+        records = normalize_course_details(data, now="2026-06-26T00:00:00+00:00")
+
+        self.assertEqual(1, len(records["tasks"]))
+        task = records["tasks"][0]
+        meta = task["raw_json"]["_aio_task_meta"]
+        self.assertEqual("submission", meta["kind"])
+        self.assertEqual("high", meta["confidence"])
+        self.assertIn("reason", meta)
+        self.assertEqual(["4月21日火曜日23時59分"], meta["deadline_text_candidates"])
+        self.assertEqual("moocs_html", meta["deadline_source_candidate"])
+        self.assertEqual("moocs", meta["submit_channel_candidate"])
+        self.assertEqual("medium", meta["submit_channel_confidence"])
+        self.assertEqual(
+            "submit button present in MOOCs page HTML",
+            meta["submit_channel_reason"],
+        )
+        self.assertEqual("現在回答を受け付けていません", meta["accepting_status_text"])
+        self.assertEqual(
+            "Report body. Submit from the MOOCs page.",
+            meta["html_keyword_contexts"][0],
+        )
+        self.assertLessEqual(len(meta["html_keyword_contexts"][1]), 303)
+        self.assertEqual("dom:section.content", meta["content_retrieval_method"])
+        self.assertEqual("2026-06-26T00:00:00+00:00", meta["content_fetched_at"])
+        self.assertFalse(meta["signin_redirect"])
+        self.assertIsNone(task["deadline_at"])
+
     def test_import_is_idempotent_and_preserves_user_task_status(self) -> None:
         with tempfile.TemporaryDirectory() as temp_dir:
             db_path = Path(temp_dir) / "local.db"

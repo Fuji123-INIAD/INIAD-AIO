@@ -48,6 +48,8 @@ DEADLINE_KEYS = (
     "due",
 )
 DESCRIPTION_KEYS = ("description", "body", "content", "text")
+HTML_CONTEXT_LIMIT = 20
+HTML_TEXT_LIMIT = 300
 
 
 def load_course_details_json(path: str | Path) -> Any:
@@ -312,6 +314,7 @@ def extract_task_candidates(
                 moocs_url=material_url or page_url or None,
                 timestamp=timestamp,
                 task_meta=material_meta,
+                html_evidence=page,
             )
         )
 
@@ -329,11 +332,14 @@ def _task_record(
     moocs_url: str | None,
     timestamp: str,
     task_meta: Mapping[str, str],
+    html_evidence: Mapping[str, Any] | None = None,
 ) -> dict[str, Any]:
     normalized_title = _normalized_title(title)
     task_source_key = normalize_source_key(f"{source_key}|{normalized_title}")
     task_raw_json = dict(raw)
-    task_raw_json["_aio_task_meta"] = dict(task_meta)
+    enriched_task_meta: dict[str, Any] = dict(task_meta)
+    enriched_task_meta.update(_html_evidence_task_meta(html_evidence or raw))
+    task_raw_json["_aio_task_meta"] = enriched_task_meta
     return {
         "id": stable_id("task", task_source_key),
         "course_id": course_id,
@@ -349,6 +355,41 @@ def _task_record(
         "last_seen_at": timestamp,
         "updated_at": timestamp,
     }
+
+
+def _html_evidence_task_meta(raw: Mapping[str, Any]) -> dict[str, Any]:
+    meta: dict[str, Any] = {}
+
+    deadline_candidates = _limited_text_list(raw.get("deadline_text_candidates"))
+    if deadline_candidates:
+        meta["deadline_text_candidates"] = deadline_candidates
+        meta["deadline_source_candidate"] = "moocs_html"
+
+    if raw.get("submit_button_present") is True:
+        meta["submit_channel_candidate"] = "moocs"
+        meta["submit_channel_confidence"] = "medium"
+        meta["submit_channel_reason"] = "submit button present in MOOCs page HTML"
+
+    accepting_status_text = _limited_text(raw.get("accepting_status_text"))
+    if accepting_status_text:
+        meta["accepting_status_text"] = accepting_status_text
+
+    keyword_contexts = _limited_text_list(raw.get("keyword_contexts"))
+    if keyword_contexts:
+        meta["html_keyword_contexts"] = keyword_contexts
+
+    content_retrieval_method = _limited_text(raw.get("content_retrieval_method"))
+    if content_retrieval_method:
+        meta["content_retrieval_method"] = content_retrieval_method
+
+    content_fetched_at = _limited_text(raw.get("content_fetched_at"))
+    if content_fetched_at:
+        meta["content_fetched_at"] = content_fetched_at
+
+    if isinstance(raw.get("signin_redirect"), bool):
+        meta["signin_redirect"] = raw["signin_redirect"]
+
+    return meta
 
 
 def _course_items(data: Any) -> list[Any]:
@@ -378,6 +419,31 @@ def _first_text(value: Mapping[str, Any], *keys: str) -> str:
             if text:
                 return text
     return ""
+
+
+def _limited_text(value: Any, limit: int = HTML_TEXT_LIMIT) -> str:
+    if not isinstance(value, (str, int, float)):
+        return ""
+    text = " ".join(str(value).split())
+    if len(text) <= limit:
+        return text
+    return text[:limit].rstrip() + "..."
+
+
+def _limited_text_list(value: Any, limit: int = HTML_CONTEXT_LIMIT) -> list[str]:
+    if not isinstance(value, list):
+        return []
+    items: list[str] = []
+    seen: set[str] = set()
+    for item in value:
+        text = _limited_text(item)
+        if not text or text in seen:
+            continue
+        seen.add(text)
+        items.append(text)
+        if len(items) >= limit:
+            break
+    return items
 
 
 def _child_list(value: Mapping[str, Any], *keys: str) -> list[Any]:
