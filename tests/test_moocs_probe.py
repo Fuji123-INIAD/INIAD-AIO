@@ -4,6 +4,7 @@ import unittest
 
 from backend.moocs_probe import (
     CoursePageProbeRecord,
+    clean_evidence_text,
     extract_accepting_status_from_text,
     extract_deadline_text_candidates_from_text,
     extract_keyword_contexts_from_text,
@@ -28,6 +29,28 @@ class MoocsProbeEvidenceTests(unittest.TestCase):
         self.assertTrue(any("締切" in context for context in deadline_candidates))
         self.assertIsNotNone(accepting_status)
         self.assertIn("受け付け", accepting_status or "")
+
+    def test_evidence_text_removes_navigation_noise_but_keeps_task_terms(self) -> None:
+        text = (
+            "課題 Bookmark 現在回答を受け付けていません。 "
+            "締切は4月21日火曜日23時59分です。 "
+            "最後に提出ボタンをクリックしてください。 « Previous Next » "
+            "Toggle navigation Settings Sign out"
+        )
+
+        cleaned = clean_evidence_text(text)
+        keyword_contexts = extract_keyword_contexts_from_text(text)
+        deadline_candidates = extract_deadline_text_candidates_from_text(text)
+        combined_contexts = " ".join(keyword_contexts + deadline_candidates)
+
+        for noise in ("Bookmark", "Previous", "Next", "Toggle navigation", "Settings", "Sign out"):
+            self.assertNotIn(noise, cleaned)
+            self.assertNotIn(noise, combined_contexts)
+        self.assertIn("提出", cleaned)
+        self.assertIn("締切", cleaned)
+        self.assertIn("4月21日火曜日23時59分", cleaned)
+        self.assertTrue(any("提出" in context for context in keyword_contexts))
+        self.assertTrue(any("4月21日火曜日23時59分" in context for context in deadline_candidates))
 
     def test_page_to_dict_keeps_existing_shape_and_adds_optional_fields(self) -> None:
         record = CoursePageProbeRecord(

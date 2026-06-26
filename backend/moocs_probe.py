@@ -88,6 +88,11 @@ CONTEXT_RADIUS = 100
 MAX_CONTEXTS = 20
 MAX_BUTTONS = 30
 MAX_IFRAME_URLS = 30
+CONTENT_TEXT_NOISE_RE = re.compile(
+    r"(?:[«»]\s*)?\b(?:Bookmark|Previous|Next|Toggle navigation|Settings|Sign out)\b(?:\s*[«»])?"
+    r"|ブックマーク",
+    re.IGNORECASE,
+)
 
 
 @dataclass(frozen=True)
@@ -156,6 +161,12 @@ def is_course_url(url: str) -> bool:
 
 def normalize_space(value: str) -> str:
     return " ".join(value.split())
+
+
+def clean_evidence_text(value: str) -> str:
+    text = normalize_space(value)
+    text = CONTENT_TEXT_NOISE_RE.sub(" ", text)
+    return normalize_space(text)
 
 
 def truncate_text(value: str, limit: int) -> str:
@@ -228,7 +239,7 @@ def content_scope(page: Page):
 
 
 def text_contexts(text: str, pattern: re.Pattern[str], radius: int = CONTEXT_RADIUS, limit: int = MAX_CONTEXTS) -> list[str]:
-    compact = normalize_space(text)
+    compact = clean_evidence_text(text)
     contexts: list[str] = []
     seen: set[str] = set()
     for match in pattern.finditer(compact):
@@ -274,7 +285,7 @@ def is_google_frame_url(url: str) -> bool:
 def extract_page_html_evidence(page: Page, fetched_at: str) -> dict[str, object]:
     scope, scope_selector = content_scope(page)
     try:
-        visible_text = normalize_space(scope.inner_text(timeout=3000))
+        visible_text = clean_evidence_text(scope.inner_text(timeout=3000))
     except PlaywrightError as exc:
         logging.warning("failed to extract content text selector=%r error=%s", scope_selector, exc)
         visible_text = ""
