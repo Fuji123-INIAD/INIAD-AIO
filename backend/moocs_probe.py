@@ -56,6 +56,38 @@ VIEWER_FRAME_SELECTORS = (
     "iframe[src*='drive.google.com/file']",
     "iframe[src*='viewer']",
 )
+CONTENT_SELECTORS = (
+    ".content-wrapper section.content",
+    "section.content",
+    ".content-wrapper",
+    "main",
+    "article",
+    "body",
+)
+EVIDENCE_KEYWORD_RE = re.compile(
+    r"期限|締切|締め切り|提出|回答|受け付け|受付|Quiz|Report|"
+    r"deadline|due|submit|submission|answer|accepting|accepted",
+    re.IGNORECASE,
+)
+DEADLINE_HINT_RE = re.compile(
+    r"期限|締切|締め切り|due|deadline|"
+    r"\d{4}[-/年]\d{1,2}[-/月]\d{1,2}|"
+    r"\d{1,2}月\d{1,2}日|"
+    r"\d{1,2}:\d{2}|"
+    r"今日|明日|翌日|今週|来週|まで|以内",
+    re.IGNORECASE,
+)
+ACCEPTING_STATUS_RE = re.compile(
+    r"受け付け|受付|受付中|受付終了|提出済|未提出|"
+    r"accepting|accepted|closed|submitted|not submitted",
+    re.IGNORECASE,
+)
+SUBMIT_BUTTON_RE = re.compile(r"提出|回答|送信|submit|answer", re.IGNORECASE)
+EXTRACTED_TEXT_LIMIT = 3000
+CONTEXT_RADIUS = 100
+MAX_CONTEXTS = 20
+MAX_BUTTONS = 30
+MAX_IFRAME_URLS = 30
 
 
 @dataclass(frozen=True)
@@ -78,6 +110,16 @@ class CoursePageProbeRecord:
     page_title: str
     page_url: str
     materials: list[CourseMaterialProbeRecord]
+    extracted_text: str | None = None
+    keyword_contexts: list[str] | None = None
+    buttons: list[dict[str, object]] | None = None
+    submit_button_present: bool | None = None
+    deadline_text_candidates: list[str] | None = None
+    accepting_status_text: str | None = None
+    non_google_iframe_urls: list[str] | None = None
+    signin_redirect: bool | None = None
+    content_fetched_at: str | None = None
+    content_retrieval_method: str | None = None
 
 
 @dataclass(frozen=True)
@@ -114,6 +156,13 @@ def is_course_url(url: str) -> bool:
 
 def normalize_space(value: str) -> str:
     return " ".join(value.split())
+
+
+def truncate_text(value: str, limit: int) -> str:
+    text = normalize_space(value)
+    if len(text) <= limit:
+        return text
+    return text[:limit].rstrip() + "..."
 
 
 def clean_page_title_text(value: str) -> str:
@@ -164,6 +213,131 @@ def extract_content_page_title(page: Page, page_url: str) -> str:
         return document_title
 
     return fallback_title_from_url(page_url)
+
+
+def content_scope(page: Page):
+    for selector in CONTENT_SELECTORS:
+        locator = page.locator(selector)
+        try:
+            if locator.count() and normalize_space(locator.first.inner_text(timeout=3000)):
+                return locator.first, selector
+        except PlaywrightError as exc:
+            logging.debug("content selector failed selector=%r error=%s", selector, exc)
+            continue
+    return page.locator("body"), "body"
+
+
+def text_contexts(text: str, pattern: re.Pattern[str], radius: int = CONTEXT_RADIUS, limit: int = MAX_CONTEXTS) -> list[str]:
+    compact = normalize_space(text)
+    contexts: list[str] = []
+    seen: set[str] = set()
+    for match in pattern.finditer(compact):
+        start = max(0, match.start() - radius)
+        end = min(len(compact), match.end() + radius)
+        context = compact[start:end]
+        if context and context not in seen:
+            seen.add(context)
+            contexts.append(context)
+        if len(contexts) >= limit:
+            break
+    return contexts
+
+
+def extract_keyword_contexts_from_text(text: str) -> list[str]:
+    return text_contexts(text, EVIDENCE_KEYWORD_RE)
+
+
+def extract_deadline_text_candidates_from_text(text: str) -> list[str]:
+    return text_contexts(text, DEADLINE_HINT_RE)
+
+
+def extract_accepting_status_from_text(text: str) -> str | None:
+    contexts = text_contexts(text, ACCEPTING_STATUS_RE, radius=80, limit=1)
+    return contexts[0] if contexts else None
+
+
+def safe_http_url(base_url: str, href: str | None) -> str | None:
+    if not href:
+        return None
+    absolute = urljoin(base_url, href)
+    parsed = urlparse(absolute)
+    if parsed.scheme not in {"http", "https"}:
+        return None
+    return parsed._replace(fragment="").geturl()
+
+
+def is_google_frame_url(url: str) -> bool:
+    hostname = (urlparse(url).hostname or "").lower()
+    return hostname.endswith("docs.google.com") or hostname.endswith("drive.google.com")
+
+
+def extract_page_html_evidence(page: Page, fetched_at: str) -> dict[str, object]:
+    scope, scope_selector = content_scope(page)
+    try:
+        visible_text = normalize_space(scope.inner_text(timeout=3000))
+    except PlaywrightError as exc:
+        logging.warning("failed to extract content text selector=%r error=%s", scope_selector, exc)
+        visible_text = ""
+
+    buttons: list[dict[str, object]] = []
+    button_locator = scope.locator("button, input[type='submit'], input[type='button']")
+    for index in range(min(button_locator.count(), MAX_BUTTONS)):
+        button = button_locator.nth(index)
+        try:
+            tag_name = button.evaluate("element => element.tagName.toLowerCase()")
+            button_type = (button.get_attribute("type") or "").lower() or None
+            disabled = bool(
+                button.evaluate(
+                    "element => Boolean(element.disabled || element.getAttribute('aria-disabled') === 'true')"
+                )
+            )
+            text = truncate_text(
+                button.inner_text(timeout=1000)
+                or button.get_attribute("aria-label")
+                or button.get_attribute("title")
+                or "",
+                120,
+            )
+        except PlaywrightError as exc:
+            logging.debug("button evidence extraction failed index=%s error=%s", index, exc)
+            continue
+        buttons.append(
+            {
+                "text": text or None,
+                "type": button_type or tag_name,
+                "disabled": disabled,
+            }
+        )
+
+    non_google_iframe_urls: list[str] = []
+    iframes = scope.locator("iframe[src]")
+    for index in range(min(iframes.count(), MAX_IFRAME_URLS)):
+        try:
+            src = safe_http_url(page.url, iframes.nth(index).get_attribute("src"))
+        except PlaywrightError as exc:
+            logging.debug("iframe evidence extraction failed index=%s error=%s", index, exc)
+            continue
+        if src and not is_google_frame_url(src) and src not in non_google_iframe_urls:
+            non_google_iframe_urls.append(src)
+
+    submit_button_present = any(
+        SUBMIT_BUTTON_RE.search(str(button.get("text") or ""))
+        or SUBMIT_BUTTON_RE.search(str(button.get("type") or ""))
+        for button in buttons
+    )
+
+    return {
+        "extracted_text": truncate_text(visible_text, EXTRACTED_TEXT_LIMIT) or None,
+        "keyword_contexts": extract_keyword_contexts_from_text(visible_text),
+        "buttons": buttons,
+        "submit_button_present": submit_button_present,
+        "deadline_text_candidates": extract_deadline_text_candidates_from_text(visible_text),
+        "accepting_status_text": extract_accepting_status_from_text(visible_text),
+        "non_google_iframe_urls": non_google_iframe_urls,
+        "signin_redirect": "/signin" in urlparse(page.url).path,
+        "content_fetched_at": fetched_at,
+        "content_retrieval_method": f"dom:{scope_selector}",
+    }
 
 
 def require_storage_state(storage_state: Path) -> Path:
@@ -365,6 +539,16 @@ def page_to_dict(page: CoursePageProbeRecord) -> dict[str, object]:
         "page_title": page.page_title,
         "page_url": page.page_url,
         "materials": [material_to_dict(material) for material in page.materials],
+        "extracted_text": page.extracted_text,
+        "keyword_contexts": page.keyword_contexts or [],
+        "buttons": page.buttons or [],
+        "submit_button_present": page.submit_button_present,
+        "deadline_text_candidates": page.deadline_text_candidates or [],
+        "accepting_status_text": page.accepting_status_text,
+        "non_google_iframe_urls": page.non_google_iframe_urls or [],
+        "signin_redirect": page.signin_redirect,
+        "content_fetched_at": page.content_fetched_at,
+        "content_retrieval_method": page.content_retrieval_method,
     }
 
 
@@ -946,18 +1130,37 @@ def probe_course_details(
                                     log_dom_diagnostics(page)
                                     if "/signin" in urlparse(page.url).path:
                                         logging.warning(
-                                            "lesson page redirected to signin; skipping page=%s. "
+                                            "lesson page redirected to signin; recording redirect evidence for page=%s. "
                                             "Persistent MOOCs login is missing or expired.",
                                             lesson_page_url,
+                                        )
+                                        pages.append(
+                                            CoursePageProbeRecord(
+                                                page_title=lesson_page_link_title or fallback_title_from_url(lesson_page_url),
+                                                page_url=lesson_page_url,
+                                                materials=[],
+                                                extracted_text=None,
+                                                keyword_contexts=[],
+                                                buttons=[],
+                                                submit_button_present=False,
+                                                deadline_text_candidates=[],
+                                                accepting_status_text=None,
+                                                non_google_iframe_urls=[],
+                                                signin_redirect=True,
+                                                content_fetched_at=fetched_at,
+                                                content_retrieval_method="redirect:signin",
+                                            )
                                         )
                                         continue
 
                                     materials = extract_google_slides_materials(page)
+                                    evidence = extract_page_html_evidence(page, fetched_at)
                                     pages.append(
                                         CoursePageProbeRecord(
                                             page_title=extract_content_page_title(page, lesson_page_url),
                                             page_url=lesson_page_url,
                                             materials=materials,
+                                            **evidence,
                                         )
                                     )
                                 except PlaywrightTimeoutError:
