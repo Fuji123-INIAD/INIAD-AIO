@@ -103,8 +103,19 @@ input[type="search"] {
   transition: border-color 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
 }
 
+select {
+  padding: 8px 10px;
+  color: var(--text);
+  font: inherit;
+  font-size: 0.9rem;
+  background: #ffffff;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+}
+
 textarea:focus,
-input[type="search"]:focus {
+input[type="search"]:focus,
+select:focus {
   background: #ffffff;
   border-color: var(--primary);
   box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.13);
@@ -157,6 +168,209 @@ button:disabled {
 .question-card {
   padding: 28px;
   border-left: 5px solid var(--primary);
+}
+
+.task-card {
+  border-left: 5px solid #16a34a;
+}
+
+.task-card-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.task-eyebrow {
+  margin-bottom: 6px;
+  color: #15803d;
+}
+
+.task-title {
+  margin-bottom: 0;
+}
+
+.task-summary {
+  flex: 0 0 auto;
+  padding: 6px 10px;
+  color: #166534;
+  font-size: 0.88rem;
+  font-weight: 800;
+  background: #dcfce7;
+  border: 1px solid #bbf7d0;
+  border-radius: 8px;
+}
+
+.task-list {
+  display: grid;
+  gap: 10px;
+}
+
+.task-item {
+  display: grid;
+  grid-template-columns: 84px minmax(0, 1fr);
+  gap: 14px;
+  align-items: start;
+  padding: 14px;
+  background: #fbfdff;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+}
+
+.task-item.is-inactive {
+  opacity: 0.68;
+}
+
+.task-short-name {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 30px;
+  padding: 5px 8px;
+  color: #14532d;
+  font-size: 0.82rem;
+  font-weight: 900;
+  background: #dcfce7;
+  border: 1px solid #bbf7d0;
+  border-radius: 8px;
+}
+
+.task-body {
+  min-width: 0;
+}
+
+.task-item-title {
+  margin: 0 0 8px;
+  font-size: 1rem;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}
+
+.task-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.task-meta-item {
+  padding: 4px 8px;
+  color: #475569;
+  font-size: 0.84rem;
+  font-weight: 700;
+  background: #f1f5f9;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+}
+
+.task-controls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.task-status-label {
+  color: var(--muted);
+  font-size: 0.82rem;
+  font-weight: 700;
+}
+
+.task-status-select:disabled {
+  cursor: wait;
+  opacity: 0.65;
+}
+
+.task-evidence {
+  margin-top: 10px;
+  padding: 10px;
+  background: #f8fafc;
+  border: 1px dashed #cbd5e1;
+  border-radius: 8px;
+}
+
+.task-evidence-title {
+  margin: 0 0 6px;
+  color: #475569;
+  font-size: 0.82rem;
+  font-weight: 800;
+}
+
+.task-evidence-list {
+  display: grid;
+  gap: 4px;
+  margin: 0;
+  padding-left: 18px;
+}
+
+.task-evidence-item {
+  color: #64748b;
+  font-size: 0.82rem;
+  line-height: 1.5;
+}
+
+.task-evidence-item[data-evidence-type="slides"] {
+  color: #475569;
+  font-weight: 700;
+}
+
+.task-evidence-detail-button {
+  width: auto;
+  margin-top: 8px;
+  padding: 5px 9px;
+  font-size: 0.8rem;
+}
+
+.task-evidence-detail-list {
+  display: grid;
+  gap: 4px;
+  margin: 8px 0 0;
+  padding-left: 18px;
+}
+
+.task-evidence-detail-item {
+  color: #475569;
+  font-size: 0.8rem;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}
+
+.task-evidence-omitted {
+  margin: 6px 0 0;
+  color: #64748b;
+  font-size: 0.8rem;
+  font-weight: 700;
+}
+
+.task-warnings:not(:empty),
+.task-error:not(:empty) {
+  margin-bottom: 12px;
+  padding: 10px 12px;
+  font-size: 0.9rem;
+  line-height: 1.5;
+  border-radius: 8px;
+}
+
+.task-warnings:not(:empty) {
+  color: #854d0e;
+  background: #fef9c3;
+  border: 1px solid #fde68a;
+}
+
+.task-error:not(:empty) {
+  color: #991b1b;
+  background: #fee2e2;
+  border: 1px solid #fecaca;
+}
+
+.task-warning-list {
+  margin: 0;
+  padding-left: 18px;
+}
+
+.task-empty {
+  margin: 0;
+  color: var(--muted);
 }
 
 .search-card {
@@ -374,6 +588,13 @@ footer {
   .actions,
   .search-row {
     align-items: stretch;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .task-card-header,
+  .task-item,
+  .task-controls {
     display: flex;
     flex-direction: column;
   }

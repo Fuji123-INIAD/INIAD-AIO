@@ -7,8 +7,10 @@ from backend.app.core.task_generator import (
     generate_course_rule_tasks,
 )
 from backend.app.core.task_list_composer import (
+    TaskEvidence,
     TaskListItem,
     compose_task_list_items,
+    prepare_evidence,
 )
 from backend.app.core.user_task_status import (
     UserTaskStatus,
@@ -81,6 +83,67 @@ class TaskListComposerTests(unittest.TestCase):
         self.assertEqual("next_lecture_previous_day", items[0].deadline_rule)
         self.assertEqual("moocs", items[0].submission_channel)
         self.assertEqual("medium", items[0].confidence)
+
+    def test_display_fields_are_added_without_changing_course_code(self) -> None:
+        item = compose_task_list_items([self._task("task-1")])[0]
+
+        self.assertEqual("COT101", item.course_code)
+        self.assertEqual("COT101", item.display_course_name)
+        self.assertEqual("COT101", item.short_name)
+        self.assertEqual("COT", item.track)
+
+    def test_course_rule_evidence_is_added(self) -> None:
+        item = compose_task_list_items([self._task("task-1")])[0]
+
+        self.assertEqual(1, len(item.evidence))
+        self.assertIsInstance(item.evidence[0], TaskEvidence)
+        self.assertEqual("course_rule", item.evidence[0].type)
+        self.assertEqual("COT101 course rule", item.evidence[0].label)
+        self.assertEqual("course_rule", item.evidence[0].source)
+        self.assertEqual("medium", item.evidence[0].confidence)
+        self.assertEqual(0, item.evidence_omitted_count)
+
+    def test_extra_html_evidence_can_be_added(self) -> None:
+        task = self._task("task-1")
+
+        item = compose_task_list_items(
+            [task],
+            extra_evidence={
+                "COT101": [
+                    TaskEvidence(
+                        type="html",
+                        label="Assignment page",
+                        source="https://example.test/assignment",
+                        confidence="medium",
+                    )
+                ]
+            },
+        )[0]
+
+        self.assertEqual(["course_rule", "html"], [evidence.type for evidence in item.evidence])
+        self.assertEqual("Assignment page", item.evidence[1].label)
+
+    def test_evidence_is_deduped_ranked_and_limited(self) -> None:
+        evidence, omitted_count = prepare_evidence(
+            [
+                TaskEvidence("html", "HTML low", "same-html", "low"),
+                TaskEvidence("slides", "Slides high", "slides-1", "high"),
+                TaskEvidence("course_rule", "Rule", "course_rule", "medium"),
+                TaskEvidence("html", "HTML high", "same-html", "high"),
+                TaskEvidence("html", "HTML medium", "html-2", "medium"),
+                TaskEvidence("html", "HTML low 3", "html-3", "low"),
+                TaskEvidence("html", "HTML high 4", "html-4", "high"),
+                TaskEvidence("html", "HTML high 5", "html-5", "high"),
+            ]
+        )
+
+        self.assertEqual(5, len(evidence))
+        self.assertEqual(3, omitted_count)
+        self.assertEqual(["course_rule", "html", "html", "html", "html"], [item.type for item in evidence])
+        self.assertEqual("Rule", evidence[0].label)
+        self.assertEqual("HTML high", evidence[1].label)
+        self.assertEqual("high", evidence[1].confidence)
+        self.assertNotIn("Slides high", [item.label for item in evidence])
 
     @staticmethod
     def _task(task_id: str) -> TaskPrototype:

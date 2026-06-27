@@ -1,12 +1,14 @@
 from pathlib import Path
 from datetime import datetime
 from concurrent.futures import ThreadPoolExecutor, TimeoutError
+from dataclasses import asdict
 import json
 import os
+import sys
 import time
 from urllib.parse import urlparse
 
-from fastapi import FastAPI, Query
+from fastapi import FastAPI, HTTPException, Query
 from fastapi.responses import Response
 from fastapi.staticfiles import StaticFiles
 from bs4 import BeautifulSoup
@@ -17,11 +19,42 @@ import psycopg
 import requests
 from pydantic import BaseModel
 
+PROJECT_ROOT = Path(__file__).resolve().parent.parent
+if str(PROJECT_ROOT) not in sys.path:
+    sys.path.insert(0, str(PROJECT_ROOT))
+
 from ai_module import generate_answer
+from backend.app.core.course_rules import normalize_course_code
+from backend.app.core.task_html_evidence import load_html_evidence_by_course
+from backend.app.core.task_slides_evidence import load_slides_evidence_by_course
+from backend.app.core.task_generator import generate_course_rule_tasks
+from backend.app.core.task_list_composer import compose_task_list_items
+from backend.app.core.user_task_status import (
+    ALLOWED_USER_TASK_STATUSES,
+    UserTaskStatus,
+    create_default_status,
+    mark_done,
+    mark_ignored,
+    mark_todo,
+)
+from backend.app.core.user_task_status_store import (
+    load_user_task_statuses,
+    save_user_task_statuses,
+)
 from database import init_db
 
 app = FastAPI()
 init_db()
+USER_TASK_STATUSES: dict[str, UserTaskStatus] = {}
+USER_TASK_STATUS_WARNINGS: list[dict[str, str]] = []
+USER_TASK_STATUS_LOADED = False
+USER_TASK_STATUS_PATH = PROJECT_ROOT / "data" / "local" / "user_task_status.json"
+HTML_EVIDENCE_PATH = PROJECT_ROOT / "data" / "probe" / "moocs_course_details.json"
+MOOCS_COLLECT_DB_PATH = (
+    Path(os.environ["MOOCS_COLLECT_DB_PATH"]).expanduser()
+    if os.environ.get("MOOCS_COLLECT_DB_PATH")
+    else None
+)
 
 SCHEMA_PATH = Path(__file__).resolve().with_name("schema.sql")
 COURSE_DETAILS_PATH = (
@@ -77,6 +110,10 @@ def utf8_json(data):
 
 class AskRequest(BaseModel):
     question: str
+
+
+class TaskStatusUpdateRequest(BaseModel):
+    status: str
 
 
 def get_database_url():
@@ -1835,8 +1872,102 @@ def list_materials():
     }
 
 
+def build_rule_task_list_response(course_codes):
+    normalized_course_codes, items, warnings = build_rule_task_items(course_codes)
+    response_items = []
+    for item in items:
+        item_dict = task_list_item_summary(item)
+        response_items.append(item_dict)
+
+    return {
+        "course_codes": normalized_course_codes,
+        "task_count": len(response_items),
+        "active_count": sum(1 for item in response_items if item["active"]),
+        "warnings": warnings,
+        "items": response_items,
+    }
+
+
+def build_rule_task_items(course_codes):
+    ensure_user_task_statuses_loaded()
+    normalized_course_codes = [normalize_course_code(code) for code in course_codes]
+    tasks = []
+    warnings = list(USER_TASK_STATUS_WARNINGS)
+
+    for course_code in normalized_course_codes:
+        course_tasks = generate_course_rule_tasks(course_code)
+        if not course_tasks:
+            warnings.append(
+                {
+                    "course_code": course_code,
+                    "message": "No course rule tasks generated.",
+                }
+            )
+        tasks.extend(course_tasks)
+
+    html_evidence, html_warnings = load_html_evidence_by_course(
+        normalized_course_codes,
+        HTML_EVIDENCE_PATH,
+    )
+    warnings.extend(html_warnings)
+    slides_evidence, slides_warnings = load_slides_evidence_by_course(
+        normalized_course_codes,
+        HTML_EVIDENCE_PATH,
+        moocs_collect_db_path=MOOCS_COLLECT_DB_PATH,
+    )
+    warnings.extend(slides_warnings)
+
+    items = compose_task_list_items(
+        tasks,
+        USER_TASK_STATUSES,
+        extra_evidence=merge_task_evidence(html_evidence, slides_evidence),
+    )
+    return normalized_course_codes, items, warnings
+
+
+def task_list_item_summary(item):
+    item_dict = asdict(item)
+    item_dict["evidence"] = [
+        task_evidence_summary(evidence) for evidence in item.evidence
+    ]
+    item_dict["evidence_detail_url"] = f"/api/tasks/{item.task_id}/evidence"
+    return {"id": item.task_id, **item_dict}
+
+
+def task_evidence_summary(evidence):
+    return {
+        "type": evidence.type,
+        "label": evidence.label,
+        "confidence": evidence.confidence,
+    }
+
+
+def merge_task_evidence(*evidence_maps):
+    merged = {}
+    for evidence_map in evidence_maps:
+        for key, evidence_items in evidence_map.items():
+            merged.setdefault(key, []).extend(evidence_items)
+    return merged
+
+
+def ensure_user_task_statuses_loaded():
+    global USER_TASK_STATUS_LOADED
+    if USER_TASK_STATUS_LOADED:
+        return
+
+    statuses, warnings = load_user_task_statuses(USER_TASK_STATUS_PATH)
+    USER_TASK_STATUSES.clear()
+    USER_TASK_STATUSES.update(statuses)
+    USER_TASK_STATUS_WARNINGS.clear()
+    USER_TASK_STATUS_WARNINGS.extend(warnings)
+    USER_TASK_STATUS_LOADED = True
+
+
 @app.get("/api/tasks")
-def list_tasks():
+def list_tasks(course_code: list[str] | None = Query(default=None)):
+    if course_code:
+        return build_rule_task_list_response(course_code)
+
     database_url, error = get_database_url()
     if error:
         return error
@@ -1872,6 +2003,65 @@ def list_tasks():
     return {
         "status": "ok",
         "tasks": tasks,
+    }
+
+
+@app.get("/api/tasks/{task_id}/evidence")
+def get_task_evidence(task_id: str, course_code: list[str] | None = Query(default=None)):
+    detail_course_codes = course_code or infer_course_codes_for_task(task_id)
+    if not detail_course_codes:
+        raise HTTPException(status_code=404, detail="Task evidence not found")
+
+    _, items, warnings = build_rule_task_items(detail_course_codes)
+    for item in items:
+        if item.task_id != task_id:
+            continue
+        return {
+            "task_id": item.task_id,
+            "course_code": item.course_code,
+            "evidence": [asdict(evidence) for evidence in item.evidence],
+            "evidence_omitted_count": item.evidence_omitted_count,
+            "warnings": warnings,
+        }
+
+    raise HTTPException(status_code=404, detail="Task evidence not found")
+
+
+def infer_course_codes_for_task(task_id: str):
+    if task_id.startswith("course-rule:"):
+        course_code = task_id.split(":", 1)[1].strip()
+        if course_code:
+            return [course_code]
+    return []
+
+
+@app.patch("/api/tasks/{task_id}/status")
+def update_task_status(task_id: str, request: TaskStatusUpdateRequest):
+    ensure_user_task_statuses_loaded()
+    requested_status = request.status.strip().lower()
+    if requested_status not in ALLOWED_USER_TASK_STATUSES:
+        raise HTTPException(status_code=400, detail="Invalid task status")
+
+    current_status = USER_TASK_STATUSES.get(task_id) or create_default_status(task_id)
+    if requested_status == "todo":
+        next_status = mark_todo(current_status)
+    elif requested_status == "done":
+        next_status = mark_done(current_status)
+    else:
+        next_status = mark_ignored(current_status)
+
+    USER_TASK_STATUSES[task_id] = next_status
+    save_user_task_statuses(USER_TASK_STATUS_PATH, USER_TASK_STATUSES)
+    return {
+        "task_id": next_status.task_id,
+        "status": next_status.status,
+        "active": next_status.status == "todo",
+        "updated_at": (
+            next_status.updated_at.isoformat() if next_status.updated_at else None
+        ),
+        "checked_at": (
+            next_status.checked_at.isoformat() if next_status.checked_at else None
+        ),
     }
 
 

@@ -14,6 +14,19 @@
       <p class="subtitle">授業や大学生活の疑問を、気軽に質問できるプロトタイプです。</p>
     </section>
 
+    <section class="card task-card">
+      <div class="task-card-header">
+        <div>
+          <p class="eyebrow task-eyebrow">Rule Tasks</p>
+          <h2 class="section-title task-title">課題一覧</h2>
+        </div>
+        <div id="taskSummary" class="task-summary">読み込み中...</div>
+      </div>
+      <div id="taskWarnings" class="task-warnings"></div>
+      <div id="taskError" class="task-error"></div>
+      <div id="taskList" class="task-list"></div>
+    </section>
+
     <section class="card question-card">
       <label class="section-title" for="question">質問</label>
       <textarea id="question" rows="8" placeholder="質問を入力してください"></textarea>
@@ -57,6 +70,13 @@
     const searchQueryInput = document.getElementById("searchQuery");
     const searchStatus = document.getElementById("searchStatus");
     const searchResultsArea = document.getElementById("searchResults");
+    const taskSummary = document.getElementById("taskSummary");
+    const taskWarnings = document.getElementById("taskWarnings");
+    const taskError = document.getElementById("taskError");
+    const taskList = document.getElementById("taskList");
+    const ruleTaskQuery = "course_code=COT101&course_code=SEM101&course_code=COT105";
+
+    loadTaskList();
 
     async function ask() {
       const question = questionInput.value;
@@ -129,6 +149,242 @@
       } finally {
         searchButton.disabled = false;
       }
+    }
+
+    async function loadTaskList() {
+      taskSummary.textContent = "読み込み中...";
+      taskWarnings.textContent = "";
+      taskError.textContent = "";
+      taskList.textContent = "";
+
+      try {
+        const response = await fetch("/api/tasks?" + ruleTaskQuery);
+        if (!response.ok) {
+          throw new Error("HTTP " + response.status);
+        }
+
+        const data = await response.json();
+        renderTaskList(data);
+      } catch (error) {
+        taskSummary.textContent = "取得失敗";
+        taskError.textContent = "課題一覧を取得できませんでした: " + error.message;
+      }
+    }
+
+    function renderTaskList(data) {
+      const items = Array.isArray(data.items) ? data.items : [];
+      const warnings = Array.isArray(data.warnings) ? data.warnings : [];
+
+      taskSummary.textContent = items.length + "件 / active " + (data.active_count || 0);
+      taskList.textContent = "";
+      taskWarnings.textContent = "";
+
+      if (warnings.length > 0) {
+        const warningList = document.createElement("ul");
+        warningList.className = "task-warning-list";
+        warnings.forEach(function(warning) {
+          const item = document.createElement("li");
+          item.textContent = (warning.course_code || "unknown") + ": " + (warning.message || "warning");
+          warningList.appendChild(item);
+        });
+        taskWarnings.appendChild(warningList);
+      }
+
+      if (items.length === 0) {
+        const empty = document.createElement("p");
+        empty.className = "task-empty";
+        empty.textContent = "表示できる課題はありません。";
+        taskList.appendChild(empty);
+        return;
+      }
+
+      items.forEach(function(task) {
+        const row = document.createElement("article");
+        row.className = "task-item" + (task.active ? " is-active" : " is-inactive");
+
+        const shortName = document.createElement("span");
+        shortName.className = "task-short-name";
+        shortName.textContent = task.short_name || task.course_code || "";
+
+        const body = document.createElement("div");
+        body.className = "task-body";
+
+        const title = document.createElement("h3");
+        title.className = "task-item-title";
+        title.textContent = task.title || "Untitled task";
+
+        const meta = document.createElement("div");
+        meta.className = "task-meta";
+        appendTaskMeta(meta, "status", task.status || "todo");
+        appendTaskMeta(meta, "active", task.active ? "true" : "false");
+
+        const deadline = task.estimated_deadline || task.estimated_deadline_at || task.deadline || task.deadline_at || task.due_date;
+        if (deadline) {
+          appendTaskMeta(meta, "deadline", deadline);
+        }
+
+        const evidence = renderTaskEvidence(task);
+
+        const controls = document.createElement("div");
+        controls.className = "task-controls";
+
+        const statusLabel = document.createElement("label");
+        statusLabel.className = "task-status-label";
+        statusLabel.textContent = "change status";
+
+        const statusSelect = document.createElement("select");
+        statusSelect.className = "task-status-select";
+        statusSelect.setAttribute("aria-label", "Change status for " + (task.title || task.id || "task"));
+        ["todo", "done", "ignored"].forEach(function(status) {
+          const option = document.createElement("option");
+          option.value = status;
+          option.textContent = status;
+          option.selected = status === (task.status || "todo");
+          statusSelect.appendChild(option);
+        });
+        statusSelect.addEventListener("change", function() {
+          updateTaskStatus(task.id || task.task_id, statusSelect.value, statusSelect);
+        });
+
+        controls.appendChild(statusLabel);
+        controls.appendChild(statusSelect);
+
+        body.appendChild(title);
+        body.appendChild(meta);
+        if (evidence) {
+          body.appendChild(evidence);
+        }
+        body.appendChild(controls);
+        row.appendChild(shortName);
+        row.appendChild(body);
+        taskList.appendChild(row);
+      });
+    }
+
+    function renderTaskEvidence(task) {
+      const evidenceItems = task.evidence;
+      const omittedCount = task.evidence_omitted_count;
+      if (!Array.isArray(evidenceItems) || evidenceItems.length === 0) {
+        return null;
+      }
+
+      const container = document.createElement("div");
+      container.className = "task-evidence";
+
+      const title = document.createElement("p");
+      title.className = "task-evidence-title";
+      title.textContent = "根拠";
+      container.appendChild(title);
+
+      const list = document.createElement("ul");
+      list.className = "task-evidence-list";
+      evidenceItems.forEach(function(evidence) {
+        const item = document.createElement("li");
+        item.className = "task-evidence-item";
+        item.dataset.evidenceType = evidence.type || "unknown";
+        item.textContent = [
+          evidence.type || "unknown",
+          evidence.label || "",
+          evidence.confidence ? "confidence: " + evidence.confidence : ""
+        ].filter(Boolean).join(" / ");
+        list.appendChild(item);
+      });
+
+      container.appendChild(list);
+      if (task.evidence_detail_url) {
+        const detailButton = document.createElement("button");
+        detailButton.type = "button";
+        detailButton.className = "task-evidence-detail-button";
+        detailButton.textContent = "details";
+        detailButton.addEventListener("click", function() {
+          loadTaskEvidenceDetails(task.evidence_detail_url, container, detailButton);
+        });
+        container.appendChild(detailButton);
+      }
+      if (omittedCount > 0) {
+        const omitted = document.createElement("p");
+        omitted.className = "task-evidence-omitted";
+        omitted.textContent = omittedCount + "件の根拠を省略";
+        container.appendChild(omitted);
+      }
+      return container;
+    }
+
+    async function loadTaskEvidenceDetails(url, container, button) {
+      button.disabled = true;
+      try {
+        const response = await fetch(url);
+        if (!response.ok) {
+          throw new Error("HTTP " + response.status);
+        }
+        const data = await response.json();
+        renderTaskEvidenceDetails(container, data.evidence || []);
+      } catch (error) {
+        taskError.textContent = "evidence details 繧貞叙蠕励〒縺阪∪縺帙ｓ縺ｧ縺励◆: " + error.message;
+        button.disabled = false;
+      }
+    }
+
+    function renderTaskEvidenceDetails(container, evidenceItems) {
+      const existing = container.querySelector(".task-evidence-detail-list");
+      if (existing) {
+        existing.remove();
+      }
+
+      const list = document.createElement("ul");
+      list.className = "task-evidence-detail-list";
+      evidenceItems.forEach(function(evidence) {
+        const item = document.createElement("li");
+        item.className = "task-evidence-detail-item";
+        item.textContent = [
+          evidence.type || "unknown",
+          evidence.label || "",
+          evidence.source || "",
+          evidence.confidence ? "confidence: " + evidence.confidence : ""
+        ].filter(Boolean).join(" / ");
+        list.appendChild(item);
+      });
+      container.appendChild(list);
+    }
+
+    async function updateTaskStatus(taskId, status, control) {
+      if (!taskId) {
+        taskError.textContent = "課題IDが見つかりません。";
+        return;
+      }
+
+      taskError.textContent = "";
+      if (control) {
+        control.disabled = true;
+      }
+
+      try {
+        const response = await fetch("/api/tasks/" + encodeURIComponent(taskId) + "/status", {
+          method: "PATCH",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({ status: status })
+        });
+
+        if (!response.ok) {
+          throw new Error("HTTP " + response.status);
+        }
+
+        await loadTaskList();
+      } catch (error) {
+        taskError.textContent = "status を変更できませんでした: " + error.message;
+        if (control) {
+          control.disabled = false;
+        }
+      }
+    }
+
+    function appendTaskMeta(parent, label, value) {
+      const item = document.createElement("span");
+      item.className = "task-meta-item";
+      item.textContent = label + ": " + value;
+      parent.appendChild(item);
     }
 
     questionInput.addEventListener("keydown", function(event) {
