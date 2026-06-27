@@ -70,6 +70,10 @@ class ListRuleTasksTests(unittest.TestCase):
                 "deadline_rule",
                 "submission_channel",
                 "confidence",
+                "description",
+                "deadline_note",
+                "submission_note",
+                "caution_note",
                 "display_course_name",
                 "short_name",
                 "track",
@@ -85,9 +89,13 @@ class ListRuleTasksTests(unittest.TestCase):
         item = report["items"][0]
 
         self.assertEqual("COT101", item["course_code"])
-        self.assertEqual("COT101", item["display_course_name"])
-        self.assertEqual("COT101", item["short_name"])
+        self.assertEqual("CS概論Ⅰ・基礎演習Ⅰ", item["display_course_name"])
+        self.assertEqual("CS概論Ⅰ・基礎演習Ⅰ", item["short_name"])
         self.assertEqual("COT", item["track"])
+        self.assertIn("確認", item["description"])
+        self.assertIn("締切", item["deadline_note"])
+        self.assertIn("提出", item["submission_note"])
+        self.assertTrue(item["caution_note"])
 
     def test_course_rule_evidence_is_present(self) -> None:
         report = build_report(["COT101"], html_evidence_path=None)

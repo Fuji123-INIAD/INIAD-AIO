@@ -83,14 +83,25 @@ class TaskListComposerTests(unittest.TestCase):
         self.assertEqual("next_lecture_previous_day", items[0].deadline_rule)
         self.assertEqual("moocs", items[0].submission_channel)
         self.assertEqual("medium", items[0].confidence)
+        self.assertIn("提出物", items[0].description)
+        self.assertIn("次回授業", items[0].deadline_note)
+        self.assertIn("MOOCs", items[0].submission_note)
+        self.assertIn("Slides", items[0].caution_note)
 
     def test_display_fields_are_added_without_changing_course_code(self) -> None:
         item = compose_task_list_items([self._task("task-1")])[0]
 
         self.assertEqual("COT101", item.course_code)
-        self.assertEqual("COT101", item.display_course_name)
-        self.assertEqual("COT101", item.short_name)
+        self.assertEqual("CS概論Ⅰ・基礎演習Ⅰ", item.display_course_name)
+        self.assertEqual("CS概論Ⅰ・基礎演習Ⅰ", item.short_name)
         self.assertEqual("COT", item.track)
+
+    def test_unknown_course_display_fields_fall_back_to_course_code(self) -> None:
+        item = compose_task_list_items([self._task("task-1", course_code="ABC999")])[0]
+
+        self.assertEqual("ABC999", item.course_code)
+        self.assertEqual("ABC999", item.display_course_name)
+        self.assertEqual("ABC999", item.short_name)
 
     def test_course_rule_evidence_is_added(self) -> None:
         item = compose_task_list_items([self._task("task-1")])[0]
@@ -146,15 +157,19 @@ class TaskListComposerTests(unittest.TestCase):
         self.assertNotIn("Slides high", [item.label for item in evidence])
 
     @staticmethod
-    def _task(task_id: str) -> TaskPrototype:
+    def _task(task_id: str, course_code: str = "COT101") -> TaskPrototype:
         return TaskPrototype(
             task_id=task_id,
-            course_code="COT101",
+            course_code=course_code,
             title=f"{task_id} title",
             source="course_rule",
             deadline_rule="next_lecture_previous_day",
             submission_channel="moocs",
             confidence="medium",
+            description="MOOCs の課題候補を確認してください。",
+            deadline_note="実際の締切は MOOCs を確認してください。",
+            submission_note="提出場所は MOOCs を確認してください。",
+            caution_note="この一覧は候補です。",
         )
 
 

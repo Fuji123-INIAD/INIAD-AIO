@@ -11,7 +11,8 @@
     <section class="hero">
       <p class="eyebrow">INIAD Assistant</p>
       <h1>INIAD-AIO</h1>
-      <p class="subtitle">授業や大学生活の疑問を、気軽に質問できるプロトタイプです。</p>
+      <p class="subtitle">v0.3 Task List Demo: 授業ルールに基づく課題候補を確認できます。</p>
+      <p class="demo-notice">この課題一覧は授業ルールに基づく課題候補です。実際の提出期限・提出場所はMOOCsも確認してください。</p>
     </section>
 
     <section class="card task-card">
@@ -27,7 +28,7 @@
       <div id="taskList" class="task-list"></div>
     </section>
 
-    <section class="card question-card">
+    <section class="card question-card" hidden>
       <label class="section-title" for="question">質問</label>
       <textarea id="question" rows="8" placeholder="質問を入力してください"></textarea>
       <div class="actions">
@@ -36,7 +37,7 @@
       </div>
     </section>
 
-    <details class="card search-card">
+    <details class="card search-card" hidden>
       <summary class="search-summary">詳細検索</summary>
       <div class="search-panel">
         <label class="section-title" for="searchQuery">検索</label>
@@ -49,7 +50,7 @@
       </div>
     </details>
 
-    <section class="card answer-card">
+    <section class="card answer-card" hidden>
       <h2 class="section-title">AI回答</h2>
       <pre id="answer">ここに回答が表示されます。</pre>
       <h3 class="sources-title answer-sources-title">参照データ</h3>
@@ -198,6 +199,28 @@
         return;
       }
 
+      const table = document.createElement("table");
+      table.className = "task-table";
+
+      const head = document.createElement("thead");
+      const headRow = document.createElement("tr");
+      ["科目", "区分", "やること", "期限", "状態", "根拠"].forEach(function(label) {
+        const cell = document.createElement("th");
+        cell.scope = "col";
+        cell.textContent = label;
+        headRow.appendChild(cell);
+      });
+      head.appendChild(headRow);
+      table.appendChild(head);
+
+      const tableBody = document.createElement("tbody");
+      items.forEach(function(task) {
+        appendTaskTableRows(tableBody, task);
+      });
+      table.appendChild(tableBody);
+      taskList.appendChild(table);
+      return;
+
       items.forEach(function(task) {
         const row = document.createElement("article");
         row.className = "task-item" + (task.active ? " is-active" : " is-inactive");
@@ -223,6 +246,7 @@
           appendTaskMeta(meta, "deadline", deadline);
         }
 
+        const guidance = renderTaskGuidance(task);
         const evidence = renderTaskEvidence(task);
 
         const controls = document.createElement("div");
@@ -251,6 +275,9 @@
 
         body.appendChild(title);
         body.appendChild(meta);
+        if (guidance) {
+          body.appendChild(guidance);
+        }
         if (evidence) {
           body.appendChild(evidence);
         }
@@ -259,6 +286,148 @@
         row.appendChild(body);
         taskList.appendChild(row);
       });
+    }
+
+    function appendTaskTableRows(tableBody, task) {
+      const row = document.createElement("tr");
+      row.className = "task-row" + (task.active ? " is-active" : " is-inactive");
+
+      appendTaskCell(row, "task-course-cell", task.short_name || task.course_code || "");
+      appendTaskCell(row, "task-track-cell", task.track || "");
+      appendTaskCell(row, "task-description-cell", task.description || task.title || "Untitled task");
+      appendTaskCell(row, "task-deadline-cell", task.deadline_note || "");
+
+      const statusCell = document.createElement("td");
+      statusCell.className = "task-status-cell";
+      statusCell.appendChild(createTaskStatusSelect(task));
+      row.appendChild(statusCell);
+
+      const evidenceCell = document.createElement("td");
+      evidenceCell.className = "task-evidence-cell";
+      evidenceCell.appendChild(createTaskEvidenceButton(task));
+      row.appendChild(evidenceCell);
+      tableBody.appendChild(row);
+
+      const detailRow = document.createElement("tr");
+      detailRow.className = "task-detail-row";
+      detailRow.hidden = true;
+      const detailCell = document.createElement("td");
+      detailCell.colSpan = 6;
+      detailCell.className = "task-detail-cell";
+      detailCell.appendChild(renderTaskRowDetails(task));
+      detailRow.appendChild(detailCell);
+      tableBody.appendChild(detailRow);
+    }
+
+    function appendTaskCell(row, className, text) {
+      const cell = document.createElement("td");
+      cell.className = className;
+      cell.textContent = text;
+      row.appendChild(cell);
+    }
+
+    function createTaskStatusSelect(task) {
+      const statusSelect = document.createElement("select");
+      statusSelect.className = "task-status-select";
+      statusSelect.setAttribute("aria-label", "Change status for " + (task.title || task.id || "task"));
+      ["todo", "done", "ignored"].forEach(function(status) {
+        const option = document.createElement("option");
+        option.value = status;
+        option.textContent = status;
+        option.selected = status === (task.status || "todo");
+        statusSelect.appendChild(option);
+      });
+      statusSelect.addEventListener("change", function() {
+        updateTaskStatus(task.id || task.task_id, statusSelect.value, statusSelect);
+      });
+      return statusSelect;
+    }
+
+    function createTaskEvidenceButton(task) {
+      const detailButton = document.createElement("button");
+      detailButton.type = "button";
+      detailButton.className = "task-evidence-detail-button";
+      detailButton.textContent = "details";
+      detailButton.addEventListener("click", function() {
+        toggleTaskDetails(task, detailButton);
+      });
+      return detailButton;
+    }
+
+    function renderTaskRowDetails(task) {
+      const container = document.createElement("div");
+      container.className = "task-row-details";
+
+      const notes = document.createElement("dl");
+      notes.className = "task-supplemental-notes";
+      [
+        ["title", task.title],
+        ["submission_note", task.submission_note],
+        ["caution_note", task.caution_note]
+      ].forEach(function(item) {
+        if (!item[1]) {
+          return;
+        }
+        const term = document.createElement("dt");
+        term.textContent = item[0];
+        const description = document.createElement("dd");
+        description.textContent = item[1];
+        notes.appendChild(term);
+        notes.appendChild(description);
+      });
+      container.appendChild(notes);
+
+      const evidenceContainer = document.createElement("div");
+      evidenceContainer.className = "task-evidence-detail-container";
+      container.appendChild(evidenceContainer);
+      return container;
+    }
+
+    function toggleTaskDetails(task, button) {
+      const row = button.closest("tr");
+      const detailRow = row ? row.nextElementSibling : null;
+      if (!detailRow || !detailRow.classList.contains("task-detail-row")) {
+        return;
+      }
+
+      const shouldOpen = detailRow.hidden;
+      detailRow.hidden = !shouldOpen;
+      button.textContent = shouldOpen ? "hide" : "details";
+      if (!shouldOpen) {
+        return;
+      }
+
+      const container = detailRow.querySelector(".task-evidence-detail-container");
+      if (task.evidence_detail_url && container && !container.dataset.loaded) {
+        loadTaskEvidenceDetails(task.evidence_detail_url, container, button);
+      }
+    }
+
+    function renderTaskGuidance(task) {
+      const guidanceItems = [
+        ["やること", task.description],
+        ["期限メモ", task.deadline_note],
+        ["提出メモ", task.submission_note],
+        ["注意", task.caution_note]
+      ].filter(function(item) {
+        return item[1];
+      });
+
+      if (guidanceItems.length === 0) {
+        return null;
+      }
+
+      const container = document.createElement("dl");
+      container.className = "task-guidance";
+      guidanceItems.forEach(function(item) {
+        const term = document.createElement("dt");
+        term.textContent = item[0];
+        const description = document.createElement("dd");
+        description.textContent = item[1];
+        container.appendChild(term);
+        container.appendChild(description);
+      });
+      return container;
     }
 
     function renderTaskEvidence(task) {
@@ -319,6 +488,8 @@
         }
         const data = await response.json();
         renderTaskEvidenceDetails(container, data.evidence || []);
+        container.dataset.loaded = "true";
+        button.disabled = false;
       } catch (error) {
         taskError.textContent = "evidence details 繧貞叙蠕励〒縺阪∪縺帙ｓ縺ｧ縺励◆: " + error.message;
         button.disabled = false;

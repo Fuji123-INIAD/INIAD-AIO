@@ -16,6 +16,10 @@ class TaskPrototype:
     deadline_rule: str
     submission_channel: str
     confidence: str
+    description: str
+    deadline_note: str
+    submission_note: str
+    caution_note: str
 
 
 def generate_course_rule_tasks(course_code: str) -> list[TaskPrototype]:
@@ -32,5 +36,9 @@ def generate_course_rule_tasks(course_code: str) -> list[TaskPrototype]:
             deadline_rule=rule.deadline_rule,
             submission_channel=rule.submission_channel,
             confidence=rule.confidence,
+            description=rule.description,
+            deadline_note=rule.deadline_note,
+            submission_note=rule.submission_note,
+            caution_note=rule.caution_note,
         )
     ]

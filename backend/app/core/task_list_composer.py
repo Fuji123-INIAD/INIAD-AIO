@@ -23,6 +23,11 @@ EVIDENCE_CONFIDENCE_ORDER = {
     "medium": 1,
     "low": 2,
 }
+COURSE_DISPLAY_NAMES = {
+    "COT101": "CS概論Ⅰ・基礎演習Ⅰ",
+    "SEM101": "情報連携基礎実習Ⅰ",
+    "COT105": "情報連携学概論Ⅰ",
+}
 
 
 @dataclass(frozen=True)
@@ -44,6 +49,10 @@ class TaskListItem:
     deadline_rule: str
     submission_channel: str
     confidence: str
+    description: str
+    deadline_note: str
+    submission_note: str
+    caution_note: str
     display_course_name: str
     short_name: str
     track: str
@@ -76,6 +85,10 @@ def compose_task_list_items(
                 deadline_rule=task.deadline_rule,
                 submission_channel=task.submission_channel,
                 confidence=task.confidence,
+                description=task.description,
+                deadline_note=task.deadline_note,
+                submission_note=task.submission_note,
+                caution_note=task.caution_note,
                 display_course_name=display_course_name(task.course_code),
                 short_name=short_name(task.course_code),
                 track=track(task.course_code),
@@ -158,11 +171,13 @@ def confidence_rank(confidence: str) -> int:
 
 
 def display_course_name(course_code: str) -> str:
-    return course_code
+    normalized = course_code.strip().upper()
+    return COURSE_DISPLAY_NAMES.get(normalized, course_code)
 
 
 def short_name(course_code: str) -> str:
-    return course_code
+    normalized = course_code.strip().upper()
+    return COURSE_DISPLAY_NAMES.get(normalized, course_code)
 
 
 def track(course_code: str) -> str:

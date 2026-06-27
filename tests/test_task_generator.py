@@ -20,6 +20,10 @@ class TaskGeneratorTests(unittest.TestCase):
         self.assertEqual("next_lecture_previous_day", tasks[0].deadline_rule)
         self.assertEqual("moocs", tasks[0].submission_channel)
         self.assertEqual("medium", tasks[0].confidence)
+        self.assertIn("提出物", tasks[0].description)
+        self.assertIn("次回授業", tasks[0].deadline_note)
+        self.assertIn("MOOCs", tasks[0].submission_note)
+        self.assertIn("Slides", tasks[0].caution_note)
 
     def test_sem101_task_is_generated(self) -> None:
         tasks = generate_course_rule_tasks("SEM101")
@@ -31,6 +35,9 @@ class TaskGeneratorTests(unittest.TestCase):
         self.assertEqual("same_week_sunday_2359", tasks[0].deadline_rule)
         self.assertEqual("email_to_instructor", tasks[0].submission_channel)
         self.assertEqual("medium", tasks[0].confidence)
+        self.assertIn("提出指示", tasks[0].description)
+        self.assertIn("日曜日", tasks[0].deadline_note)
+        self.assertIn("メール", tasks[0].submission_note)
 
     def test_cot105_task_is_generated(self) -> None:
         tasks = generate_course_rule_tasks("COT105")
@@ -42,6 +49,9 @@ class TaskGeneratorTests(unittest.TestCase):
         self.assertEqual("explicit_or_unknown", tasks[0].deadline_rule)
         self.assertEqual("moocs", tasks[0].submission_channel)
         self.assertEqual("low", tasks[0].confidence)
+        self.assertIn("明示された課題", tasks[0].description)
+        self.assertIn("未確定", tasks[0].deadline_note)
+        self.assertIn("MOOCs", tasks[0].submission_note)
 
     def test_unknown_course_returns_empty_list(self) -> None:
         self.assertEqual([], generate_course_rule_tasks("UNKNOWN101"))

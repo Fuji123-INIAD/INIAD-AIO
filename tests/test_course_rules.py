@@ -18,6 +18,10 @@ class CourseRuleRegistryTests(unittest.TestCase):
         self.assertEqual("moocs", rule.submission_channel)
         self.assertEqual("medium", rule.confidence)
         self.assertIn("Slides", rule.notes)
+        self.assertIn("MOOCs", rule.description)
+        self.assertIn("次回授業", rule.deadline_note)
+        self.assertIn("MOOCs", rule.submission_note)
+        self.assertIn("Slides", rule.caution_note)
 
     def test_sem101_rule_is_available(self) -> None:
         rule = get_course_rule("SEM101")
@@ -26,6 +30,9 @@ class CourseRuleRegistryTests(unittest.TestCase):
         self.assertEqual("same_week_sunday_2359", rule.deadline_rule)
         self.assertEqual("email_to_instructor", rule.submission_channel)
         self.assertEqual("medium", rule.confidence)
+        self.assertIn("授業資料", rule.description)
+        self.assertIn("日曜日", rule.deadline_note)
+        self.assertIn("メール", rule.submission_note)
 
     def test_cot105_rule_is_available(self) -> None:
         rule = get_course_rule("COT105")
@@ -34,6 +41,9 @@ class CourseRuleRegistryTests(unittest.TestCase):
         self.assertEqual("explicit_or_unknown", rule.deadline_rule)
         self.assertEqual("moocs", rule.submission_channel)
         self.assertEqual("low", rule.confidence)
+        self.assertIn("MOOCs", rule.description)
+        self.assertIn("未確定", rule.deadline_note)
+        self.assertIn("MOOCs", rule.caution_note)
 
     def test_unknown_course_returns_none(self) -> None:
         self.assertIsNone(get_course_rule("UNKNOWN101"))

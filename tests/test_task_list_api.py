@@ -81,11 +81,15 @@ class TaskListApiTests(unittest.TestCase):
 
         self.assertEqual(200, response.status_code)
         item = response.json()["items"][0]
-        self.assertEqual("COT101", item["display_course_name"])
-        self.assertEqual("COT101", item["short_name"])
+        self.assertEqual("CS概論Ⅰ・基礎演習Ⅰ", item["display_course_name"])
+        self.assertEqual("CS概論Ⅰ・基礎演習Ⅰ", item["short_name"])
         self.assertEqual("COT", item["track"])
         self.assertEqual("todo", item["status"])
         self.assertTrue(item["active"])
+        self.assertIn("確認", item["description"])
+        self.assertIn("締切", item["deadline_note"])
+        self.assertIn("提出", item["submission_note"])
+        self.assertTrue(item["caution_note"])
 
     def test_items_include_course_rule_evidence(self) -> None:
         response = self.client.get("/api/tasks", params=[("course_code", "COT101")])

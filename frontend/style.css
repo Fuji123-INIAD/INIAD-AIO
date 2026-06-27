@@ -203,23 +203,105 @@ button:disabled {
 }
 
 .task-list {
-  display: grid;
-  gap: 10px;
-}
-
-.task-item {
-  display: grid;
-  grid-template-columns: 84px minmax(0, 1fr);
-  gap: 14px;
-  align-items: start;
-  padding: 14px;
-  background: #fbfdff;
+  overflow-x: auto;
   border: 1px solid var(--line);
   border-radius: 8px;
 }
 
-.task-item.is-inactive {
+.task-table {
+  width: 100%;
+  min-width: 860px;
+  border-collapse: collapse;
+  background: #ffffff;
+}
+
+.task-table th,
+.task-table td {
+  padding: 9px 10px;
+  text-align: left;
+  vertical-align: top;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.task-table th {
+  color: #475569;
+  font-size: 0.78rem;
+  font-weight: 900;
+  background: #f8fafc;
+}
+
+.task-row.is-inactive {
   opacity: 0.68;
+}
+
+.task-row:hover {
+  background: #f8fafc;
+}
+
+.task-course-cell,
+.task-track-cell {
+  width: 78px;
+  color: #14532d;
+  font-size: 0.82rem;
+  font-weight: 900;
+  white-space: nowrap;
+}
+
+.task-description-cell {
+  min-width: 260px;
+  color: #1e293b;
+  font-size: 0.88rem;
+  line-height: 1.45;
+}
+
+.task-deadline-cell {
+  min-width: 220px;
+  color: #475569;
+  font-size: 0.84rem;
+  line-height: 1.45;
+}
+
+.task-status-cell,
+.task-evidence-cell {
+  width: 120px;
+  white-space: nowrap;
+}
+
+.task-detail-row[hidden] {
+  display: none;
+}
+
+.task-detail-cell {
+  padding: 0 10px 10px;
+  background: #fbfdff;
+}
+
+.task-row-details {
+  display: grid;
+  gap: 8px;
+  padding: 10px;
+  border-left: 3px solid #bbf7d0;
+}
+
+.task-supplemental-notes {
+  display: grid;
+  grid-template-columns: max-content minmax(0, 1fr);
+  gap: 5px 10px;
+  margin: 0;
+  color: #475569;
+  font-size: 0.82rem;
+  line-height: 1.45;
+}
+
+.task-supplemental-notes dt {
+  color: #166534;
+  font-weight: 800;
+}
+
+.task-supplemental-notes dd {
+  min-width: 0;
+  margin: 0;
+  overflow-wrap: anywhere;
 }
 
 .task-short-name {
@@ -261,6 +343,31 @@ button:disabled {
   background: #f1f5f9;
   border: 1px solid #e2e8f0;
   border-radius: 8px;
+}
+
+.task-guidance {
+  display: grid;
+  grid-template-columns: max-content minmax(0, 1fr);
+  gap: 6px 10px;
+  margin: 10px 0 0;
+  padding: 10px;
+  color: #334155;
+  font-size: 0.86rem;
+  line-height: 1.5;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+}
+
+.task-guidance dt {
+  color: #166534;
+  font-weight: 800;
+}
+
+.task-guidance dd {
+  min-width: 0;
+  margin: 0;
+  overflow-wrap: anywhere;
 }
 
 .task-controls {
@@ -319,6 +426,10 @@ button:disabled {
   margin-top: 8px;
   padding: 5px 9px;
   font-size: 0.8rem;
+}
+
+.task-evidence-cell .task-evidence-detail-button {
+  margin-top: 0;
 }
 
 .task-evidence-detail-list {
