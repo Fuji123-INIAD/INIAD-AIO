@@ -69,6 +69,8 @@ class V03SmokeTests(unittest.TestCase):
         cot101 = next(item for item in updated_items if item["task_id"] == task_id)
         self.assertEqual("done", cot101["status"])
         self.assertFalse(cot101["active"])
+        self.assertIn("primary_action_label", cot101)
+        self.assertIn("primary_action_url", cot101)
         self.assertEqual(2, updated_response.json()["active_count"])
 
         saved_statuses = json.loads(
@@ -98,6 +100,8 @@ class V03SmokeTests(unittest.TestCase):
         )
         self.assertIn("loadTaskEvidenceDetails(task.evidence_detail_url", html)
         self.assertIn("fetch(url)", html)
+        self.assertIn("createTaskPrimaryActionCell(task)", html)
+        self.assertIn("task.primary_action_url", html)
 
 
 if __name__ == "__main__":

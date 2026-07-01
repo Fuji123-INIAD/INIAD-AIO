@@ -43,6 +43,8 @@ class TaskListApiTests(unittest.TestCase):
         self.assertEqual("course-rule:COT101", data["items"][0]["id"])
         self.assertEqual("course-rule:COT101", data["items"][0]["task_id"])
         self.assertEqual("COT101", data["items"][0]["course_code"])
+        self.assertIn("primary_action_label", data["items"][0])
+        self.assertIn("primary_action_url", data["items"][0])
 
     def test_multiple_course_codes_return_three_rule_tasks(self) -> None:
         response = self.client.get(
@@ -106,6 +108,8 @@ class TaskListApiTests(unittest.TestCase):
             response.json()["items"][0]["evidence_detail_url"],
         )
         self.assertEqual(0, response.json()["items"][0]["evidence_omitted_count"])
+        self.assertIsNone(response.json()["items"][0]["primary_action_label"])
+        self.assertIsNone(response.json()["items"][0]["primary_action_url"])
 
     def test_items_can_include_html_evidence_from_json(self) -> None:
         backend_main.HTML_EVIDENCE_PATH = (
@@ -118,6 +122,12 @@ class TaskListApiTests(unittest.TestCase):
         evidence = response.json()["items"][0]["evidence"]
         self.assertEqual("course_rule", evidence[0]["type"])
         self.assertTrue(any(item["type"] == "html" for item in evidence))
+        item = response.json()["items"][0]
+        self.assertTrue(item["primary_action_label"])
+        self.assertEqual(
+            "https://moocs.iniad.org/courses/2026/COT101/01-1/assignment",
+            item["primary_action_url"],
+        )
 
     def test_items_can_include_slides_evidence_from_json(self) -> None:
         backend_main.HTML_EVIDENCE_PATH = (

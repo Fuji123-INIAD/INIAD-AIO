@@ -204,7 +204,7 @@
 
       const head = document.createElement("thead");
       const headRow = document.createElement("tr");
-      ["科目", "区分", "やること", "期限", "状態", "根拠"].forEach(function(label) {
+      ["科目", "区分", "やること", "期限", "開く", "状態", "根拠"].forEach(function(label) {
         const cell = document.createElement("th");
         cell.scope = "col";
         cell.textContent = label;
@@ -296,6 +296,7 @@
       appendTaskCell(row, "task-track-cell", task.track || "");
       appendTaskCell(row, "task-description-cell", task.description || task.title || "Untitled task");
       appendTaskCell(row, "task-deadline-cell", task.deadline_note || "");
+      row.appendChild(createTaskPrimaryActionCell(task));
 
       const statusCell = document.createElement("td");
       statusCell.className = "task-status-cell";
@@ -312,7 +313,7 @@
       detailRow.className = "task-detail-row";
       detailRow.hidden = true;
       const detailCell = document.createElement("td");
-      detailCell.colSpan = 6;
+      detailCell.colSpan = 7;
       detailCell.className = "task-detail-cell";
       detailCell.appendChild(renderTaskRowDetails(task));
       detailRow.appendChild(detailCell);
@@ -324,6 +325,25 @@
       cell.className = className;
       cell.textContent = text;
       row.appendChild(cell);
+    }
+
+    function createTaskPrimaryActionCell(task) {
+      const cell = document.createElement("td");
+      cell.className = "task-primary-action-cell";
+      if (!task.primary_action_url) {
+        cell.textContent = "-";
+        return cell;
+      }
+
+      const link = document.createElement("a");
+      link.className = "task-primary-action-link";
+      link.href = task.primary_action_url;
+      link.target = "_blank";
+      link.rel = "noopener noreferrer";
+      link.textContent = "開く";
+      link.title = task.primary_action_label || task.primary_action_url;
+      cell.appendChild(link);
+      return cell;
     }
 
     function createTaskStatusSelect(task) {

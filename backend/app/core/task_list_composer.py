@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+from urllib.parse import urlparse
 
 from backend.app.core.task_generator import TaskPrototype
 from backend.app.core.user_task_status import (
@@ -17,6 +18,10 @@ EVIDENCE_TYPE_ORDER = {
     "course_rule": 0,
     "html": 1,
     "slides": 2,
+}
+PRIMARY_ACTION_TYPE_ORDER = {
+    "html": 0,
+    "slides": 1,
 }
 EVIDENCE_CONFIDENCE_ORDER = {
     "high": 0,
@@ -58,6 +63,8 @@ class TaskListItem:
     track: str
     evidence: list[TaskEvidence]
     evidence_omitted_count: int
+    primary_action_label: str | None
+    primary_action_url: str | None
 
 
 def compose_task_list_items(
@@ -74,6 +81,7 @@ def compose_task_list_items(
         evidence, evidence_omitted_count = prepare_evidence(
             course_rule_evidence(task) + evidence_for_task(task, extra_evidence)
         )
+        primary_action = select_primary_action(evidence)
         items.append(
             TaskListItem(
                 task_id=task.task_id,
@@ -94,6 +102,12 @@ def compose_task_list_items(
                 track=track(task.course_code),
                 evidence=evidence,
                 evidence_omitted_count=evidence_omitted_count,
+                primary_action_label=(
+                    primary_action.label if primary_action is not None else None
+                ),
+                primary_action_url=(
+                    primary_action.source if primary_action is not None else None
+                ),
             )
         )
     return items
@@ -168,6 +182,33 @@ def confidence_rank(confidence: str) -> int:
         confidence,
         len(EVIDENCE_CONFIDENCE_ORDER),
     )
+
+
+def select_primary_action(evidence_items: list[TaskEvidence]) -> TaskEvidence | None:
+    candidates = [
+        (index, evidence)
+        for index, evidence in enumerate(evidence_items)
+        if is_url(evidence.source)
+    ]
+    if not candidates:
+        return None
+
+    candidates.sort(
+        key=lambda item: (
+            PRIMARY_ACTION_TYPE_ORDER.get(
+                item[1].type,
+                len(PRIMARY_ACTION_TYPE_ORDER),
+            ),
+            confidence_rank(item[1].confidence),
+            item[0],
+        )
+    )
+    return candidates[0][1]
+
+
+def is_url(value: str) -> bool:
+    parsed = urlparse(value.strip())
+    return parsed.scheme in {"http", "https"} and bool(parsed.netloc)
 
 
 def display_course_name(course_code: str) -> str:

@@ -11,6 +11,7 @@ from backend.app.core.task_list_composer import (
     TaskListItem,
     compose_task_list_items,
     prepare_evidence,
+    select_primary_action,
 )
 from backend.app.core.user_task_status import (
     UserTaskStatus,
@@ -113,6 +114,8 @@ class TaskListComposerTests(unittest.TestCase):
         self.assertEqual("course_rule", item.evidence[0].source)
         self.assertEqual("medium", item.evidence[0].confidence)
         self.assertEqual(0, item.evidence_omitted_count)
+        self.assertIsNone(item.primary_action_label)
+        self.assertIsNone(item.primary_action_url)
 
     def test_extra_html_evidence_can_be_added(self) -> None:
         task = self._task("task-1")
@@ -133,6 +136,8 @@ class TaskListComposerTests(unittest.TestCase):
 
         self.assertEqual(["course_rule", "html"], [evidence.type for evidence in item.evidence])
         self.assertEqual("Assignment page", item.evidence[1].label)
+        self.assertEqual("Assignment page", item.primary_action_label)
+        self.assertEqual("https://example.test/assignment", item.primary_action_url)
 
     def test_evidence_is_deduped_ranked_and_limited(self) -> None:
         evidence, omitted_count = prepare_evidence(
@@ -155,6 +160,20 @@ class TaskListComposerTests(unittest.TestCase):
         self.assertEqual("HTML high", evidence[1].label)
         self.assertEqual("high", evidence[1].confidence)
         self.assertNotIn("Slides high", [item.label for item in evidence])
+
+    def test_primary_action_prefers_html_then_confidence_and_url_sources(self) -> None:
+        action = select_primary_action(
+            [
+                TaskEvidence("slides", "Slides high", "https://example.test/slides", "high"),
+                TaskEvidence("html", "HTML low", "https://example.test/html-low", "low"),
+                TaskEvidence("html", "HTML high page key", "2026/COT101/01/assignment", "high"),
+                TaskEvidence("html", "HTML medium", "https://example.test/html-medium", "medium"),
+            ]
+        )
+
+        self.assertIsNotNone(action)
+        self.assertEqual("HTML medium", action.label)
+        self.assertEqual("https://example.test/html-medium", action.source)
 
     @staticmethod
     def _task(task_id: str, course_code: str = "COT101") -> TaskPrototype:

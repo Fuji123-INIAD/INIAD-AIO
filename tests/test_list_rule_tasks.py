@@ -79,6 +79,8 @@ class ListRuleTasksTests(unittest.TestCase):
                 "track",
                 "evidence",
                 "evidence_omitted_count",
+                "primary_action_label",
+                "primary_action_url",
                 "evidence_detail_url",
             ],
             list(report["items"][0]),

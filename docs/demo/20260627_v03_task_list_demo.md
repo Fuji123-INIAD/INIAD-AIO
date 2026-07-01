@@ -1,163 +1,132 @@
 # INIAD-AIO v0.3 Task List Demo Guide
 
-Phase 3-28 時点の v0.3 を他人に見せるための起動手順と確認項目をまとめる。
+This guide describes the v0.3 RC1 task list demo. The goal of RC1 is to show a human-reviewable task list and let users jump from each row to the most useful MOOCs, Slides, or evidence source when one is available.
 
-## 1. v0.3 の目的
+## Scope
 
-v0.3 は、INIAD-AIO をサーバー中心の検索プロトタイプから、ローカルで使える課題・資料確認ツールへ移行する途中段階である。
+The task list is generated from the Course Rule Registry for known courses such as COT101, SEM101, and COT105. It does not change the DB schema, importer, or deadline calculation. Deadlines remain rule-based notes, not automatically confirmed real MOOCs deadlines.
 
-このデモで見せる中心機能は、Course Rule Registry から生成した課題一覧である。現時点では、MOOCs から完全な期限を自動抽出するのではなく、COT101 / SEM101 / COT105 などの既知ルールに基づいて「確認すべき課題候補」を表示する。
+## Run
 
-## 2. 起動方法
-
-Docker Compose で起動する。
+Start the backend with Docker Compose:
 
 ```bash
 docker compose up --build
 ```
 
-新しい環境で `backend/.env` がない場合は、先に作成する。
+If `backend/.env` does not exist, create it from the example:
 
 ```bash
 copy .env.example backend\.env
 ```
 
-PowerShell 以外の環境では、同等のコピーコマンドを使う。
-
-起動後、FastAPI backend は `http://localhost:8000` で待ち受ける。PostgreSQL と Meilisearch も同時に起動するが、今回の課題一覧デモは主に rule-based task list と local JSON status 保存を見る。
-
-## 3. 確認 URL
-
-Frontend:
+The frontend is served by FastAPI at:
 
 ```text
 http://localhost:8000/
 ```
 
-Task list API:
+## API
+
+Task list:
 
 ```text
-http://localhost:8000/api/tasks?course_code=COT101&course_code=SEM101&course_code=COT105
+GET /api/tasks?course_code=COT101&course_code=SEM101&course_code=COT105
 ```
 
-Evidence detail API example:
-
-```text
-http://localhost:8000/api/tasks/course-rule:COT101/evidence
-```
-
-## 4. できること
-
-### 課題一覧表示
-
-トップページを開くと、COT101 / SEM101 / COT105 の rule-based task list が表示される。
-
-API では次のような情報を確認できる。
-
-- `task_count`
-- `active_count`
-- `items[].task_id`
-- `items[].course_code`
-- `items[].status`
-- `items[].evidence`
-- `items[].evidence_detail_url`
-
-Phase 3-27 smoke test では、COT101 / SEM101 / COT105 の `task_count` は `3` として確認している。
-
-### status 変更
-
-Frontend の status select から、各 task を次の状態に変更できる。
-
-- `todo`
-- `done`
-- `ignored`
-
-変更すると `PATCH /api/tasks/{task_id}/status` が呼ばれ、次回の `/api/tasks` 取得結果に反映される。
-
-### local JSON 永続化
-
-status は local JSON に保存される。
-
-既定の保存先:
-
-```text
-data/local/user_task_status.json
-```
-
-Docker 起動時は `./data:/app/data` が volume mount されるため、コンテナを作り直しても host 側の `data/local/user_task_status.json` に残る。
-
-### evidence summary / detail
-
-一覧 API の `items[].evidence` は軽量 summary である。表示用に次の最小情報だけを返す。
-
-- `type`
-- `label`
-- `confidence`
-
-詳細な `source` は一覧 API には含めない。必要な場合は `items[].evidence_detail_url` を開く。
-
-Detail API:
+Evidence detail:
 
 ```text
 GET /api/tasks/{task_id}/evidence
 ```
 
-Detail API では `source` を含む full evidence を返す。Phase 3-25 時点では、HTML evidence と Slides evidence を扱う。Slides evidence は既存の MOOCs probe JSON と、任意の MOOCs-Collect `db.sqlite` page_key listing 成果を利用する。
+Status update:
 
-## 5. できないこと
+```text
+PATCH /api/tasks/{task_id}/status
+```
 
-### 自動 deadline 抽出
+## Table UI
 
-現時点の task list は、実 MOOCs の提出期限を自動抽出して確定 deadline として扱うものではない。
+The v0.3 RC1 frontend renders the rule-based tasks as a table. The table shows course, track, task description, deadline note, primary open action, status, and evidence detail controls.
 
-deadline は今後の実装対象であり、このデモでは rule-based な課題候補表示を確認する。
+The `開く` column uses the task item's `primary_action_url`. When a URL exists, it renders a link that opens in a new tab with `target="_blank"` and `rel="noopener noreferrer"`. When no primary action URL exists, the table shows `-`.
 
-### ユーザー別認証
+## Course Display Name
 
-このデモにはユーザー認証・ユーザー別権限管理はない。
+Each rule task keeps its original `course_code` and also includes display fields for the UI:
 
-status はローカル JSON に保存されるだけであり、複数ユーザーを分けて扱わない。
+- `display_course_name`
+- `short_name`
+- `track`
 
-### 本格 DB 永続化
+Known courses use the configured display names. Unknown courses fall back to the course code.
 
-v0.3 の設計上は SQLite local DB への移行を進めているが、この task list demo の status 保存は JSON ベースである。
+## Status Persistence
 
-PostgreSQL は既存 API や compose 構成のために起動するが、今回の task list status の主保存先ではない。
+The frontend status select supports:
 
-### Playwright リアルタイム解析
+- `todo`
+- `done`
+- `ignored`
 
-通常の `/api/tasks` path では Playwright を実行しない。
+Changing a status calls `PATCH /api/tasks/{task_id}/status`. The next `GET /api/tasks` response reflects the saved status and active count.
 
-MOOCs へのログイン、ブラウザ操作、リアルタイム page 解析はこのデモの範囲外である。Slides evidence も、既存 probe JSON または read-only の MOOCs-Collect DB metadata を使う。
+The demo status store is local JSON:
 
-## 6. smoke test 実行方法
+```text
+data/local/user_task_status.json
+```
 
-v0.3 smoke test だけを実行する。
+`data/local` is local runtime data and is not intended to be committed.
+
+## Evidence Summary And Detail
+
+`GET /api/tasks` returns lightweight evidence summaries in `items[].evidence`:
+
+- `type`
+- `label`
+- `confidence`
+
+The list response intentionally does not include evidence `source` in each summary item. Full evidence sources remain available through `items[].evidence_detail_url`.
+
+`GET /api/tasks/{task_id}/evidence` returns full evidence entries including `source`. This keeps the existing evidence detail API behavior intact.
+
+## Primary Action Link
+
+Each task item includes:
+
+- `primary_action_label`
+- `primary_action_url`
+
+The primary action is selected from the prepared evidence list:
+
+- URL sources only become `primary_action_url`.
+- HTML evidence is preferred over Slides evidence.
+- Within the same evidence type, confidence ranks `high > medium > low`.
+- Non-URL sources such as `course_rule` or MOOCs-Collect page keys remain visible in evidence detail but are not used as primary action URLs.
+
+This allows a user to click directly from the table to the most relevant MOOCs page or Slides URL when the evidence has one.
+
+## Smoke Test
+
+Run the v0.3 smoke test:
 
 ```bash
 .\.venv\Scripts\python.exe -m unittest tests.test_v03_smoke
 ```
 
-全テストを実行する。
+Run the full test suite:
 
 ```bash
 .\.venv\Scripts\python.exe -m unittest discover -s tests
 ```
 
-Phase 3-27 smoke test の確認対象:
+The smoke flow verifies that `/api/tasks` returns the COT101 / SEM101 / COT105 task list, status changes persist, evidence detail returns full sources, and the frontend references the required v0.3 task APIs and primary action UI.
 
-- `/api/tasks` が `200` を返す
-- COT101 / SEM101 / COT105 の `task_count` が期待通り
-- status PATCH 後に `/api/tasks` に反映される
-- `user_task_status.json` に保存される
-- `/api/tasks/{task_id}/evidence` が `200` を返す
-- `frontend/index.html` が必要な API を参照している
-- `MOOCS_COLLECT_DB_PATH` 未設定でも落ちない
+## Known Limits
 
-## 7. 注意事項
-
-- `MOOCS_COLLECT_DB_PATH` は任意設定である。未設定でも task list は動く。
-- `MOOCS_COLLECT_DB_PATH` を設定する場合も、通常 API path では read-only metadata 参照に留める。
-- evidence detail の `source` には MOOCs URL、Slides URL、または page_key が入る場合がある。
-- `data/local/user_task_status.json` はデモ中に書き換わる。初期状態に戻したい場合は、このファイルを退避または削除してから起動する。
-- このデモは Phase 3-28 時点の途中成果であり、deadline 自動抽出、ユーザー別認証、本格的な local DB 永続化、Playwright によるリアルタイム MOOCs 解析は含まない。
+- Real MOOCs login and live browser analysis are outside this demo path.
+- Deadline extraction is not finalized in this RC; deadline notes remain rule-based.
+- `MOOCS_COLLECT_DB_PATH` is optional and read-only when configured.
+- Evidence detail sources may be MOOCs URLs, Slides URLs, or local page keys; only URL sources are promoted to primary actions.

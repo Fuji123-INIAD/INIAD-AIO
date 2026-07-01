@@ -256,3 +256,5 @@ data/obsidian_testdata/
 *storage_state*.json
 *cookies*.json
 moocs_profile/
+
+data/local/

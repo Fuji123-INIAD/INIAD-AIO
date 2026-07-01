@@ -262,9 +262,33 @@ button:disabled {
 }
 
 .task-status-cell,
+.task-primary-action-cell,
 .task-evidence-cell {
   width: 120px;
   white-space: nowrap;
+}
+
+.task-primary-action-cell {
+  text-align: center;
+}
+
+.task-primary-action-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 32px;
+  padding: 5px 10px;
+  color: #14532d;
+  font-size: 0.8rem;
+  font-weight: 900;
+  text-decoration: none;
+  background: #dcfce7;
+  border: 1px solid #86efac;
+  border-radius: 8px;
+}
+
+.task-primary-action-link:hover {
+  background: #bbf7d0;
 }
 
 .task-detail-row[hidden] {
