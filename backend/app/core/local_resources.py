@@ -1,0 +1,233 @@
+"""Build a local resource index from MOOCs-Collect filesystem artifacts."""
+
+from __future__ import annotations
+
+import hashlib
+import json
+import os
+import re
+from dataclasses import asdict, dataclass
+from pathlib import Path
+from typing import Any
+
+
+RESOURCE_TYPE_PDF = "pdf"
+DISCOVERED_FROM_FILESYSTEM = "filesystem"
+COURSE_CODE_PATTERN = re.compile(
+    r"(?<![A-Za-z0-9])([A-Za-z]{2,6}\d{2,4}[A-Za-z0-9-]*)(?![A-Za-z0-9])"
+)
+LECTURE_KEY_PATTERN = re.compile(
+    r"(?<![A-Za-z0-9])(\d{1,2}-\d{1,2}|\d{2})(?![A-Za-z0-9])"
+)
+LECTURE_FOLDER_PATTERN = re.compile(
+    r"^(?:[A-Za-z]+-)?(?P<key>\d{1,2}(?:-\d{1,2})?)\s*[_＿]\s*(?P<title>.+)$"
+)
+YEAR_FOLDER_PATTERN = re.compile(r"^\d{4}$")
+
+
+@dataclass(frozen=True)
+class LocalResource:
+    resource_id: str
+    course_code: str | None
+    course_title: str | None
+    lecture_key: str | None
+    lecture_title: str | None
+    title: str
+    resource_type: str
+    source_url: str | None
+    local_path: str
+    page_key: str | None
+    text_available: bool
+    text_cache_path: str | None
+    discovered_from: str
+    warnings: list[dict[str, str]]
+
+
+@dataclass(frozen=True)
+class LocalResourcePathContext:
+    course_title: str | None
+    lecture_folder: str | None
+
+
+@dataclass(frozen=True)
+class LocalResourceIndex:
+    resources: list[LocalResource]
+    warnings: list[dict[str, str]]
+
+    def to_dict(self) -> dict[str, Any]:
+        return {
+            "resources": [asdict(resource) for resource in self.resources],
+            "warnings": self.warnings,
+        }
+
+
+def build_local_resource_index(root: Path) -> LocalResourceIndex:
+    resolved_root = root.expanduser().resolve()
+    if not resolved_root.exists():
+        return LocalResourceIndex(
+            resources=[],
+            warnings=[
+                {
+                    "message": f"Local resource root does not exist: {resolved_root}",
+                }
+            ],
+        )
+    if not resolved_root.is_dir():
+        return LocalResourceIndex(
+            resources=[],
+            warnings=[
+                {
+                    "message": f"Local resource root is not a directory: {resolved_root}",
+                }
+            ],
+        )
+
+    warnings: list[dict[str, str]] = []
+    resources = [
+        create_pdf_resource(pdf_path, root=resolved_root)
+        for pdf_path in iter_pdf_paths(resolved_root, warnings)
+    ]
+    return LocalResourceIndex(resources=resources, warnings=warnings)
+
+
+def iter_pdf_paths(root: Path, warnings: list[dict[str, str]]) -> list[Path]:
+    pdf_paths: list[Path] = []
+
+    def onerror(error: OSError) -> None:
+        warnings.append({"message": f"Could not scan local resource path: {error}"})
+
+    for dirpath, _, filenames in os.walk(root, onerror=onerror):
+        directory = Path(dirpath)
+        for filename in filenames:
+            path = directory / filename
+            if path.suffix.lower() == ".pdf":
+                pdf_paths.append(path)
+
+    return sorted(pdf_paths, key=normalized_path_string)
+
+
+def create_pdf_resource(pdf_path: Path, root: Path | None = None) -> LocalResource:
+    resolved_pdf_path = pdf_path.expanduser().resolve()
+    context = infer_path_context(root, resolved_pdf_path)
+    local_path = str(resolved_pdf_path)
+    return LocalResource(
+        resource_id=stable_resource_id(local_path),
+        course_code=infer_course_code(resolved_pdf_path),
+        course_title=context.course_title,
+        lecture_key=infer_lecture_key(
+            resolved_pdf_path,
+            lecture_folder=context.lecture_folder,
+        ),
+        lecture_title=infer_lecture_title(context.lecture_folder),
+        title=resolved_pdf_path.name,
+        resource_type=RESOURCE_TYPE_PDF,
+        source_url=None,
+        local_path=local_path,
+        page_key=None,
+        text_available=False,
+        text_cache_path=None,
+        discovered_from=DISCOVERED_FROM_FILESYSTEM,
+        warnings=[],
+    )
+
+
+def stable_resource_id(local_path: str) -> str:
+    digest = hashlib.sha256(normalize_local_path(local_path).encode("utf-8")).hexdigest()
+    return f"local-resource:{digest}"
+
+
+def normalize_local_path(local_path: str) -> str:
+    return os.path.normcase(os.path.abspath(os.path.expanduser(local_path)))
+
+
+def normalized_path_string(path: Path) -> str:
+    return normalize_local_path(str(path))
+
+
+def infer_path_context(root: Path | None, pdf_path: Path) -> LocalResourcePathContext:
+    if root is None:
+        return LocalResourcePathContext(course_title=None, lecture_folder=None)
+
+    resolved_root = root.expanduser().resolve()
+    try:
+        relative_path = pdf_path.relative_to(resolved_root)
+    except ValueError:
+        return LocalResourcePathContext(course_title=None, lecture_folder=None)
+
+    parent_parts = list(relative_path.parts[:-1])
+    if YEAR_FOLDER_PATTERN.fullmatch(resolved_root.name):
+        return LocalResourcePathContext(
+            course_title=parent_parts[0] if len(parent_parts) >= 1 else None,
+            lecture_folder=parent_parts[1] if len(parent_parts) >= 2 else None,
+        )
+
+    if parent_parts and YEAR_FOLDER_PATTERN.fullmatch(parent_parts[0]):
+        return LocalResourcePathContext(
+            course_title=parent_parts[1] if len(parent_parts) >= 2 else None,
+            lecture_folder=parent_parts[2] if len(parent_parts) >= 3 else None,
+        )
+
+    if len(parent_parts) >= 2:
+        return LocalResourcePathContext(
+            course_title=parent_parts[0],
+            lecture_folder=parent_parts[1],
+        )
+
+    return LocalResourcePathContext(
+        course_title=resolved_root.name or None,
+        lecture_folder=parent_parts[0] if parent_parts else None,
+    )
+
+
+def infer_course_code(path: Path) -> str | None:
+    for value in path_metadata_candidates(path):
+        match = COURSE_CODE_PATTERN.search(value)
+        if match:
+            return match.group(1).upper()
+    return None
+
+
+def infer_lecture_key(path: Path, lecture_folder: str | None = None) -> str | None:
+    if lecture_folder is not None:
+        parsed_key, _ = parse_lecture_folder(lecture_folder)
+        if parsed_key is not None:
+            return parsed_key
+
+    for value in path_metadata_candidates(path):
+        match = LECTURE_KEY_PATTERN.search(value)
+        if match:
+            return match.group(1)
+    return None
+
+
+def infer_lecture_title(lecture_folder: str | None) -> str | None:
+    if lecture_folder is None:
+        return None
+
+    _, parsed_title = parse_lecture_folder(lecture_folder)
+    return parsed_title
+
+
+def parse_lecture_folder(value: str) -> tuple[str | None, str | None]:
+    match = LECTURE_FOLDER_PATTERN.match(value.strip())
+    if not match:
+        return None, None
+
+    title = match.group("title").strip()
+    return match.group("key"), title or None
+
+
+def path_metadata_candidates(path: Path) -> list[str]:
+    return [
+        path.stem,
+        *reversed(path.parts),
+    ]
+
+
+def write_local_resource_index(index: LocalResourceIndex, output_path: Path) -> None:
+    resolved_output = output_path.expanduser()
+    resolved_output.parent.mkdir(parents=True, exist_ok=True)
+    resolved_output.write_text(
+        json.dumps(index.to_dict(), ensure_ascii=False, indent=2) + "\n",
+        encoding="utf-8",
+    )
