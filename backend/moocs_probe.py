@@ -41,7 +41,7 @@ UI_TITLE_TEXTS = {
     "Toggle navigation",
     "Settings",
     "Sign out",
-    "藤田 優希",
+    "USER_DISPLAY_NAME",
     "ブックマーク",
     "INIAD MOOCs",
     "Homepage",
