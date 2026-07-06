@@ -22,9 +22,15 @@ DEFAULT_QUERY = "セキュリティ"
 REQUIRED_TOOLS = {
     "list_tasks",
     "get_task_evidence",
+    "list_pending_tasks",
+    "summarize_task_backlog",
     "list_local_resources",
     "search_local_resources",
     "get_local_resource",
+    "search_material_context",
+    "get_material_context",
+    "search_lecture_materials",
+    "summarize_local_resource",
 }
 
 
@@ -88,6 +94,15 @@ def run_smoke(
     if task_count <= 0:
         raise SmokeFailure("list_tasks returned no tasks")
 
+    pending_payload = _tool_payload(
+        server,
+        31,
+        "summarize_task_backlog",
+        {},
+    )
+    if not pending_payload.get("caution"):
+        raise SmokeFailure("summarize_task_backlog returned no caution")
+
     resources_payload = _tool_payload(
         server,
         4,
@@ -118,6 +133,16 @@ def run_smoke(
             "Use a query that exists in the local resource index."
         )
 
+    material_payload = _tool_payload(
+        server,
+        51,
+        "search_material_context",
+        {"query": query, "limit": limit, "mode": mode},
+    )
+    material_items = material_payload.get("items")
+    if not isinstance(material_items, list):
+        raise SmokeFailure("search_material_context did not return an items array")
+
     detail_payload = None
     detail_resource_id = _first_resource_id(resources)
     if detail_resource_id is not None:
@@ -140,6 +165,7 @@ def run_smoke(
         "search_query": query,
         "search_mode": mode,
         "search_result_count": len(search_results),
+        "material_context_count": len(material_items),
         "detail_resource_id": detail_resource_id,
         "detail_checked": detail_payload is not None,
     }

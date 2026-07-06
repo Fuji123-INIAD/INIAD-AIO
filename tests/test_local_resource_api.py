@@ -24,10 +24,18 @@ class LocalResourceApiTests(unittest.TestCase):
         self.root = Path(self.temp_dir.name)
         self.index_path = self.root / "data" / "local" / "resource_index.json"
         self.original_index_path = backend_main.LOCAL_RESOURCE_INDEX_PATH
+        self.original_material_text_index_path = backend_main.MATERIAL_TEXT_INDEX_PATH
+        self.original_material_chunk_index_path = backend_main.MATERIAL_CHUNK_INDEX_PATH
         self.original_user_status_path = backend_main.USER_TASK_STATUS_PATH
         self.original_html_evidence_path = backend_main.HTML_EVIDENCE_PATH
         self.original_moocs_collect_db_path = backend_main.MOOCS_COLLECT_DB_PATH
         backend_main.LOCAL_RESOURCE_INDEX_PATH = self.index_path
+        backend_main.MATERIAL_TEXT_INDEX_PATH = (
+            self.root / "data" / "local" / "material_text_index.json"
+        )
+        backend_main.MATERIAL_CHUNK_INDEX_PATH = (
+            self.root / "data" / "local" / "material_chunk_index.json"
+        )
         backend_main.USER_TASK_STATUS_PATH = (
             self.root / "data" / "local" / "user_task_status.json"
         )
@@ -40,6 +48,8 @@ class LocalResourceApiTests(unittest.TestCase):
 
     def tearDown(self) -> None:
         backend_main.LOCAL_RESOURCE_INDEX_PATH = self.original_index_path
+        backend_main.MATERIAL_TEXT_INDEX_PATH = self.original_material_text_index_path
+        backend_main.MATERIAL_CHUNK_INDEX_PATH = self.original_material_chunk_index_path
         backend_main.USER_TASK_STATUS_PATH = self.original_user_status_path
         backend_main.HTML_EVIDENCE_PATH = self.original_html_evidence_path
         backend_main.MOOCS_COLLECT_DB_PATH = self.original_moocs_collect_db_path
@@ -186,6 +196,39 @@ class LocalResourceApiTests(unittest.TestCase):
         result = data["results"][0]
         self.assertEqual("semantic", result["search_mode"])
         self.assertGreater(result["search_score"], 0)
+
+    def test_material_context_search_uses_resource_index_fallback(self) -> None:
+        self.write_index(cache_text="暗号とセキュリティの基本を説明します。")
+
+        response = self.client.get(
+            "/api/context/search",
+            params={"q": "セキュリティ", "mode": "hybrid", "limit": 5},
+        )
+
+        self.assertEqual(200, response.status_code)
+        data = response.json()
+        self.assertEqual("ok", data["status"])
+        self.assertGreaterEqual(len(data["items"]), 1)
+        item = data["items"][0]
+        self.assertEqual("pdf_native", item["source_type"])
+        self.assertIn("セキュリティ", item["excerpt"])
+        self.assertIn("検索対象には", data["caution"])
+
+    def test_get_material_by_local_resource_id_is_bounded(self) -> None:
+        self.write_index(cache_text="セキュリティ " + ("details " * 200))
+
+        response = self.client.get(
+            "/api/materials/local-resource:test-1",
+            params={"include_full_text": "true", "max_text_chars": 500},
+        )
+
+        self.assertEqual(200, response.status_code)
+        data = response.json()
+        self.assertEqual("ok", data["status"])
+        material = data["material"]
+        self.assertEqual("local-resource:test-1", material["local_resource_id"])
+        self.assertTrue(material["truncated"])
+        self.assertLessEqual(len(material["text"]), 500)
 
     def test_search_local_resources_rejects_unknown_mode(self) -> None:
         self.write_index(cache_text=None)

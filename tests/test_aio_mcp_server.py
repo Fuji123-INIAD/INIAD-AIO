@@ -1,9 +1,11 @@
 from __future__ import annotations
 
+import json
 import unittest
 from urllib.parse import urlparse
 
 from backend.app.mcp.aio_server import AioMcpClient, MinimalMcpServer, call_aio_tool
+from backend.app.core.task_backlog import TASK_BACKLOG_CAUTION
 from scripts.smoke_aio_mcp import SmokeFailure, run_smoke
 
 
@@ -43,6 +45,33 @@ class RoutedFakeSession:
                     "active_count": 3,
                     "items": [{"task_id": "course-rule:COT101"}],
                     "warnings": [],
+                }
+            )
+        if path == "/api/tasks/pending":
+            return FakeResponse(
+                {
+                    "status": "ok",
+                    "summary": "現在AIO上で確認が必要な課題候補は1件です。",
+                    "count": 1,
+                    "items": [
+                        {
+                            "task_id": "course-rule:COT105",
+                            "course_code": "COT105",
+                            "title": "COT105 課題",
+                            "status": "todo",
+                        }
+                    ],
+                    "caution": TASK_BACKLOG_CAUTION,
+                }
+            )
+        if path == "/api/tasks/backlog/summary":
+            return FakeResponse(
+                {
+                    "status": "ok",
+                    "summary": "現在AIO上で確認が必要な課題候補は1件です。",
+                    "count": 1,
+                    "items": [],
+                    "caution": TASK_BACKLOG_CAUTION,
                 }
             )
         if path == "/api/local/resources":
@@ -88,6 +117,54 @@ class RoutedFakeSession:
                         "text_cache": {"available": False},
                     },
                     "warnings": [],
+                }
+            )
+        if path == "/api/context/search":
+            return FakeResponse(
+                {
+                    "status": "ok",
+                    "summary": "セキュリティ の関連資料snippetは1件です。",
+                    "query": params["q"],
+                    "mode": params["mode"],
+                    "items": [
+                        {
+                            "material_id": "material:test-1",
+                            "source_label": "情報連携学概論 I / 第08回 セキュリティ / security.pdf",
+                            "source_type": "moocs_collect_slide_text",
+                            "provider": "moocs_collect",
+                            "excerpt": "暗号とセキュリティ",
+                            "open_url": "/api/local/resources/local-resource%3Atest-1/file",
+                        }
+                    ],
+                    "caution": "検索対象にはMOOCs-Collect由来テキストが含まれます。",
+                }
+            )
+        if path == "/api/materials/material%3Atest-1":
+            return FakeResponse(
+                {
+                    "status": "ok",
+                    "material": {
+                        "material_id": "material:test-1",
+                        "local_resource_id": "local-resource:test-1",
+                        "title": "security.pdf",
+                        "text_available": True,
+                    },
+                    "chunks": [],
+                    "caution": "検索対象にはMOOCs-Collect由来テキストが含まれます。",
+                }
+            )
+        if path == "/api/materials/local-resource%3Atest-1":
+            return FakeResponse(
+                {
+                    "status": "ok",
+                    "material": {
+                        "material_id": "material:test-1",
+                        "local_resource_id": "local-resource:test-1",
+                        "title": "security.pdf",
+                        "text_available": False,
+                    },
+                    "chunks": [],
+                    "caution": "検索対象にはMOOCs-Collect由来テキストが含まれます。",
                 }
             )
         return FakeResponse({"status": "error", "detail": f"unexpected path: {path}"})
@@ -164,6 +241,45 @@ class AioMcpServerTests(unittest.TestCase):
         self.assertEqual("ok", result["structuredContent"]["status"])
         self.assertEqual([("course_code", "COT101")], session.calls[0]["params"])
 
+    def test_json_rpc_tool_text_is_ascii_safe_for_japanese(self) -> None:
+        session = RoutedFakeSession()
+        server = MinimalMcpServer(
+            AioMcpClient(base_url="http://aio.test", session=session)
+        )
+
+        response = server.handle_request(
+            {
+                "jsonrpc": "2.0",
+                "id": 1,
+                "method": "tools/call",
+                "params": {"name": "summarize_task_backlog", "arguments": {}},
+            }
+        )
+
+        text = response["result"]["content"][0]["text"]
+        self.assertNotIn("現在AIO", text)
+        self.assertIn("\\u73fe\\u5728", text)
+        self.assertEqual("ok", json.loads(text)["status"])
+
+    def test_material_context_tools_call_expected_endpoints(self) -> None:
+        session = RoutedFakeSession()
+        client = AioMcpClient(base_url="http://aio.test", session=session)
+
+        search = call_aio_tool(
+            client,
+            "search_material_context",
+            {"query": "セキュリティ", "mode": "hybrid", "limit": 3},
+        )
+        detail = call_aio_tool(
+            client,
+            "get_material_context",
+            {"material_id": "material:test-1"},
+        )
+
+        self.assertEqual("ok", search["status"])
+        self.assertEqual(1, len(search["items"]))
+        self.assertEqual("security.pdf", detail["material"]["title"])
+
 
 class AioMcpSmokeTests(unittest.TestCase):
     def test_smoke_runs_initialize_tools_and_demo_tool_calls(self) -> None:
@@ -177,10 +293,13 @@ class AioMcpSmokeTests(unittest.TestCase):
 
         self.assertEqual("ok", report["status"])
         self.assertIn("list_tasks", report["tools"])
+        self.assertIn("list_pending_tasks", report["tools"])
         self.assertIn("search_local_resources", report["tools"])
+        self.assertIn("search_material_context", report["tools"])
         self.assertEqual(3, report["task_count"])
         self.assertEqual(1, report["resource_count"])
         self.assertEqual(1, report["search_result_count"])
+        self.assertEqual(1, report["material_context_count"])
         self.assertEqual("local-resource:test-1", report["detail_resource_id"])
         self.assertTrue(report["detail_checked"])
 

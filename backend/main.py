@@ -25,16 +25,30 @@ if str(PROJECT_ROOT) not in sys.path:
 
 from ai_module import generate_answer
 from backend.app.core.context_cards import build_local_resource_card
+from backend.app.core.context_pack import MATERIAL_SEARCH_CAUTION
 from backend.app.core.course_rules import normalize_course_code
 from backend.app.core.embeddings import (
     HashedBagOfWordsEmbeddingProvider,
     cosine_similarity,
 )
+from backend.app.core.material_chunks import chunk_material_texts
+from backend.app.core.material_search import (
+    load_material_chunk_index,
+    load_material_text_index,
+    normalize_mode as normalize_material_search_mode,
+    search_context_pack,
+    search_material_chunks,
+)
+from backend.app.core.material_text import material_texts_from_local_resources
 from backend.app.core.ontology import (
     ENTITY_TYPE_RESOURCE,
     infer_resource_kind,
     normalize_resource_kind,
     normalize_source_kind,
+)
+from backend.app.core.task_backlog import (
+    build_pending_tasks_payload,
+    summarize_task_backlog_payload,
 )
 from backend.app.core.task_html_evidence import load_html_evidence_by_course
 from backend.app.core.task_slides_evidence import load_slides_evidence_by_course
@@ -62,6 +76,8 @@ USER_TASK_STATUS_LOADED = False
 USER_TASK_STATUS_PATH = PROJECT_ROOT / "data" / "local" / "user_task_status.json"
 HTML_EVIDENCE_PATH = PROJECT_ROOT / "data" / "probe" / "moocs_course_details.json"
 LOCAL_RESOURCE_INDEX_PATH = PROJECT_ROOT / "data" / "local" / "resource_index.json"
+MATERIAL_TEXT_INDEX_PATH = PROJECT_ROOT / "data" / "local" / "material_text_index.json"
+MATERIAL_CHUNK_INDEX_PATH = PROJECT_ROOT / "data" / "local" / "material_chunk_index.json"
 LOCAL_RESOURCE_SEARCH_MODES = frozenset({"keyword", "semantic", "hybrid"})
 LOCAL_EMBEDDING_PROVIDER = HashedBagOfWordsEmbeddingProvider()
 MOOCS_COLLECT_DB_PATH = (
@@ -2020,6 +2036,18 @@ def list_tasks(course_code: list[str] | None = Query(default=None)):
     }
 
 
+@app.get("/api/tasks/pending")
+def list_pending_tasks(course_code: list[str] | None = Query(default=None)):
+    course_codes = course_code or ["COT101", "SEM101", "COT105"]
+    return build_pending_tasks_payload(build_rule_task_list_response(course_codes))
+
+
+@app.get("/api/tasks/backlog/summary")
+def summarize_task_backlog(course_code: list[str] | None = Query(default=None)):
+    course_codes = course_code or ["COT101", "SEM101", "COT105"]
+    return summarize_task_backlog_payload(build_rule_task_list_response(course_codes))
+
+
 @app.get("/api/tasks/{task_id}/evidence")
 def get_task_evidence(task_id: str, course_code: list[str] | None = Query(default=None)):
     detail_course_codes = course_code or infer_course_codes_for_task(task_id)
@@ -2503,6 +2531,269 @@ def open_local_resource_file(resource_id: str):
         media_type="application/pdf",
         filename=resource.get("title") or pdf_path.name,
     )
+
+
+def load_materials_for_api():
+    materials, warnings = load_material_text_index(MATERIAL_TEXT_INDEX_PATH)
+    if materials:
+        return materials, warnings
+
+    resources, resource_warnings, index_path = load_local_resource_index()
+    fallback_materials = material_texts_from_local_resources(
+        resources,
+        index_path=index_path,
+        include_text_cache=True,
+        base_url=None,
+    )
+    return fallback_materials, [
+        *warnings,
+        *resource_warnings,
+        {
+            "message": (
+                "Material text index was not available; using transient "
+                "metadata/PDF text-cache fallback from resource_index.json."
+            )
+        },
+    ]
+
+
+def load_chunks_for_api():
+    chunks, warnings = load_material_chunk_index(MATERIAL_CHUNK_INDEX_PATH)
+    if chunks:
+        return chunks, warnings
+
+    materials, material_warnings = load_materials_for_api()
+    return chunk_material_texts(materials), [
+        *warnings,
+        *material_warnings,
+        {
+            "message": (
+                "Material chunk index was not available; chunks were built in memory."
+            )
+        },
+    ]
+
+
+def material_public_summary(material, *, include_full_text=False, max_text_chars=4000):
+    data = material.to_dict(include_text=include_full_text)
+    if include_full_text:
+        text = data.get("text") or ""
+        if len(text) > max_text_chars:
+            data["text"] = text[:max_text_chars].rstrip()
+            data["truncated"] = True
+        else:
+            data["truncated"] = False
+    else:
+        data["text_preview"] = make_local_search_snippet(material.text, "")
+    return data
+
+
+def find_material_for_api(material_id: str):
+    materials, warnings = load_materials_for_api()
+    for material in materials:
+        if material.material_id == material_id or material.local_resource_id == material_id:
+            return material, warnings
+    raise HTTPException(status_code=404, detail="Material not found")
+
+
+def material_search_filters(
+    course_code=None,
+    course_title=None,
+    lecture_key=None,
+    lecture_title=None,
+    source_type=None,
+    resource_kind=None,
+    entity_type=None,
+):
+    return {
+        "course_code": course_code,
+        "course_title": course_title,
+        "lecture_key": lecture_key,
+        "lecture_title": lecture_title,
+        "source_type": source_type,
+        "resource_kind": resource_kind,
+        "entity_type": entity_type,
+    }
+
+
+@app.get("/api/materials")
+def list_materials(limit: int = 100):
+    materials, warnings = load_materials_for_api()
+    normalized_limit = max(1, min(limit, 500))
+    return {
+        "status": "ok",
+        "material_count": len(materials),
+        "warnings": warnings,
+        "materials": [
+            material_public_summary(material, include_full_text=False)
+            for material in materials[:normalized_limit]
+        ],
+        "caution": MATERIAL_SEARCH_CAUTION,
+    }
+
+
+@app.get("/api/materials/search")
+def search_materials(
+    q: str = "",
+    mode: str = "keyword",
+    limit: int = 10,
+    course_code: str | None = None,
+    course_title: str | None = None,
+    lecture_key: str | None = None,
+    lecture_title: str | None = None,
+    source_type: str | None = None,
+    resource_kind: str | None = None,
+    entity_type: str | None = None,
+):
+    query = q.strip()
+    if not query:
+        return {
+            "status": "error",
+            "detail": "query parameter q is required",
+            "query": query,
+            "results": [],
+            "caution": MATERIAL_SEARCH_CAUTION,
+        }
+    search_mode = normalize_material_search_mode(mode)
+    if search_mode is None:
+        return {
+            "status": "error",
+            "detail": "mode must be one of: keyword, semantic, hybrid",
+            "query": query,
+            "mode": mode,
+            "results": [],
+            "caution": MATERIAL_SEARCH_CAUTION,
+        }
+    chunks, warnings = load_chunks_for_api()
+    results = search_material_chunks(
+        chunks,
+        query=query,
+        mode=search_mode,
+        limit=limit,
+        filters=material_search_filters(
+            course_code,
+            course_title,
+            lecture_key,
+            lecture_title,
+            source_type,
+            resource_kind,
+            entity_type,
+        ),
+    )
+    return {
+        "status": "ok",
+        "query": query,
+        "mode": search_mode,
+        "result_count": len(results),
+        "warnings": warnings,
+        "results": results,
+        "caution": MATERIAL_SEARCH_CAUTION,
+    }
+
+
+@app.get("/api/context/search")
+def search_context(
+    q: str = "",
+    mode: str = "hybrid",
+    limit: int = 10,
+    course_code: str | None = None,
+    course_title: str | None = None,
+    lecture_key: str | None = None,
+    lecture_title: str | None = None,
+    source_type: str | None = None,
+    resource_kind: str | None = None,
+    entity_type: str | None = None,
+):
+    query = q.strip()
+    if not query:
+        return {
+            "status": "error",
+            "detail": "query parameter q is required",
+            "query": query,
+            "items": [],
+            "caution": MATERIAL_SEARCH_CAUTION,
+        }
+    chunks, warnings = load_chunks_for_api()
+    try:
+        pack = search_context_pack(
+            chunks,
+            query=query,
+            mode=mode,
+            limit=limit,
+            filters=material_search_filters(
+                course_code,
+                course_title,
+                lecture_key,
+                lecture_title,
+                source_type,
+                resource_kind,
+                entity_type,
+            ),
+        )
+    except ValueError as exc:
+        return {
+            "status": "error",
+            "detail": str(exc),
+            "query": query,
+            "items": [],
+            "caution": MATERIAL_SEARCH_CAUTION,
+        }
+    pack["warnings"] = warnings
+    return pack
+
+
+@app.get("/api/materials/{material_id}/chunks")
+def get_material_chunks(material_id: str, limit: int = 20):
+    material, warnings = find_material_for_api(material_id)
+    chunks, chunk_warnings = load_chunks_for_api()
+    material_chunks = [
+        chunk.to_dict()
+        for chunk in chunks
+        if chunk.material_id == material.material_id
+        or (
+            material.local_resource_id
+            and chunk.local_resource_id == material.local_resource_id
+        )
+    ]
+    normalized_limit = max(1, min(limit, 100))
+    return {
+        "status": "ok",
+        "material_id": material.material_id,
+        "chunks": material_chunks[:normalized_limit],
+        "chunk_count": len(material_chunks),
+        "warnings": [*warnings, *chunk_warnings],
+        "caution": MATERIAL_SEARCH_CAUTION,
+    }
+
+
+@app.get("/api/materials/{material_id}")
+def get_material(
+    material_id: str,
+    include_full_text: bool = False,
+    max_text_chars: int = 4000,
+):
+    material, warnings = find_material_for_api(material_id)
+    chunks, chunk_warnings = load_chunks_for_api()
+    related_chunks = [
+        chunk.to_dict()
+        for chunk in chunks
+        if chunk.material_id == material.material_id
+        or (
+            material.local_resource_id
+            and chunk.local_resource_id == material.local_resource_id
+        )
+    ][:5]
+    return {
+        "status": "ok",
+        "material": material_public_summary(
+            material,
+            include_full_text=include_full_text,
+            max_text_chars=max(500, min(max_text_chars, 20000)),
+        ),
+        "chunks": related_chunks,
+        "warnings": [*warnings, *chunk_warnings],
+        "caution": MATERIAL_SEARCH_CAUTION,
+    }
 
 
 def get_meili_client():

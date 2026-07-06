@@ -104,3 +104,24 @@ README は入口のみを担当します。
 - Optional vector cache script: `python scripts/build_local_resource_vector_cache.py`
 
 Design note: `docs/design/20260706_v11_mcp_ontology_embedding_experiment.md`
+
+## v1.2 experimental
+
+`feature/v1.2-mcp-chat-materials-experiment` extends the MCP path so chat AI clients can retrieve safer task backlog summaries and bounded lecture-material snippets.
+
+- New MCP task tools: `list_pending_tasks`, `summarize_task_backlog`
+- New material model: `MaterialText` / `MaterialChunk`
+- New material search APIs: `/api/materials`, `/api/materials/search`, `/api/context/search`
+- New MCP material tools: `search_material_context`, `get_material_context`, `search_lecture_materials`, `summarize_local_resource`
+- Index build script: `python scripts/build_material_text_index.py`
+- MOOCs-Collect probe: `python scripts/probe_moocs_collect_text_quality.py`
+- OCR availability probe: `python scripts/probe_pdf_text_extractors.py`
+- Demo fallback: `python scripts/demo_aio_mcp_chat_flow.py`
+
+`data/local/`, MOOCs-Collect `db.sqlite`, PDFs, OCR outputs, storage state, cookies, browser profiles, Claude Desktop config, and credentials must not be committed.
+
+Design notes:
+
+- `docs/design/20260706_v12_chat_ai_mcp_materials_experiment.md`
+- `docs/design/material_text_pipeline.md`
+- `docs/setup/claude_desktop_mcp.md`
