@@ -11,7 +11,7 @@
     <section class="hero">
       <p class="eyebrow">INIAD Assistant</p>
       <h1>INIAD-AIO</h1>
-      <p class="subtitle">v0.3 Task List Demo: 授業ルールに基づく課題候補を確認できます。</p>
+      <p class="subtitle">v1.0 Demo: 授業ルールに基づく課題候補とローカルPDF資料を確認できます。</p>
       <p class="demo-notice">この課題一覧は授業ルールに基づく課題候補です。実際の提出期限・提出場所はMOOCsも確認してください。</p>
     </section>
 
@@ -37,12 +37,12 @@
       </div>
     </section>
 
-    <details class="card search-card" hidden>
-      <summary class="search-summary">詳細検索</summary>
+    <details class="card search-card" open>
+      <summary class="search-summary">PDF資料検索</summary>
       <div class="search-panel">
-        <label class="section-title" for="searchQuery">検索</label>
+        <label class="section-title" for="searchQuery">ローカルPDF検索</label>
         <div class="search-row">
-          <input id="searchQuery" type="search" placeholder="課題 / COT101 / exercise">
+          <input id="searchQuery" type="search" placeholder="セキュリティ / COT101 / 回帰">
           <button id="searchButton" onclick="searchMoocs()">検索</button>
         </div>
         <div id="searchStatus" class="status-line"></div>
@@ -135,16 +135,23 @@
 
       try {
         const params = new URLSearchParams({ q: query, limit: "12" });
-        const response = await fetch("/api/search?" + params.toString());
+        const response = await fetch("/api/local/resources/search?" + params.toString());
         const data = await response.json();
 
-        if (data.status !== "ok") {
+        if (!response.ok || data.status !== "ok") {
           searchStatus.textContent = "エラー: " + (data.detail || "search failed");
           return;
         }
 
+        const warnings = Array.isArray(data.warnings) ? data.warnings : [];
+        if (warnings.length > 0 && data.results.length === 0) {
+          searchStatus.textContent = localResourceWarningMessage(warnings[0]);
+          renderLocalPdfResults([]);
+          return;
+        }
+
         searchStatus.textContent = data.results.length + "件";
-        renderSources(data.results, searchResultsArea, "検索結果");
+        renderLocalPdfResults(data.results);
       } catch (error) {
         searchStatus.textContent = "通信エラー: " + error.message;
       } finally {
@@ -511,9 +518,76 @@
         container.dataset.loaded = "true";
         button.disabled = false;
       } catch (error) {
-        taskError.textContent = "evidence details 繧貞叙蠕励〒縺阪∪縺帙ｓ縺ｧ縺励◆: " + error.message;
+        taskError.textContent = "evidence details を取得できませんでした: " + error.message;
         button.disabled = false;
       }
+    }
+
+    function localResourceWarningMessage(warning) {
+      const message = warning && warning.message ? warning.message : "";
+      if (message.indexOf("has not been generated") >= 0) {
+        return "ローカル資料インデックスがまだ生成されていません。";
+      }
+      return message || "ローカル資料を読み込めませんでした。";
+    }
+
+    function renderLocalPdfResults(results) {
+      searchResultsArea.textContent = "";
+
+      if (!Array.isArray(results) || results.length === 0) {
+        const empty = document.createElement("p");
+        empty.className = "task-empty";
+        empty.textContent = "該当するPDF資料はありません。";
+        searchResultsArea.appendChild(empty);
+        return;
+      }
+
+      const list = document.createElement("ol");
+      list.className = "sources-list local-resource-results";
+      results.forEach(function(result) {
+        const item = document.createElement("li");
+        item.className = "source-item local-resource-item";
+
+        const badge = document.createElement("span");
+        badge.className = "type-badge local-resource-badge";
+        badge.textContent = "PDF";
+
+        const heading = document.createElement("p");
+        heading.className = "source-heading";
+        heading.textContent = result.title || "PDFタイトル未設定";
+
+        const meta = document.createElement("dl");
+        meta.className = "source-meta-list";
+        appendMeta(meta, "科目", result.course_title || result.course_code || "未設定");
+        appendMeta(meta, "講義回", result.lecture_key || "未設定");
+        appendMeta(meta, "講義タイトル", result.lecture_title || "未設定");
+        appendMeta(meta, "ページ", result.page_number ? String(result.page_number) : "未設定");
+
+        item.appendChild(badge);
+        item.appendChild(heading);
+        item.appendChild(meta);
+
+        if (result.snippet) {
+          const snippet = document.createElement("p");
+          snippet.className = "source-snippet";
+          snippet.textContent = result.snippet;
+          item.appendChild(snippet);
+        }
+
+        if (result.open_url) {
+          const openLink = document.createElement("a");
+          openLink.className = "local-pdf-open-link";
+          openLink.href = result.open_url;
+          openLink.target = "_blank";
+          openLink.rel = "noopener noreferrer";
+          openLink.textContent = "PDFを開く";
+          item.appendChild(openLink);
+        }
+
+        list.appendChild(item);
+      });
+
+      searchResultsArea.appendChild(list);
     }
 
     function renderTaskEvidenceDetails(container, evidenceItems) {

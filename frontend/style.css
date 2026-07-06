@@ -693,6 +693,43 @@ pre.is-loading {
   overflow-wrap: anywhere;
 }
 
+.local-resource-results {
+  padding-left: 0;
+  list-style-position: inside;
+}
+
+.local-resource-item {
+  display: grid;
+  gap: 8px;
+}
+
+.local-resource-badge {
+  width: fit-content;
+  color: #0e7490;
+  background: #ecfeff;
+  border-color: #a5f3fc;
+}
+
+.local-pdf-open-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: fit-content;
+  min-height: 34px;
+  padding: 6px 12px;
+  color: #0e7490;
+  font-size: 0.84rem;
+  font-weight: 900;
+  text-decoration: none;
+  background: #ecfeff;
+  border: 1px solid #67e8f9;
+  border-radius: 8px;
+}
+
+.local-pdf-open-link:hover {
+  background: #cffafe;
+}
+
 .source-content {
   margin: 10px 0 0;
   color: #243047;

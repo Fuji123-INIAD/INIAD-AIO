@@ -4,7 +4,7 @@ INIAD-AIO は、INIAD（東洋大学情報連携学部）向けの AI 情報ア�
 
 MOOCs を中心とした講義・課題・資料情報を収集・整理し、自然言語で検索・参照できる環境の構築を目的としています。
 
-現在は **v0.2 Closed Alpha** です。 
+現在は **v1.0 発表版** の準備中です。
 
 ---
 
@@ -34,17 +34,19 @@ MOOCs を中心とした講義・課題・資料情報を収集・整理し、�
 
 ---
 
-## 現在の状態（v0.2）
+## 現在の状態（v1.0 発表版）
 
 現在実装・検証中の主な要素:
 
 - FastAPI backend
-- PostgreSQL database
-- MOOCs metadata ingestion
-- course / lecture / material / task 保存
-- 実験的自然言語検索
+- COT101 / COT105 / SEM101 の課題候補一覧
+- 課題 status のローカルJSON永続化
+- MOOCs-Collect が保存したPDFのローカル discovery
+- PDFテキストレイヤー抽出と `data/local/text_cache/` 保存
+- ローカルPDF検索API
+- 課題一覧とPDF検索の最小UI
 
-現在は「情報取得基盤」の構築段階です。
+発表版では、ローカルで確実に動く課題確認とPDF資料検索を優先しています。
 
 ---
 
@@ -53,6 +55,9 @@ MOOCs を中心とした講義・課題・資料情報を収集・整理し、�
 以下は未完成、または実験段階です。
 
 - Embedding 検索
+- OCR
+- MCP 連携
+- 本格 Ontology
 - 本格 RAG
 - 本番認証基盤
 - 大規模 multi-source ingestion

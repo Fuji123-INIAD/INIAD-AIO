@@ -15,7 +15,7 @@ class FrontendTaskListTests(unittest.TestCase):
         self.assertIn('id="taskWarnings"', html)
         self.assertIn('id="taskError"', html)
         self.assertIn("INIAD-AIO", html)
-        self.assertIn("v0.3 Task List Demo", html)
+        self.assertIn("v1.0 Demo", html)
         self.assertIn(
             "この課題一覧は授業ルールに基づく課題候補です。",
             html,
@@ -26,15 +26,18 @@ class FrontendTaskListTests(unittest.TestCase):
         )
         self.assertIn('fetch("/api/tasks?" + ruleTaskQuery)', html)
 
-    def test_legacy_ai_and_search_ui_are_hidden_in_v03_demo(self) -> None:
+    def test_legacy_ai_ui_is_hidden_and_pdf_search_is_visible(self) -> None:
         html = (FRONTEND_DIR / "index.html").read_text(encoding="utf-8")
 
         self.assertIn('<section class="card question-card" hidden>', html)
-        self.assertIn('<details class="card search-card" hidden>', html)
+        self.assertIn('<details class="card search-card" open>', html)
         self.assertIn('<section class="card answer-card" hidden>', html)
         self.assertIn('id="question"', html)
         self.assertIn('id="searchQuery"', html)
         self.assertIn('id="answer"', html)
+        self.assertIn("/api/local/resources/search", html)
+        self.assertIn("renderLocalPdfResults(data.results)", html)
+        self.assertIn("PDFを開く", html)
 
     def test_index_renders_required_task_fields(self) -> None:
         html = (FRONTEND_DIR / "index.html").read_text(encoding="utf-8")
@@ -90,6 +93,8 @@ class FrontendTaskListTests(unittest.TestCase):
         self.assertIn(".task-status-select", css)
         self.assertIn(".task-evidence-detail-button", css)
         self.assertIn(".task-evidence-detail-list", css)
+        self.assertIn(".local-resource-item", css)
+        self.assertIn(".local-pdf-open-link", css)
 
 
 if __name__ == "__main__":
