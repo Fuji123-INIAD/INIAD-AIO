@@ -6,10 +6,10 @@ import json
 import os
 import sys
 import time
-from urllib.parse import urlparse
+from urllib.parse import quote, urlparse
 
 from fastapi import FastAPI, HTTPException, Query
-from fastapi.responses import Response
+from fastapi.responses import FileResponse, Response
 from fastapi.staticfiles import StaticFiles
 from bs4 import BeautifulSoup
 import meilisearch
@@ -50,6 +50,7 @@ USER_TASK_STATUS_WARNINGS: list[dict[str, str]] = []
 USER_TASK_STATUS_LOADED = False
 USER_TASK_STATUS_PATH = PROJECT_ROOT / "data" / "local" / "user_task_status.json"
 HTML_EVIDENCE_PATH = PROJECT_ROOT / "data" / "probe" / "moocs_course_details.json"
+LOCAL_RESOURCE_INDEX_PATH = PROJECT_ROOT / "data" / "local" / "resource_index.json"
 MOOCS_COLLECT_DB_PATH = (
     Path(os.environ["MOOCS_COLLECT_DB_PATH"]).expanduser()
     if os.environ.get("MOOCS_COLLECT_DB_PATH")
@@ -2063,6 +2064,297 @@ def update_task_status(task_id: str, request: TaskStatusUpdateRequest):
             next_status.checked_at.isoformat() if next_status.checked_at else None
         ),
     }
+
+
+def load_local_resource_index(index_path: Path | None = None):
+    resolved_index_path = Path(index_path or LOCAL_RESOURCE_INDEX_PATH).expanduser()
+    if not resolved_index_path.exists():
+        return [], [
+            {
+                "message": (
+                    "Local resource index has not been generated yet: "
+                    f"{resolved_index_path}"
+                ),
+            }
+        ], resolved_index_path
+
+    try:
+        data = json.loads(resolved_index_path.read_text(encoding="utf-8"))
+    except Exception as exc:
+        return [], [
+            {
+                "message": f"Could not read local resource index: {exc}",
+            }
+        ], resolved_index_path
+
+    raw_resources = data.get("resources", [])
+    warnings = list(data.get("warnings", []))
+    if not isinstance(raw_resources, list):
+        return [], [
+            *warnings,
+            {
+                "message": "Local resource index resources must be an array.",
+            },
+        ], resolved_index_path
+
+    resources = [
+        resource
+        for resource in raw_resources
+        if isinstance(resource, dict) and resource.get("resource_type") == "pdf"
+    ]
+    return resources, warnings, resolved_index_path
+
+
+def local_resource_summary(resource):
+    return {
+        "resource_id": resource.get("resource_id"),
+        "title": resource.get("title"),
+        "course_code": resource.get("course_code"),
+        "course_title": resource.get("course_title"),
+        "lecture_key": resource.get("lecture_key"),
+        "lecture_title": resource.get("lecture_title"),
+        "resource_type": resource.get("resource_type"),
+        "local_path": resource.get("local_path"),
+        "text_available": bool(resource.get("text_available")),
+        "text_cache_path": resource.get("text_cache_path"),
+        "warnings": resource.get("warnings") or [],
+    }
+
+
+def local_resource_open_url(resource):
+    resource_id = str(resource.get("resource_id") or "")
+    return f"/api/local/resources/{quote(resource_id, safe='')}/file"
+
+
+def find_local_resource(resource_id: str):
+    resources, warnings, index_path = load_local_resource_index()
+    for resource in resources:
+        if resource.get("resource_id") == resource_id:
+            return resource, warnings, index_path
+    raise HTTPException(status_code=404, detail="Local resource not found")
+
+
+def resolve_local_text_cache_path(text_cache_path, index_path: Path) -> Path | None:
+    if not text_cache_path:
+        return None
+
+    candidate = Path(str(text_cache_path)).expanduser()
+    if candidate.is_absolute():
+        return candidate
+
+    project_candidate = PROJECT_ROOT / candidate
+    if project_candidate.exists():
+        return project_candidate
+
+    return index_path.parent / candidate
+
+
+def load_local_text_cache_pages(resource, index_path: Path):
+    cache_path = resolve_local_text_cache_path(
+        resource.get("text_cache_path"),
+        index_path,
+    )
+    if cache_path is None or not cache_path.exists():
+        return []
+
+    try:
+        cache = json.loads(cache_path.read_text(encoding="utf-8"))
+    except Exception:
+        return []
+
+    pages = cache.get("pages", [])
+    if not isinstance(pages, list):
+        return []
+
+    normalized_pages = []
+    for page in pages:
+        if not isinstance(page, dict):
+            continue
+        text = str(page.get("text") or "")
+        if not text.strip():
+            continue
+        normalized_pages.append(
+            {
+                "page_number": page.get("page_number"),
+                "text": text,
+            }
+        )
+    return normalized_pages
+
+
+def local_text_cache_summary(resource, index_path: Path):
+    pages = load_local_text_cache_pages(resource, index_path)
+    if not pages:
+        return {
+            "available": False,
+            "path": resource.get("text_cache_path"),
+            "page_count": 0,
+            "pages": [],
+        }
+
+    return {
+        "available": True,
+        "path": resource.get("text_cache_path"),
+        "page_count": len(pages),
+        "pages": [
+            {
+                "page_number": page.get("page_number"),
+                "text_preview": make_local_search_snippet(page.get("text") or "", ""),
+            }
+            for page in pages[:5]
+        ],
+    }
+
+
+def local_search_text(value):
+    return str(value or "").casefold()
+
+
+def make_local_search_snippet(text: str, query: str, radius: int = 70) -> str:
+    collapsed = " ".join(str(text or "").split())
+    if not collapsed:
+        return ""
+
+    normalized_query = local_search_text(query)
+    if not normalized_query:
+        return collapsed[:180]
+
+    position = local_search_text(collapsed).find(normalized_query)
+    if position < 0:
+        return collapsed[:180]
+
+    start = max(0, position - radius)
+    end = min(len(collapsed), position + len(query) + radius)
+    prefix = "..." if start > 0 else ""
+    suffix = "..." if end < len(collapsed) else ""
+    return f"{prefix}{collapsed[start:end]}{suffix}"
+
+
+def match_local_resource_metadata(resource, normalized_query: str) -> str | None:
+    fields = [
+        resource.get("title"),
+        resource.get("course_code"),
+        resource.get("course_title"),
+        resource.get("lecture_key"),
+        resource.get("lecture_title"),
+    ]
+    for value in fields:
+        text = str(value or "")
+        if normalized_query in local_search_text(text):
+            return text
+    return None
+
+
+def search_local_resource(resource, query: str, index_path: Path):
+    normalized_query = local_search_text(query)
+    text_pages = load_local_text_cache_pages(resource, index_path)
+    for page in text_pages:
+        text = page.get("text") or ""
+        if normalized_query in local_search_text(text):
+            return {
+                **local_resource_summary(resource),
+                "snippet": make_local_search_snippet(text, query),
+                "page_number": page.get("page_number"),
+                "open_url": local_resource_open_url(resource),
+            }
+
+    metadata_match = match_local_resource_metadata(resource, normalized_query)
+    if metadata_match is None:
+        return None
+
+    metadata_text = " / ".join(
+        str(value)
+        for value in (
+            resource.get("course_title"),
+            resource.get("lecture_key"),
+            resource.get("lecture_title"),
+            resource.get("title"),
+        )
+        if value
+    )
+    return {
+        **local_resource_summary(resource),
+        "snippet": make_local_search_snippet(metadata_text or metadata_match, query),
+        "page_number": None,
+        "open_url": local_resource_open_url(resource),
+    }
+
+
+@app.get("/api/local/resources")
+def list_local_resources():
+    resources, warnings, _ = load_local_resource_index()
+    return {
+        "status": "ok",
+        "resource_count": len(resources),
+        "warnings": warnings,
+        "resources": [
+            {
+                **local_resource_summary(resource),
+                "open_url": local_resource_open_url(resource),
+            }
+            for resource in resources
+        ],
+    }
+
+
+@app.get("/api/local/resources/search")
+def search_local_resources(q: str = "", limit: int = 20):
+    query = q.strip()
+    if not query:
+        return {
+            "status": "error",
+            "detail": "query parameter q is required",
+            "query": query,
+            "results": [],
+        }
+
+    normalized_limit = max(1, min(limit, 50))
+    resources, warnings, index_path = load_local_resource_index()
+    results = []
+    for resource in resources:
+        result = search_local_resource(resource, query, index_path)
+        if result is not None:
+            results.append(result)
+
+    return {
+        "status": "ok",
+        "query": query,
+        "result_count": len(results[:normalized_limit]),
+        "warnings": warnings,
+        "results": results[:normalized_limit],
+    }
+
+
+@app.get("/api/local/resources/{resource_id}")
+def get_local_resource(resource_id: str):
+    resource, warnings, index_path = find_local_resource(resource_id)
+    return {
+        "status": "ok",
+        "warnings": warnings,
+        "resource": {
+            **local_resource_summary(resource),
+            "open_url": local_resource_open_url(resource),
+            "text_cache": local_text_cache_summary(resource, index_path),
+        },
+    }
+
+
+@app.get("/api/local/resources/{resource_id}/file")
+def open_local_resource_file(resource_id: str):
+    resource, _, _ = find_local_resource(resource_id)
+    local_path = resource.get("local_path")
+    if not local_path:
+        raise HTTPException(status_code=404, detail="Local PDF path is missing")
+
+    pdf_path = Path(str(local_path)).expanduser().resolve()
+    if not pdf_path.is_file() or pdf_path.suffix.casefold() != ".pdf":
+        raise HTTPException(status_code=404, detail="Local PDF file not found")
+
+    return FileResponse(
+        str(pdf_path),
+        media_type="application/pdf",
+        filename=resource.get("title") or pdf_path.name,
+    )
 
 
 def get_meili_client():
