@@ -6,6 +6,7 @@ import unittest
 from pathlib import Path
 
 from backend.app.core.local_resources import (
+    PdfTextPage,
     build_local_resource_index,
     create_pdf_resource,
     write_local_resource_index,
@@ -180,6 +181,105 @@ class LocalResourcesTests(unittest.TestCase):
         self.assertEqual([], index.resources)
         self.assertTrue(index.warnings)
         self.assertIn("does not exist", index.warnings[0]["message"])
+
+    def test_extract_text_is_opt_in(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            cache_dir = root / "data" / "local" / "text_cache"
+            pdf_path = root / "COT101" / "01" / "slides.pdf"
+            pdf_path.parent.mkdir(parents=True)
+            pdf_path.write_bytes(b"%PDF-1.4\n")
+
+            index = build_local_resource_index(
+                root,
+                text_cache_dir=cache_dir,
+                extractor=lambda _: [PdfTextPage(page_number=1, text="ignored")],
+            )
+
+        self.assertFalse(index.resources[0].text_available)
+        self.assertIsNone(index.resources[0].text_cache_path)
+        self.assertFalse(cache_dir.exists())
+
+    def test_extract_text_writes_cache_and_updates_resource(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            output_dir = root / "data" / "local"
+            cache_dir = output_dir / "text_cache"
+            pdf_path = root / "COT101" / "01_ Intro" / "slides.pdf"
+            pdf_path.parent.mkdir(parents=True)
+            pdf_path.write_bytes(b"%PDF-1.4\n")
+
+            index = build_local_resource_index(
+                root,
+                extract_text=True,
+                text_cache_dir=cache_dir,
+                text_cache_path_base=output_dir,
+                extractor=lambda _: [
+                    PdfTextPage(page_number=1, text="  Security basics  "),
+                    PdfTextPage(page_number=2, text=""),
+                ],
+            )
+            resource = index.resources[0]
+            cache_path = output_dir / resource.text_cache_path
+            cache = json.loads(cache_path.read_text(encoding="utf-8"))
+
+        self.assertTrue(resource.text_available)
+        self.assertIsNotNone(resource.text_cache_path)
+        self.assertTrue(resource.text_cache_path.startswith("text_cache/"))
+        self.assertEqual([], resource.warnings)
+        self.assertEqual(resource.resource_id, cache["resource_id"])
+        self.assertEqual(resource.local_path, cache["local_path"])
+        self.assertEqual("slides.pdf", cache["title"])
+        self.assertEqual(
+            [{"page_number": 1, "text": "Security basics"}],
+            cache["pages"],
+        )
+
+    def test_extract_text_failure_keeps_resource_with_warning(self) -> None:
+        def failing_extractor(_: Path) -> list[PdfTextPage]:
+            raise RuntimeError("cannot read pdf")
+
+        with tempfile.TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            cache_dir = root / "data" / "local" / "text_cache"
+            pdf_path = root / "COT101" / "01" / "broken.pdf"
+            pdf_path.parent.mkdir(parents=True)
+            pdf_path.write_bytes(b"%PDF-1.4\n")
+
+            index = build_local_resource_index(
+                root,
+                extract_text=True,
+                text_cache_dir=cache_dir,
+                extractor=failing_extractor,
+            )
+            resource = index.resources[0]
+
+        self.assertFalse(resource.text_available)
+        self.assertIsNone(resource.text_cache_path)
+        self.assertFalse(cache_dir.exists())
+        self.assertTrue(resource.warnings)
+        self.assertIn("cannot read pdf", resource.warnings[0]["message"])
+
+    def test_extract_text_empty_body_keeps_resource_with_warning(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            cache_dir = root / "data" / "local" / "text_cache"
+            pdf_path = root / "COT101" / "01" / "image-only.pdf"
+            pdf_path.parent.mkdir(parents=True)
+            pdf_path.write_bytes(b"%PDF-1.4\n")
+
+            index = build_local_resource_index(
+                root,
+                extract_text=True,
+                text_cache_dir=cache_dir,
+                extractor=lambda _: [PdfTextPage(page_number=1, text="   ")],
+            )
+            resource = index.resources[0]
+
+        self.assertFalse(resource.text_available)
+        self.assertIsNone(resource.text_cache_path)
+        self.assertFalse(cache_dir.exists())
+        self.assertIn("produced no text", resource.warnings[0]["message"])
 
 
 if __name__ == "__main__":

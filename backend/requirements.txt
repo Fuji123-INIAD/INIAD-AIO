@@ -8,3 +8,4 @@ psycopg[binary]
 meilisearch
 beautifulsoup4
 requests
+pypdf

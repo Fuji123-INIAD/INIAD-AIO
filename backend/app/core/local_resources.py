@@ -6,9 +6,9 @@ import hashlib
 import json
 import os
 import re
-from dataclasses import asdict, dataclass
+from dataclasses import asdict, dataclass, replace
 from pathlib import Path
-from typing import Any
+from typing import Any, Callable
 
 
 RESOURCE_TYPE_PDF = "pdf"
@@ -61,7 +61,23 @@ class LocalResourceIndex:
         }
 
 
-def build_local_resource_index(root: Path) -> LocalResourceIndex:
+@dataclass(frozen=True)
+class PdfTextPage:
+    page_number: int
+    text: str
+
+
+PdfTextExtractor = Callable[[Path], list[PdfTextPage]]
+
+
+def build_local_resource_index(
+    root: Path,
+    *,
+    extract_text: bool = False,
+    text_cache_dir: Path | None = None,
+    text_cache_path_base: Path | None = None,
+    extractor: PdfTextExtractor | None = None,
+) -> LocalResourceIndex:
     resolved_root = root.expanduser().resolve()
     if not resolved_root.exists():
         return LocalResourceIndex(
@@ -87,6 +103,13 @@ def build_local_resource_index(root: Path) -> LocalResourceIndex:
         create_pdf_resource(pdf_path, root=resolved_root)
         for pdf_path in iter_pdf_paths(resolved_root, warnings)
     ]
+    if extract_text:
+        resources = cache_pdf_text_for_resources(
+            resources,
+            text_cache_dir=text_cache_dir or Path("data/local/text_cache"),
+            text_cache_path_base=text_cache_path_base,
+            extractor=extractor or extract_pdf_text_layer,
+        )
     return LocalResourceIndex(resources=resources, warnings=warnings)
 
 
@@ -129,6 +152,137 @@ def create_pdf_resource(pdf_path: Path, root: Path | None = None) -> LocalResour
         discovered_from=DISCOVERED_FROM_FILESYSTEM,
         warnings=[],
     )
+
+
+def cache_pdf_text_for_resources(
+    resources: list[LocalResource],
+    *,
+    text_cache_dir: Path,
+    text_cache_path_base: Path | None = None,
+    extractor: PdfTextExtractor,
+) -> list[LocalResource]:
+    return [
+        cache_pdf_text_for_resource(
+            resource,
+            text_cache_dir=text_cache_dir,
+            text_cache_path_base=text_cache_path_base,
+            extractor=extractor,
+        )
+        for resource in resources
+    ]
+
+
+def cache_pdf_text_for_resource(
+    resource: LocalResource,
+    *,
+    text_cache_dir: Path,
+    text_cache_path_base: Path | None = None,
+    extractor: PdfTextExtractor,
+) -> LocalResource:
+    pdf_path = Path(resource.local_path)
+    try:
+        pages = normalize_pdf_text_pages(extractor(pdf_path))
+        if not pages:
+            return resource_with_text_warning(
+                resource,
+                "PDF text extraction produced no text.",
+            )
+
+        cache_path = write_pdf_text_cache(
+            resource,
+            pages,
+            text_cache_dir=text_cache_dir,
+        )
+    except Exception as exc:
+        return resource_with_text_warning(
+            resource,
+            f"PDF text extraction failed: {exc}",
+        )
+
+    return replace(
+        resource,
+        text_available=True,
+        text_cache_path=display_text_cache_path(cache_path, text_cache_path_base),
+        warnings=resource.warnings,
+    )
+
+
+def normalize_pdf_text_pages(pages: list[PdfTextPage]) -> list[PdfTextPage]:
+    normalized_pages: list[PdfTextPage] = []
+    for page in pages:
+        text = page.text.strip()
+        if text:
+            normalized_pages.append(
+                PdfTextPage(page_number=page.page_number, text=text)
+            )
+    return normalized_pages
+
+
+def resource_with_text_warning(resource: LocalResource, message: str) -> LocalResource:
+    return replace(
+        resource,
+        text_available=False,
+        text_cache_path=None,
+        warnings=[*resource.warnings, {"message": message}],
+    )
+
+
+def extract_pdf_text_layer(pdf_path: Path) -> list[PdfTextPage]:
+    try:
+        from pypdf import PdfReader
+    except ImportError as exc:
+        raise RuntimeError(
+            "pypdf is required for --extract-text. Install backend requirements."
+        ) from exc
+
+    reader = PdfReader(str(pdf_path))
+    pages: list[PdfTextPage] = []
+    for index, page in enumerate(reader.pages, start=1):
+        pages.append(
+            PdfTextPage(
+                page_number=index,
+                text=page.extract_text() or "",
+            )
+        )
+    return pages
+
+
+def write_pdf_text_cache(
+    resource: LocalResource,
+    pages: list[PdfTextPage],
+    *,
+    text_cache_dir: Path,
+) -> Path:
+    cache_dir = text_cache_dir.expanduser()
+    cache_dir.mkdir(parents=True, exist_ok=True)
+    cache_path = cache_dir / safe_text_cache_filename(resource.resource_id)
+    cache_payload = {
+        "resource_id": resource.resource_id,
+        "local_path": resource.local_path,
+        "title": resource.title,
+        "pages": [asdict(page) for page in pages],
+    }
+    cache_path.write_text(
+        json.dumps(cache_payload, ensure_ascii=False, indent=2) + "\n",
+        encoding="utf-8",
+    )
+    return cache_path
+
+
+def safe_text_cache_filename(resource_id: str) -> str:
+    safe_name = re.sub(r"[^A-Za-z0-9_.-]+", "_", resource_id).strip("._")
+    return f"{safe_name or 'resource'}.json"
+
+
+def display_text_cache_path(cache_path: Path, base_path: Path | None) -> str:
+    if base_path is not None:
+        try:
+            return cache_path.resolve().relative_to(
+                base_path.expanduser().resolve()
+            ).as_posix()
+        except ValueError:
+            pass
+    return cache_path.as_posix()
 
 
 def stable_resource_id(local_path: str) -> str:
