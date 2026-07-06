@@ -4,6 +4,7 @@ import unittest
 from urllib.parse import urlparse
 
 from backend.app.mcp.aio_server import AioMcpClient, MinimalMcpServer, call_aio_tool
+from scripts.smoke_aio_mcp import SmokeFailure, run_smoke
 
 
 class FakeResponse:
@@ -24,6 +25,72 @@ class FakeSession:
     def get(self, url: str, params=None, timeout=None) -> FakeResponse:
         self.calls.append({"url": url, "params": params, "timeout": timeout})
         return FakeResponse({"status": "ok", "echo": {"url": url, "params": params}})
+
+
+class RoutedFakeSession:
+    def __init__(self, *, empty_search: bool = False) -> None:
+        self.empty_search = empty_search
+        self.calls: list[dict[str, object]] = []
+
+    def get(self, url: str, params=None, timeout=None) -> FakeResponse:
+        self.calls.append({"url": url, "params": params, "timeout": timeout})
+        path = urlparse(url).path
+        if path == "/api/tasks":
+            return FakeResponse(
+                {
+                    "course_codes": ["COT101", "SEM101", "COT105"],
+                    "task_count": 3,
+                    "active_count": 3,
+                    "items": [{"task_id": "course-rule:COT101"}],
+                    "warnings": [],
+                }
+            )
+        if path == "/api/local/resources":
+            return FakeResponse(
+                {
+                    "status": "ok",
+                    "resource_count": 1,
+                    "resources": [
+                        {
+                            "resource_id": "local-resource:test-1",
+                            "title": "security.pdf",
+                            "open_url": "/api/local/resources/local-resource%3Atest-1/file",
+                        }
+                    ],
+                    "warnings": [],
+                }
+            )
+        if path == "/api/local/resources/search":
+            results = [] if self.empty_search else [
+                {
+                    "resource_id": "local-resource:test-1",
+                    "title": "security.pdf",
+                    "snippet": "セキュリティ",
+                }
+            ]
+            return FakeResponse(
+                {
+                    "status": "ok",
+                    "query": params["q"],
+                    "mode": params["mode"],
+                    "result_count": len(results),
+                    "results": results,
+                    "warnings": [],
+                }
+            )
+        if path == "/api/local/resources/local-resource%3Atest-1":
+            return FakeResponse(
+                {
+                    "status": "ok",
+                    "resource": {
+                        "resource_id": "local-resource:test-1",
+                        "title": "security.pdf",
+                        "text_cache": {"available": False},
+                    },
+                    "warnings": [],
+                }
+            )
+        return FakeResponse({"status": "error", "detail": f"unexpected path: {path}"})
 
 
 class AioMcpServerTests(unittest.TestCase):
@@ -96,6 +163,36 @@ class AioMcpServerTests(unittest.TestCase):
         result = response["result"]
         self.assertEqual("ok", result["structuredContent"]["status"])
         self.assertEqual([("course_code", "COT101")], session.calls[0]["params"])
+
+
+class AioMcpSmokeTests(unittest.TestCase):
+    def test_smoke_runs_initialize_tools_and_demo_tool_calls(self) -> None:
+        session = RoutedFakeSession()
+
+        report = run_smoke(
+            base_url="http://aio.test",
+            session=session,
+            query="セキュリティ",
+        )
+
+        self.assertEqual("ok", report["status"])
+        self.assertIn("list_tasks", report["tools"])
+        self.assertIn("search_local_resources", report["tools"])
+        self.assertEqual(3, report["task_count"])
+        self.assertEqual(1, report["resource_count"])
+        self.assertEqual(1, report["search_result_count"])
+        self.assertEqual("local-resource:test-1", report["detail_resource_id"])
+        self.assertTrue(report["detail_checked"])
+
+    def test_smoke_fails_when_required_search_is_empty(self) -> None:
+        session = RoutedFakeSession(empty_search=True)
+
+        with self.assertRaises(SmokeFailure):
+            run_smoke(
+                base_url="http://aio.test",
+                session=session,
+                query="セキュリティ",
+            )
 
 
 if __name__ == "__main__":
