@@ -17,6 +17,13 @@ from backend.app.core.material_text import MaterialText, material_from_dict
 
 SEARCH_MODES = frozenset({"keyword", "semantic", "hybrid"})
 DEFAULT_EMBEDDING_PROVIDER = HashedBagOfWordsEmbeddingProvider()
+FILTER_BOOST_KEYS = (
+    "course_code",
+    "course_title",
+    "lecture_key",
+    "lecture_title",
+    "source_type",
+)
 
 
 def load_material_text_index(index_path: Path) -> tuple[list[MaterialText], list[dict[str, str]]]:
@@ -58,13 +65,14 @@ def search_material_chunks(
     normalized_mode = normalize_mode(mode)
     if normalized_mode is None:
         raise ValueError("mode must be one of: keyword, semantic, hybrid")
-    filtered = [chunk for chunk in chunks if chunk_matches_filters(chunk, filters or {})]
+    active_filters = filters or {}
+    filtered = [chunk for chunk in chunks if chunk_matches_filters(chunk, active_filters)]
     if normalized_mode == "semantic":
-        results = semantic_results(filtered, query)
+        results = semantic_results(filtered, query, filters=active_filters)
     elif normalized_mode == "hybrid":
-        results = hybrid_results(filtered, query)
+        results = hybrid_results(filtered, query, filters=active_filters)
     else:
-        results = keyword_results(filtered, query)
+        results = keyword_results(filtered, query, filters=active_filters)
     results.sort(
         key=lambda result: (
             -float(result.get("score") or 0),
@@ -72,7 +80,8 @@ def search_material_chunks(
             result.get("source_label") or "",
         )
     )
-    return results[: max(1, min(limit, 50))]
+    diversified = diversify_same_material_results(results)
+    return diversified[: max(1, min(limit, 50))]
 
 
 def search_context_pack(
@@ -93,7 +102,12 @@ def search_context_pack(
     return build_context_pack(query=query, results=results, mode=normalize_mode(mode) or mode, limit=limit)
 
 
-def keyword_results(chunks: list[MaterialChunk], query: str) -> list[dict[str, Any]]:
+def keyword_results(
+    chunks: list[MaterialChunk],
+    query: str,
+    *,
+    filters: dict[str, Any] | None = None,
+) -> list[dict[str, Any]]:
     normalized_query = normalize_text(query)
     if not normalized_query:
         return []
@@ -124,11 +138,17 @@ def keyword_results(chunks: list[MaterialChunk], query: str) -> list[dict[str, A
             score += 0.25
         else:
             score *= 0.45
+        score += filter_match_boost(chunk, filters or {})
         results.append(result_from_chunk(chunk, query=query, score=score, search_mode="keyword"))
     return results
 
 
-def semantic_results(chunks: list[MaterialChunk], query: str) -> list[dict[str, Any]]:
+def semantic_results(
+    chunks: list[MaterialChunk],
+    query: str,
+    *,
+    filters: dict[str, Any] | None = None,
+) -> list[dict[str, Any]]:
     query_vector = DEFAULT_EMBEDDING_PROVIDER.embed(query)
     results = []
     for chunk in chunks:
@@ -137,15 +157,22 @@ def semantic_results(chunks: list[MaterialChunk], query: str) -> list[dict[str, 
             continue
         if chunk.chunk_type == "metadata":
             score *= 0.35
+        score += filter_match_boost(chunk, filters or {})
         results.append(result_from_chunk(chunk, query=query, score=round(score, 4), search_mode="semantic"))
     return results
 
 
-def hybrid_results(chunks: list[MaterialChunk], query: str) -> list[dict[str, Any]]:
+def hybrid_results(
+    chunks: list[MaterialChunk],
+    query: str,
+    *,
+    filters: dict[str, Any] | None = None,
+) -> list[dict[str, Any]]:
     merged: dict[str, dict[str, Any]] = {}
-    for result in keyword_results(chunks, query):
+    active_filters = filters or {}
+    for result in keyword_results(chunks, query, filters=active_filters):
         merged[result["chunk_id"]] = {**result, "search_mode": "hybrid", "score": result["score"] + 2.0}
-    for result in semantic_results(chunks, query):
+    for result in semantic_results(chunks, query, filters=active_filters):
         existing = merged.get(result["chunk_id"])
         if existing is not None:
             existing["score"] = round(float(existing["score"]) + float(result["score"]) * 0.35, 4)
@@ -158,6 +185,32 @@ def hybrid_results(chunks: list[MaterialChunk], query: str) -> list[dict[str, An
             "score": round(float(result["score"]) * 0.35, 4),
         }
     return list(merged.values())
+
+
+def diversify_same_material_results(results: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    if len(results) <= 1:
+        return results
+    text_results = [result for result in results if result.get("chunk_type") != "metadata"]
+    metadata_results = [result for result in results if result.get("chunk_type") == "metadata"]
+    return [
+        *diversify_result_group(text_results),
+        *diversify_result_group(metadata_results),
+    ]
+
+
+def diversify_result_group(results: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    primary: list[dict[str, Any]] = []
+    duplicates: list[dict[str, Any]] = []
+    seen_materials: set[str] = set()
+    for result in results:
+        material_id = str(result.get("material_id") or result.get("chunk_id") or "")
+        if not material_id or material_id not in seen_materials:
+            primary.append(result)
+            if material_id:
+                seen_materials.add(material_id)
+        else:
+            duplicates.append(result)
+    return primary + duplicates
 
 
 def result_from_chunk(
@@ -199,6 +252,23 @@ def chunk_matches_filters(chunk: MaterialChunk, filters: dict[str, Any]) -> bool
     if entity_type and normalize_text(entity_type) not in normalize_text(chunk.ontology_tags):
         return False
     return True
+
+
+def filter_match_boost(chunk: MaterialChunk, filters: dict[str, Any]) -> float:
+    boost = 0.0
+    for key in FILTER_BOOST_KEYS:
+        expected = filters.get(key)
+        if expected in (None, ""):
+            continue
+        expected_text = normalize_text(expected)
+        actual_text = normalize_text(getattr(chunk, key))
+        if not expected_text or not actual_text:
+            continue
+        if expected_text == actual_text:
+            boost += 0.4
+        elif expected_text in actual_text:
+            boost += 0.15
+    return round(boost, 4)
 
 
 def search_document(chunk: MaterialChunk) -> str:
