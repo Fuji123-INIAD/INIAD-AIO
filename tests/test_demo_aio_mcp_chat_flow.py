@@ -98,6 +98,9 @@ class DemoAioMcpChatFlowDisplayTests(unittest.TestCase):
         self.assertIn("provider=moocs_collect_search_index", output)
         self.assertIn("source_type=moocs_collect_search_index", output)
         self.assertIn("metadata-only: 本文未抽出", output)
+        self.assertIn("open=available", output)
+        self.assertNotIn("http://127.0.0.1:8000/files/metadata.pdf", output)
+        self.assertNotIn("API caution:", output)
         self.assertIn("...", output)
         first_material_section = output.split("## 3. First material snippets", 1)[1]
         self.assertIn("Text chunk", first_material_section)

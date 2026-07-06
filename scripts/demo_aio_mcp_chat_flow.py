@@ -15,7 +15,7 @@ import requests
 DEFAULT_BASE_URL = "http://127.0.0.1:8000"
 DEFAULT_QUERY = "セキュリティ"
 SEARCH_SNIPPET_CHARS = 260
-MATERIAL_SNIPPET_CHARS = 220
+MATERIAL_SNIPPET_CHARS = 280
 
 
 CONTROL_CHARS_RE = re.compile(r"[\x00-\x08\x0b\x0c\x0e-\x1f\x7f]+")
@@ -211,10 +211,8 @@ def render_markdown(
             "",
             "## 4. Caution",
             "",
-            f"- Tasks: {clean_snippet(backlog.get('caution') or '(none)', 260)}",
-            "- Materials: 本文snippetは MOOCs-Collect search_index 由来の場合があり、PDF通常テキスト層からの抽出とは限りません。",
-            "- Materials: 講義資料全文を完全に読める、または回答が必ず正確になる、とは言い切りません。",
-            f"- API caution: {clean_snippet(context.get('caution') or '(none)', 260)}",
+            f"- Tasks: {clean_snippet(backlog.get('caution') or '(none)', 220)}",
+            "- Materials: 本文snippetは MOOCs-Collect search_index 由来の場合があり、PDF通常テキスト層や全文抽出の保証ではありません。",
         ]
     )
     return "\n".join(lines)
@@ -238,7 +236,7 @@ def render_result_item(
     score_label = f" / score={score}" if score is not None else ""
     note = " / metadata-only: 本文未抽出" if is_metadata_only(item) else ""
     open_url = item.get("open_url")
-    open_label = f" / open={clean_inline(open_url)}" if open_url and is_metadata_only(item) else ""
+    open_label = f" / open={open_status(open_url)}" if is_metadata_only(item) else ""
     snippet = clean_snippet(item.get(text_key) or item.get("excerpt") or item.get("text"), max_chars)
     if not snippet:
         snippet = "(snippet unavailable)"
@@ -286,6 +284,10 @@ def is_metadata_only(item: dict[str, Any]) -> bool:
         or item.get("text_available") is False
         or item.get("extraction_method") == "metadata_only"
     )
+
+
+def open_status(open_url: Any) -> str:
+    return "available" if str(open_url or "").strip() else "none"
 
 
 def clean_inline(value: Any) -> str:

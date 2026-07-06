@@ -32,3 +32,9 @@ Both passed before this handoff file was added.
 - Check `git status --short --untracked-files=all`
 - Check `git diff --stat`
 - Confirm no generated local data or sensitive files are included before commit.
+
+## Follow-up Display Trim
+
+- `First material snippets` now uses a presentation-sized cap for text chunks.
+- Metadata-only rows show `open=available` or `open=none` instead of long URLs.
+- Demo caution is reduced to one material warning about `search_index`, PDF text-layer limits, and no full-text guarantee.
