@@ -9,3 +9,4 @@ meilisearch
 beautifulsoup4
 requests
 pypdf
+PyMuPDF

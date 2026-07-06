@@ -230,6 +230,7 @@ class LocalResourcesTests(unittest.TestCase):
         self.assertEqual(resource.resource_id, cache["resource_id"])
         self.assertEqual(resource.local_path, cache["local_path"])
         self.assertEqual("slides.pdf", cache["title"])
+        self.assertEqual("custom", cache["extractor"])
         self.assertEqual(
             [{"page_number": 1, "text": "Security basics"}],
             cache["pages"],
@@ -279,6 +280,74 @@ class LocalResourcesTests(unittest.TestCase):
         self.assertFalse(resource.text_available)
         self.assertIsNone(resource.text_cache_path)
         self.assertFalse(cache_dir.exists())
+        self.assertIn("produced no text", resource.warnings[0]["message"])
+
+    def test_extract_text_falls_back_when_primary_is_empty(self) -> None:
+        calls: list[str] = []
+
+        def empty_primary(_: Path) -> list[PdfTextPage]:
+            calls.append("pypdf")
+            return [PdfTextPage(page_number=1, text="   ")]
+
+        def fallback(_: Path) -> list[PdfTextPage]:
+            calls.append("pymupdf")
+            return [PdfTextPage(page_number=1, text="Fallback text")]
+
+        with tempfile.TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            output_dir = root / "data" / "local"
+            cache_dir = output_dir / "text_cache"
+            pdf_path = root / "COT101" / "01" / "fallback.pdf"
+            pdf_path.parent.mkdir(parents=True)
+            pdf_path.write_bytes(b"%PDF-1.4\n")
+
+            index = build_local_resource_index(
+                root,
+                extract_text=True,
+                text_cache_dir=cache_dir,
+                text_cache_path_base=output_dir,
+                extractor=empty_primary,
+                fallback_extractor=fallback,
+                extractor_name="pypdf",
+                fallback_extractor_name="pymupdf",
+            )
+            resource = index.resources[0]
+            cache = json.loads(
+                (output_dir / resource.text_cache_path).read_text(encoding="utf-8")
+            )
+
+        self.assertEqual(["pypdf", "pymupdf"], calls)
+        self.assertTrue(resource.text_available)
+        self.assertEqual([], resource.warnings)
+        self.assertEqual("pymupdf", cache["extractor"])
+        self.assertEqual(
+            [{"page_number": 1, "text": "Fallback text"}],
+            cache["pages"],
+        )
+
+    def test_extract_text_warns_when_primary_and_fallback_are_empty(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            cache_dir = root / "data" / "local" / "text_cache"
+            pdf_path = root / "COT101" / "01" / "empty.pdf"
+            pdf_path.parent.mkdir(parents=True)
+            pdf_path.write_bytes(b"%PDF-1.4\n")
+
+            index = build_local_resource_index(
+                root,
+                extract_text=True,
+                text_cache_dir=cache_dir,
+                extractor=lambda _: [PdfTextPage(page_number=1, text="")],
+                fallback_extractor=lambda _: [PdfTextPage(page_number=1, text="   ")],
+                extractor_name="pypdf",
+                fallback_extractor_name="pymupdf",
+            )
+            resource = index.resources[0]
+
+        self.assertFalse(resource.text_available)
+        self.assertIsNone(resource.text_cache_path)
+        self.assertFalse(cache_dir.exists())
+        self.assertIn("pypdf / pymupdf", resource.warnings[0]["message"])
         self.assertIn("produced no text", resource.warnings[0]["message"])
 
 

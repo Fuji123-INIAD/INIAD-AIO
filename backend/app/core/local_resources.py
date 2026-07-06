@@ -77,6 +77,9 @@ def build_local_resource_index(
     text_cache_dir: Path | None = None,
     text_cache_path_base: Path | None = None,
     extractor: PdfTextExtractor | None = None,
+    fallback_extractor: PdfTextExtractor | None = None,
+    extractor_name: str | None = None,
+    fallback_extractor_name: str | None = None,
 ) -> LocalResourceIndex:
     resolved_root = root.expanduser().resolve()
     if not resolved_root.exists():
@@ -104,11 +107,22 @@ def build_local_resource_index(
         for pdf_path in iter_pdf_paths(resolved_root, warnings)
     ]
     if extract_text:
+        default_extractor = extractor is None
+        resolved_fallback_extractor = fallback_extractor
+        if resolved_fallback_extractor is None and default_extractor:
+            resolved_fallback_extractor = extract_pdf_text_layer_with_pymupdf
+        resolved_fallback_name = fallback_extractor_name
+        if resolved_fallback_name is None and resolved_fallback_extractor is not None:
+            resolved_fallback_name = "pymupdf" if default_extractor else "fallback"
         resources = cache_pdf_text_for_resources(
             resources,
             text_cache_dir=text_cache_dir or Path("data/local/text_cache"),
             text_cache_path_base=text_cache_path_base,
-            extractor=extractor or extract_pdf_text_layer,
+            extractor=extractor or extract_pdf_text_layer_with_pypdf,
+            fallback_extractor=resolved_fallback_extractor,
+            extractor_name=extractor_name
+            or ("pypdf" if default_extractor else "custom"),
+            fallback_extractor_name=resolved_fallback_name,
         )
     return LocalResourceIndex(resources=resources, warnings=warnings)
 
@@ -160,6 +174,9 @@ def cache_pdf_text_for_resources(
     text_cache_dir: Path,
     text_cache_path_base: Path | None = None,
     extractor: PdfTextExtractor,
+    fallback_extractor: PdfTextExtractor | None = None,
+    extractor_name: str = "pypdf",
+    fallback_extractor_name: str | None = None,
 ) -> list[LocalResource]:
     return [
         cache_pdf_text_for_resource(
@@ -167,6 +184,9 @@ def cache_pdf_text_for_resources(
             text_cache_dir=text_cache_dir,
             text_cache_path_base=text_cache_path_base,
             extractor=extractor,
+            fallback_extractor=fallback_extractor,
+            extractor_name=extractor_name,
+            fallback_extractor_name=fallback_extractor_name,
         )
         for resource in resources
     ]
@@ -178,33 +198,95 @@ def cache_pdf_text_for_resource(
     text_cache_dir: Path,
     text_cache_path_base: Path | None = None,
     extractor: PdfTextExtractor,
+    fallback_extractor: PdfTextExtractor | None = None,
+    extractor_name: str = "pypdf",
+    fallback_extractor_name: str | None = None,
 ) -> LocalResource:
     pdf_path = Path(resource.local_path)
-    try:
-        pages = normalize_pdf_text_pages(extractor(pdf_path))
-        if not pages:
-            return resource_with_text_warning(
-                resource,
-                "PDF text extraction produced no text.",
-            )
+    attempts: list[dict[str, str]] = []
+    extractors: list[tuple[str, PdfTextExtractor]] = [(extractor_name, extractor)]
+    if fallback_extractor is not None:
+        extractors.append(
+            (fallback_extractor_name or "fallback", fallback_extractor)
+        )
 
+    for current_name, current_extractor in extractors:
+        try:
+            pages = normalize_pdf_text_pages(current_extractor(pdf_path))
+        except Exception as exc:
+            attempts.append(
+                {
+                    "extractor": current_name,
+                    "status": "failed",
+                    "detail": str(exc),
+                }
+            )
+            continue
+
+        if not pages:
+            attempts.append({"extractor": current_name, "status": "empty"})
+            continue
+
+        warning_attempts = [
+            attempt
+            for attempt in attempts
+            if attempt.get("status") == "failed"
+        ]
         cache_path = write_pdf_text_cache(
             resource,
             pages,
             text_cache_dir=text_cache_dir,
+            extractor=current_name,
         )
-    except Exception as exc:
-        return resource_with_text_warning(
+        warnings = [
+            *resource.warnings,
+            *[
+                {
+                    "message": (
+                        f"PDF text extraction with {attempt['extractor']} "
+                        f"failed: {attempt.get('detail', '')}"
+                    ).rstrip()
+                }
+                for attempt in warning_attempts
+            ],
+        ]
+        return replace(
             resource,
-            f"PDF text extraction failed: {exc}",
+            text_available=True,
+            text_cache_path=display_text_cache_path(cache_path, text_cache_path_base),
+            warnings=warnings,
         )
 
-    return replace(
+    return resource_with_text_warning(
         resource,
-        text_available=True,
-        text_cache_path=display_text_cache_path(cache_path, text_cache_path_base),
-        warnings=resource.warnings,
+        empty_or_failed_extraction_message(attempts),
     )
+
+
+def empty_or_failed_extraction_message(attempts: list[dict[str, str]]) -> str:
+    if not attempts:
+        return "PDF text extraction produced no text."
+
+    failed = [attempt for attempt in attempts if attempt.get("status") == "failed"]
+    empty = [attempt for attempt in attempts if attempt.get("status") == "empty"]
+    if failed and not empty:
+        details = "; ".join(
+            f"{attempt['extractor']}: {attempt.get('detail', '')}".rstrip()
+            for attempt in failed
+        )
+        return f"PDF text extraction failed with all extractors: {details}"
+
+    extractor_names = " / ".join(attempt["extractor"] for attempt in attempts)
+    if failed:
+        failed_details = "; ".join(
+            f"{attempt['extractor']}: {attempt.get('detail', '')}".rstrip()
+            for attempt in failed
+        )
+        return (
+            f"PDF text extraction produced no text with {extractor_names}; "
+            f"failures: {failed_details}"
+        )
+    return f"PDF text extraction produced no text with {extractor_names}."
 
 
 def normalize_pdf_text_pages(pages: list[PdfTextPage]) -> list[PdfTextPage]:
@@ -227,7 +309,7 @@ def resource_with_text_warning(resource: LocalResource, message: str) -> LocalRe
     )
 
 
-def extract_pdf_text_layer(pdf_path: Path) -> list[PdfTextPage]:
+def extract_pdf_text_layer_with_pypdf(pdf_path: Path) -> list[PdfTextPage]:
     try:
         from pypdf import PdfReader
     except ImportError as exc:
@@ -247,11 +329,30 @@ def extract_pdf_text_layer(pdf_path: Path) -> list[PdfTextPage]:
     return pages
 
 
+def extract_pdf_text_layer_with_pymupdf(pdf_path: Path) -> list[PdfTextPage]:
+    try:
+        import fitz
+    except ImportError as exc:
+        raise RuntimeError(
+            "pymupdf is required for PDF text fallback. Install backend requirements."
+        ) from exc
+
+    document = fitz.open(str(pdf_path))
+    try:
+        return [
+            PdfTextPage(page_number=index, text=page.get_text("text") or "")
+            for index, page in enumerate(document, start=1)
+        ]
+    finally:
+        document.close()
+
+
 def write_pdf_text_cache(
     resource: LocalResource,
     pages: list[PdfTextPage],
     *,
     text_cache_dir: Path,
+    extractor: str,
 ) -> Path:
     cache_dir = text_cache_dir.expanduser()
     cache_dir.mkdir(parents=True, exist_ok=True)
@@ -260,6 +361,7 @@ def write_pdf_text_cache(
         "resource_id": resource.resource_id,
         "local_path": resource.local_path,
         "title": resource.title,
+        "extractor": extractor,
         "pages": [asdict(page) for page in pages],
     }
     cache_path.write_text(

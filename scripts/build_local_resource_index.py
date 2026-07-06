@@ -11,6 +11,7 @@ if __package__ in (None, ""):
     sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 from backend.app.core.local_resources import (
+    LocalResourceIndex,
     build_local_resource_index,
     write_local_resource_index,
 )
@@ -58,7 +59,30 @@ def main() -> None:
         text_cache_path_base=args.output.parent if args.extract_text else None,
     )
     write_local_resource_index(index, args.output)
-    print(json.dumps(index.to_dict(), ensure_ascii=False, indent=2))
+    output = index.to_dict()
+    output["summary"] = summarize_local_resource_index(index)
+    print(json.dumps(output, ensure_ascii=False, indent=2))
+
+
+def summarize_local_resource_index(index: LocalResourceIndex) -> dict[str, int]:
+    total_resources = len(index.resources)
+    extracted_count = sum(1 for resource in index.resources if resource.text_available)
+    failed_count = sum(
+        1
+        for resource in index.resources
+        if not resource.text_available
+        and any(
+            "failed" in str(warning.get("message", "")).casefold()
+            for warning in resource.warnings
+        )
+    )
+    empty_count = total_resources - extracted_count - failed_count
+    return {
+        "total_resources": total_resources,
+        "extracted_count": extracted_count,
+        "empty_count": empty_count,
+        "failed_count": failed_count,
+    }
 
 
 if __name__ == "__main__":
