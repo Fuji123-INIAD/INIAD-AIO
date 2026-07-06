@@ -27,6 +27,8 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     )
     parser.add_argument("--limit", type=int, default=50)
     parser.add_argument("--preview-chars", type=int, default=160)
+    parser.add_argument("--moocs-collect-root", type=Path)
+    parser.add_argument("--search-index", type=Path)
     return parser.parse_args(argv)
 
 
@@ -40,6 +42,8 @@ def main(argv: list[str] | None = None) -> int:
         local_resources=resources,
         limit=args.limit,
         preview_chars=args.preview_chars,
+        moocs_collect_root=args.moocs_collect_root,
+        search_index=args.search_index,
     )
     report["warnings"] = [*warnings, *report.get("warnings", [])]
     print(json.dumps(report, ensure_ascii=False, indent=2))

@@ -9,7 +9,12 @@ from typing import Any
 
 from backend.app.core.material_text import (
     MaterialText,
+    SOURCE_TYPE_MOOCS_COLLECT_APPDATA_FILE,
+    SOURCE_TYPE_MOOCS_COLLECT_PDF_NATIVE,
+    SOURCE_TYPE_MOOCS_COLLECT_PDF_OCR,
+    SOURCE_TYPE_MOOCS_COLLECT_SEARCH_INDEX,
     SOURCE_TYPE_MOOCS_COLLECT_SLIDE_TEXT,
+    SOURCE_TYPE_MOOCS_COLLECT_SLIDE_URL_DOM,
     SOURCE_TYPE_MOOCS_HTML,
     SOURCE_TYPE_OCR,
     SOURCE_TYPE_PDF_METADATA,
@@ -85,9 +90,19 @@ def chunk_material_text(
     if not text:
         text = metadata_fallback_text(material)
     chunk_type = infer_chunk_type(material)
-    if material.source_type == SOURCE_TYPE_MOOCS_COLLECT_SLIDE_TEXT:
+    if material.source_type in {
+        SOURCE_TYPE_MOOCS_COLLECT_SLIDE_TEXT,
+        SOURCE_TYPE_MOOCS_COLLECT_SEARCH_INDEX,
+        SOURCE_TYPE_MOOCS_COLLECT_APPDATA_FILE,
+        SOURCE_TYPE_MOOCS_COLLECT_SLIDE_URL_DOM,
+    }:
         pieces = split_slide_blocks(text, max_chars=max_chars)
-    elif material.source_type in {SOURCE_TYPE_PDF_NATIVE, SOURCE_TYPE_OCR}:
+    elif material.source_type in {
+        SOURCE_TYPE_PDF_NATIVE,
+        SOURCE_TYPE_OCR,
+        SOURCE_TYPE_MOOCS_COLLECT_PDF_NATIVE,
+        SOURCE_TYPE_MOOCS_COLLECT_PDF_OCR,
+    }:
         pieces = split_page_blocks(text, max_chars=max_chars)
     else:
         pieces = split_text(text, max_chars=max_chars)
@@ -137,7 +152,12 @@ def chunk_material_texts(materials: list[MaterialText], *, max_chars: int = 1200
 
 
 def infer_chunk_type(material: MaterialText) -> str:
-    if material.source_type == SOURCE_TYPE_MOOCS_COLLECT_SLIDE_TEXT:
+    if material.source_type in {
+        SOURCE_TYPE_MOOCS_COLLECT_SLIDE_TEXT,
+        SOURCE_TYPE_MOOCS_COLLECT_SEARCH_INDEX,
+        SOURCE_TYPE_MOOCS_COLLECT_APPDATA_FILE,
+        SOURCE_TYPE_MOOCS_COLLECT_SLIDE_URL_DOM,
+    }:
         return CHUNK_TYPE_SLIDE
     if material.source_type == SOURCE_TYPE_MOOCS_HTML:
         return CHUNK_TYPE_HTML_SECTION
@@ -145,8 +165,10 @@ def infer_chunk_type(material: MaterialText) -> str:
         return CHUNK_TYPE_PDF_PAGE
     if material.source_type == SOURCE_TYPE_PDF_METADATA:
         return CHUNK_TYPE_METADATA
-    if material.source_type == SOURCE_TYPE_OCR:
+    if material.source_type in {SOURCE_TYPE_OCR, SOURCE_TYPE_MOOCS_COLLECT_PDF_OCR}:
         return CHUNK_TYPE_OCR_PAGE
+    if material.source_type == SOURCE_TYPE_MOOCS_COLLECT_PDF_NATIVE:
+        return CHUNK_TYPE_PDF_PAGE
     return CHUNK_TYPE_UNKNOWN
 
 

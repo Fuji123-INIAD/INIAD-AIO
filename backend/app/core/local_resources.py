@@ -160,7 +160,7 @@ def create_pdf_resource(pdf_path: Path, root: Path | None = None) -> LocalResour
     local_path = str(resolved_pdf_path)
     resource = LocalResource(
         resource_id=stable_resource_id(local_path),
-        course_code=infer_course_code(resolved_pdf_path),
+        course_code=infer_course_code_for_context(resolved_pdf_path, context, root=root),
         course_title=context.course_title,
         lecture_key=infer_lecture_key(
             resolved_pdf_path,
@@ -460,6 +460,23 @@ def infer_path_context(root: Path | None, pdf_path: Path) -> LocalResourcePathCo
 
 def infer_course_code(path: Path) -> str | None:
     for value in path_metadata_candidates(path):
+        match = COURSE_CODE_PATTERN.search(value)
+        if match:
+            return match.group(1).upper()
+    return None
+
+
+def infer_course_code_for_context(
+    path: Path,
+    context: LocalResourcePathContext,
+    *,
+    root: Path | None,
+) -> str | None:
+    if root is None:
+        return infer_course_code(path)
+    for value in (context.course_title, context.lecture_folder, path.stem):
+        if not value:
+            continue
         match = COURSE_CODE_PATTERN.search(value)
         if match:
             return match.group(1).upper()

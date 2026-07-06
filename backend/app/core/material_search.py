@@ -100,15 +100,30 @@ def keyword_results(chunks: list[MaterialChunk], query: str) -> list[dict[str, A
     results = []
     terms = [term for term in normalized_query.split() if term]
     for chunk in chunks:
+        text_haystack = normalize_text(chunk.text)
+        metadata_haystack = normalize_text(search_metadata_document(chunk))
         haystack = normalize_text(search_document(chunk))
         full_match = normalized_query in haystack
-        term_hits = sum(1 for term in terms if term in haystack)
+        text_full_match = normalized_query in text_haystack
+        metadata_full_match = normalized_query in metadata_haystack
+        text_term_hits = sum(1 for term in terms if term in text_haystack)
+        metadata_term_hits = sum(1 for term in terms if term in metadata_haystack)
+        term_hits = text_term_hits + metadata_term_hits
         if not full_match and term_hits == 0:
             continue
-        score = 2.0 if full_match else 0.0
-        score += term_hits
+        score = 0.0
+        if text_full_match:
+            score += 4.0
+        elif metadata_full_match:
+            score += 1.0
+        elif full_match:
+            score += 0.5
+        score += text_term_hits * 1.5
+        score += metadata_term_hits * 0.35
         if chunk.chunk_type != "metadata":
             score += 0.25
+        else:
+            score *= 0.45
         results.append(result_from_chunk(chunk, query=query, score=score, search_mode="keyword"))
     return results
 
@@ -120,6 +135,8 @@ def semantic_results(chunks: list[MaterialChunk], query: str) -> list[dict[str, 
         score = cosine_similarity(query_vector, DEFAULT_EMBEDDING_PROVIDER.embed(search_document(chunk)))
         if score <= 0:
             continue
+        if chunk.chunk_type == "metadata":
+            score *= 0.35
         results.append(result_from_chunk(chunk, query=query, score=round(score, 4), search_mode="semantic"))
     return results
 
@@ -131,9 +148,15 @@ def hybrid_results(chunks: list[MaterialChunk], query: str) -> list[dict[str, An
     for result in semantic_results(chunks, query):
         existing = merged.get(result["chunk_id"])
         if existing is not None:
-            existing["score"] = round(float(existing["score"]) + float(result["score"]), 4)
+            existing["score"] = round(float(existing["score"]) + float(result["score"]) * 0.35, 4)
             continue
-        merged[result["chunk_id"]] = {**result, "search_mode": "hybrid"}
+        if result.get("chunk_type") == "metadata" and not has_keyword_hit(result, query):
+            continue
+        merged[result["chunk_id"]] = {
+            **result,
+            "search_mode": "hybrid",
+            "score": round(float(result["score"]) * 0.35, 4),
+        }
     return list(merged.values())
 
 
@@ -194,6 +217,47 @@ def search_document(chunk: MaterialChunk) -> str:
             " ".join(chunk.ontology_tags),
         )
     )
+
+
+def search_metadata_document(chunk: MaterialChunk) -> str:
+    return " ".join(
+        str(value or "")
+        for value in (
+            chunk.source_label,
+            chunk.course_code,
+            chunk.course_title,
+            chunk.lecture_key,
+            chunk.lecture_title,
+            chunk.title,
+            chunk.source_type,
+            chunk.provider,
+            " ".join(chunk.ontology_tags),
+        )
+    )
+
+
+def has_keyword_hit(result: dict[str, Any], query: str) -> bool:
+    normalized_query = normalize_text(query)
+    if not normalized_query:
+        return False
+    haystack = normalize_text(
+        " ".join(
+            str(result.get(key) or "")
+            for key in (
+                "text",
+                "excerpt",
+                "source_label",
+                "course_code",
+                "course_title",
+                "lecture_key",
+                "lecture_title",
+                "title",
+            )
+        )
+    )
+    if normalized_query in haystack:
+        return True
+    return any(term and term in haystack for term in normalized_query.split())
 
 
 def make_excerpt(text: str, query: str, *, radius: int = 90) -> str:

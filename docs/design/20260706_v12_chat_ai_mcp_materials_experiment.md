@@ -76,3 +76,48 @@ The main build command writes ignored outputs under `data/local/`:
 The MOOCs-Collect provider can read text columns found in the `slides` table, including SVG/HTML-like aria-label text. If the real app stores searchable text in another table or index directory, run `probe_moocs_collect_text_quality.py` and extend the provider mapping.
 
 OCR is only an optional probe. Heavy OCR dependencies are not required for normal tests or demos.
+
+## 2026-07-06 Storage Update
+
+Real MOOCs-Collect DB inspection and local source-code research changed the assumption above:
+
+- `db.sqlite` is a metadata ledger, not the body-text store.
+- `slides.pdf_path` exists for downloaded PDFs, but sampled PDFs did not expose normal text through PyMuPDF/pypdf.
+- `slides.url` points to Google Slides embed/pubembed URLs.
+- MOOCs-Collect fetches Google Slides embed pages, extracts escaped SVG, reads `g[role=img][aria-label]`, and indexes that text into AppData `search_index`.
+- `search_index` is Tantivy and contains stored text fields.
+
+New probe scripts:
+
+```powershell
+.\.venv\Scripts\python.exe scripts\probe_moocs_collect_files.py "$env:APPDATA\me.yu7400ki.moocs-collect"
+.\.venv\Scripts\python.exe scripts\probe_moocs_collect_search_index.py "$env:APPDATA\me.yu7400ki.moocs-collect\search_index" --db "$env:APPDATA\me.yu7400ki.moocs-collect\db.sqlite"
+.\.venv\Scripts\python.exe scripts\probe_moocs_collect_slide_urls.py "$env:APPDATA\me.yu7400ki.moocs-collect\db.sqlite"
+```
+
+Updated material build command:
+
+```powershell
+.\.venv\Scripts\python.exe scripts\build_material_text_index.py `
+  --resource-index data/local/resource_index.json `
+  --output data/local/material_text_index.json `
+  --chunk-output data/local/material_chunk_index.json `
+  --moocs-collect-db "$env:APPDATA\me.yu7400ki.moocs-collect\db.sqlite" `
+  --include-moocs-collect `
+  --include-pdf-cache `
+  --base-url http://127.0.0.1:8000
+```
+
+Optional flags:
+
+- `--moocs-collect-root`
+- `--search-index`
+- `--include-moocs-collect-files`
+- `--include-slide-url-dom`
+- `--include-pdf-ocr`
+- `--course-code`
+- `--lecture-key`
+- `--limit`
+- `--debug`
+
+Live DOM and OCR remain opt-in. Do not commit generated `data/local/*`, PDFs, search indexes, DB files, cookies, storage state, browser profiles, or lecture text dumps.

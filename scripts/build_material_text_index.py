@@ -40,11 +40,19 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
         help="MaterialChunk index output path.",
     )
     parser.add_argument("--moocs-collect-db", type=Path, help="Path to MOOCs-Collect db.sqlite.")
+    parser.add_argument("--moocs-collect-root", type=Path, help="Path to MOOCs-Collect AppData root.")
+    parser.add_argument("--search-index", type=Path, help="Path to MOOCs-Collect search_index.")
     parser.add_argument("--include-moocs-collect", action="store_true")
+    parser.add_argument("--include-moocs-collect-search-index", action="store_true")
+    parser.add_argument("--include-moocs-collect-files", action="store_true")
+    parser.add_argument("--include-slide-url-dom", action="store_true")
+    parser.add_argument("--include-pdf-ocr", action="store_true")
     parser.add_argument("--include-html-cache", action="store_true")
     parser.add_argument("--html-cache-dir", type=Path, default=Path("data/local/html_cache"))
     parser.add_argument("--include-pdf-cache", action="store_true")
     parser.add_argument("--base-url", default="http://127.0.0.1:8000")
+    parser.add_argument("--course-code")
+    parser.add_argument("--lecture-key")
     parser.add_argument("--limit", type=int, help="Limit input resources/material rows.")
     parser.add_argument("--debug", action="store_true")
     return parser.parse_args(argv)
@@ -70,6 +78,18 @@ def build_material_text_index(args: argparse.Namespace) -> dict[str, Any]:
                 args.moocs_collect_db,
                 local_resources=resources,
                 limit=args.limit,
+                moocs_collect_root=args.moocs_collect_root,
+                search_index=args.search_index,
+                include_search_index=bool(
+                    args.include_moocs_collect or args.include_moocs_collect_search_index
+                ),
+                include_appdata_files=bool(args.include_moocs_collect_files),
+                include_slide_url_dom=bool(args.include_slide_url_dom),
+                include_pdf_native=True,
+                include_pdf_ocr=bool(args.include_pdf_ocr),
+                course_code=args.course_code,
+                lecture_key=args.lecture_key,
+                debug=bool(args.debug),
             )
             materials.extend(collect_materials)
             warnings.extend(collect_warnings)

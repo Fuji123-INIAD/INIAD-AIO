@@ -1,4 +1,4 @@
-"""Print a presentation-friendly fallback flow for AIO MCP demos."""
+"""Print a presentation-friendly AIO MCP demo flow."""
 
 from __future__ import annotations
 
@@ -17,22 +17,57 @@ DEFAULT_QUERY = "セキュリティ"
 
 def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser = argparse.ArgumentParser(
-        description="Run the task backlog -> material search -> snippet demo flow via FastAPI."
+        description="Run task backlog -> material search -> snippet demo flow via FastAPI."
     )
     parser.add_argument("--base-url", default=DEFAULT_BASE_URL)
     parser.add_argument("--query", default=DEFAULT_QUERY)
-    parser.add_argument("--mode", choices=["keyword", "semantic", "hybrid"], default="hybrid")
+    parser.add_argument("--mode", choices=["keyword", "semantic", "hybrid"], default="keyword")
     parser.add_argument("--limit", type=int, default=5)
+    parser.add_argument("--course-code")
+    parser.add_argument("--course-title")
+    parser.add_argument("--lecture-key")
+    parser.add_argument("--lecture-title")
+    parser.add_argument("--prefer-keyword-when-metadata-only", action="store_true")
+    parser.add_argument("--show-source-type", action="store_true")
+    parser.add_argument("--show-provider", action="store_true")
     return parser.parse_args(argv)
 
 
-def run_demo(base_url: str, *, query: str, mode: str, limit: int) -> str:
+def run_demo(
+    base_url: str,
+    *,
+    query: str,
+    mode: str,
+    limit: int,
+    course_code: str | None = None,
+    course_title: str | None = None,
+    lecture_key: str | None = None,
+    lecture_title: str | None = None,
+    prefer_keyword_when_metadata_only: bool = False,
+    show_source_type: bool = False,
+    show_provider: bool = False,
+) -> str:
     backlog = get_json(base_url, "/api/tasks/backlog/summary")
-    context = get_json(
-        base_url,
-        "/api/context/search",
-        params={"q": query, "mode": mode, "limit": limit},
+    params = compact_params(
+        {
+            "q": query,
+            "mode": mode,
+            "limit": limit,
+            "course_code": course_code,
+            "course_title": course_title,
+            "lecture_key": lecture_key,
+            "lecture_title": lecture_title,
+        }
     )
+    context = get_json(base_url, "/api/context/search", params=params)
+    if (
+        prefer_keyword_when_metadata_only
+        and mode == "hybrid"
+        and context_is_metadata_only(context)
+    ):
+        params["mode"] = "keyword"
+        context = get_json(base_url, "/api/context/search", params=params)
+
     first_item = first_context_item(context)
     material = None
     if first_item and first_item.get("material_id"):
@@ -41,7 +76,14 @@ def run_demo(base_url: str, *, query: str, mode: str, limit: int) -> str:
             f"/api/materials/{first_item['material_id']}",
             params={"include_full_text": "false"},
         )
-    return render_markdown(backlog, context, material, query=query)
+    return render_markdown(
+        backlog,
+        context,
+        material,
+        query=query,
+        show_source_type=show_source_type,
+        show_provider=show_provider,
+    )
 
 
 def get_json(base_url: str, path: str, params: dict[str, Any] | None = None) -> dict[str, Any]:
@@ -61,17 +103,29 @@ def first_context_item(context: dict[str, Any]) -> dict[str, Any] | None:
     return items[0] if isinstance(items[0], dict) else None
 
 
+def context_is_metadata_only(context: dict[str, Any]) -> bool:
+    items = context.get("items")
+    if not isinstance(items, list) or not items:
+        return False
+    return all(
+        isinstance(item, dict) and item.get("chunk_type") == "metadata"
+        for item in items
+    )
+
+
 def render_markdown(
     backlog: dict[str, Any],
     context: dict[str, Any],
     material: dict[str, Any] | None,
     *,
     query: str,
+    show_source_type: bool = False,
+    show_provider: bool = False,
 ) -> str:
     lines = [
         "# AIO MCP Demo Flow",
         "",
-        "## 1. 課題候補",
+        "## 1. Task backlog",
         "",
         str(backlog.get("summary") or "(summary unavailable)"),
         "",
@@ -87,7 +141,7 @@ def render_markdown(
     lines.extend(
         [
             "",
-            "## 2. 講義資料検索: " + query,
+            f"## 2. Material search: {query}",
             "",
             str(context.get("summary") or "(summary unavailable)"),
             "",
@@ -97,33 +151,63 @@ def render_markdown(
         if not isinstance(item, dict):
             continue
         lines.append(
-            f"- {item.get('source_label')} [{item.get('source_type')}/{item.get('provider')}]: "
-            f"{item.get('excerpt')}"
+            f"- {item.get('source_label')} "
+            f"{source_badge(item, show_source_type=show_source_type, show_provider=show_provider)}"
+            f"{metadata_note(item)}: {item.get('excerpt')}"
         )
-    lines.extend(["", "## 3. 資料本文snippet", ""])
+    lines.extend(["", "## 3. First material snippets", ""])
     if material:
-        for chunk in material.get("chunks") or []:
+        chunks = material.get("chunks") or []
+        if not chunks:
+            lines.append("本文snippetはありません。PDF open URLまたはmetadataを確認してください。")
+        for chunk in chunks:
             if not isinstance(chunk, dict):
                 continue
-            lines.append(f"- {chunk.get('source_label')}: {chunk.get('text')}")
+            lines.append(
+                f"- {chunk.get('source_label')} "
+                f"{source_badge(chunk, show_source_type=show_source_type, show_provider=show_provider)}"
+                f"{metadata_note(chunk)}: {chunk.get('text')}"
+            )
     else:
-        lines.append("検索結果から詳細取得できる資料はありませんでした。metadata fallbackのみの可能性があります。")
+        lines.append("本文snippetを取得できませんでした。metadata-only fallbackの可能性があります。")
     lines.extend(
         [
             "",
-            "## 4. 注意",
+            "## 4. Caution",
             "",
-            f"- 課題: {backlog.get('caution')}",
-            f"- 資料: {context.get('caution')}",
-            "",
-            "## 5. できること / できないこと",
-            "",
-            "- できること: 課題候補、資料候補、本文またはmetadata snippetを同じ流れで確認できます。",
-            "- できないこと: tool resultにない締切・提出方法・評価条件は確定できません。",
-            "- 本文抽出の限界: PDF通常テキスト層ではなく、MOOCs-Collect slide textやmetadataの場合があります。",
+            f"- Tasks: {backlog.get('caution')}",
+            f"- Materials: {context.get('caution')}",
         ]
     )
     return "\n".join(lines)
+
+
+def source_badge(
+    item: dict[str, Any],
+    *,
+    show_source_type: bool,
+    show_provider: bool,
+) -> str:
+    labels = []
+    if show_source_type and item.get("source_type"):
+        labels.append(str(item.get("source_type")))
+    if show_provider and item.get("provider"):
+        labels.append(str(item.get("provider")))
+    return f"[{'/'.join(labels)}] " if labels else ""
+
+
+def metadata_note(item: dict[str, Any]) -> str:
+    if item.get("chunk_type") == "metadata" or item.get("text_available") is False:
+        return "(metadata-only: 本文は未抽出)"
+    return ""
+
+
+def compact_params(params: dict[str, Any]) -> dict[str, Any]:
+    return {
+        key: value
+        for key, value in params.items()
+        if value is not None and str(value).strip() != ""
+    }
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -131,7 +215,21 @@ def main(argv: list[str] | None = None) -> int:
         sys.stdout.reconfigure(encoding="utf-8")
     args = parse_args(argv)
     try:
-        print(run_demo(args.base_url, query=args.query, mode=args.mode, limit=args.limit))
+        print(
+            run_demo(
+                args.base_url,
+                query=args.query,
+                mode=args.mode,
+                limit=args.limit,
+                course_code=args.course_code,
+                course_title=args.course_title,
+                lecture_key=args.lecture_key,
+                lecture_title=args.lecture_title,
+                prefer_keyword_when_metadata_only=args.prefer_keyword_when_metadata_only,
+                show_source_type=args.show_source_type,
+                show_provider=args.show_provider,
+            )
+        )
     except Exception as exc:
         print(
             json.dumps(

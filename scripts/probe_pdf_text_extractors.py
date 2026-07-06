@@ -16,6 +16,8 @@ from typing import Any
 if __package__ in (None, ""):
     sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
+from backend.app.core.pdf_ocr_provider import optional_provider_status
+
 
 def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser = argparse.ArgumentParser(
@@ -53,6 +55,7 @@ def probe_pdf_text_extractors(pdf_path: Path | None, *, sample_chars: int = 240)
             "external_api_used": False,
             "missing_optional_dependencies_skip": True,
         },
+        "optional_provider_status": optional_provider_status(),
     }
 
 
@@ -115,12 +118,13 @@ def probe_ocrmypdf(pdf_path: Path | None, *, sample_chars: int) -> dict[str, Any
                     **unavailable("ocrmypdf", completed.stderr.strip()[:500]),
                     "elapsed_seconds": round(time.perf_counter() - start, 3),
                 }
+            extracted = probe_pypdf(output, sample_chars=sample_chars)
             return {
                 "provider": "ocrmypdf",
                 "available": True,
-                "extracted_text_length": None,
-                "page_count": None,
-                "sample_preview": "",
+                "extracted_text_length": extracted.get("extracted_text_length"),
+                "page_count": extracted.get("page_count"),
+                "sample_preview": extracted.get("sample_preview") or "",
                 "elapsed_seconds": round(time.perf_counter() - start, 3),
                 "warnings": ["OCR PDF was generated in a temporary directory and not saved."],
             }

@@ -115,10 +115,13 @@ Design note: `docs/design/20260706_v11_mcp_ontology_embedding_experiment.md`
 - New MCP material tools: `search_material_context`, `get_material_context`, `search_lecture_materials`, `summarize_local_resource`
 - Index build script: `python scripts/build_material_text_index.py`
 - MOOCs-Collect probe: `python scripts/probe_moocs_collect_text_quality.py`
+- MOOCs-Collect AppData/search probes: `python scripts/probe_moocs_collect_files.py`, `python scripts/probe_moocs_collect_search_index.py`, `python scripts/probe_moocs_collect_slide_urls.py`
 - OCR availability probe: `python scripts/probe_pdf_text_extractors.py`
 - Demo fallback: `python scripts/demo_aio_mcp_chat_flow.py`
 
 `data/local/`, MOOCs-Collect `db.sqlite`, PDFs, OCR outputs, storage state, cookies, browser profiles, Claude Desktop config, and credentials must not be committed.
+
+MOOCs-Collect storage note: `db.sqlite` is metadata-only in the checked desktop app. Slide body text is produced from Google Slides SVG `aria-label` values and stored in AppData `search_index` (Tantivy). AIO reads that route when available and falls back to metadata/PDF/OCR providers.
 
 Design notes:
 
