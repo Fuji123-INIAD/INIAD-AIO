@@ -14,7 +14,7 @@ from typing import Any
 RESOURCE_TYPE_PDF = "pdf"
 DISCOVERED_FROM_FILESYSTEM = "filesystem"
 COURSE_CODE_PATTERN = re.compile(
-    r"(?<![A-Za-z0-9])([A-Za-z]{2,6}\d{2,4}[A-Za-z0-9-]*)(?![A-Za-z0-9])"
+    r"(?<![A-Za-z0-9])([A-Za-z]{2,6}\d{2,4})(?![A-Za-z0-9])"
 )
 LECTURE_KEY_PATTERN = re.compile(
     r"(?<![A-Za-z0-9])(\d{1,2}-\d{1,2}|\d{2})(?![A-Za-z0-9])"
