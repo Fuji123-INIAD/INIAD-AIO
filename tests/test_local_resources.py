@@ -169,8 +169,43 @@ class LocalResourcesTests(unittest.TestCase):
         self.assertFalse(resource["text_available"])
         self.assertIsNone(resource["text_cache_path"])
         self.assertEqual("filesystem", resource["discovered_from"])
+        self.assertEqual("unknown", resource["resource_kind"])
+        self.assertEqual("resource", resource["entity_type"])
+        self.assertEqual("filesystem", resource["source_kind"])
+        self.assertIn("example.pdf", resource["card_text"])
         self.assertEqual([], resource["warnings"])
         self.assertEqual([], data["warnings"])
+
+    def test_resource_ontology_and_context_card_are_generated(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            pdf_path = root / "COT101" / "08_ Security" / "Part1.pdf"
+            pdf_path.parent.mkdir(parents=True)
+            pdf_path.write_bytes(b"%PDF-1.4\n")
+
+            index = build_local_resource_index(root)
+
+        resource = index.resources[0]
+        self.assertEqual("material", resource.resource_kind)
+        self.assertEqual("resource", resource.entity_type)
+        self.assertEqual("filesystem", resource.source_kind)
+        self.assertIn("Part1.pdf", resource.card_text)
+        self.assertIn("Security", resource.card_text)
+
+    def test_resource_kind_inference_handles_assignment_report_and_guide(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            for filename in ("assignment.pdf", "final_report.pdf", "user_guide.pdf"):
+                path = root / "COT101" / "01" / filename
+                path.parent.mkdir(parents=True, exist_ok=True)
+                path.write_bytes(b"%PDF-1.4\n")
+
+            index = build_local_resource_index(root)
+
+        kinds_by_title = {resource.title: resource.resource_kind for resource in index.resources}
+        self.assertEqual("assignment", kinds_by_title["assignment.pdf"])
+        self.assertEqual("report", kinds_by_title["final_report.pdf"])
+        self.assertEqual("guide", kinds_by_title["user_guide.pdf"])
 
     def test_missing_root_returns_empty_index_with_warning(self) -> None:
         with tempfile.TemporaryDirectory() as temp_dir:

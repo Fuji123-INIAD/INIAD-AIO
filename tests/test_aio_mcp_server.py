@@ -1,0 +1,102 @@
+from __future__ import annotations
+
+import unittest
+from urllib.parse import urlparse
+
+from backend.app.mcp.aio_server import AioMcpClient, MinimalMcpServer, call_aio_tool
+
+
+class FakeResponse:
+    def __init__(self, payload: dict[str, object]) -> None:
+        self.payload = payload
+
+    def raise_for_status(self) -> None:
+        return None
+
+    def json(self) -> dict[str, object]:
+        return self.payload
+
+
+class FakeSession:
+    def __init__(self) -> None:
+        self.calls: list[dict[str, object]] = []
+
+    def get(self, url: str, params=None, timeout=None) -> FakeResponse:
+        self.calls.append({"url": url, "params": params, "timeout": timeout})
+        return FakeResponse({"status": "ok", "echo": {"url": url, "params": params}})
+
+
+class AioMcpServerTests(unittest.TestCase):
+    def test_list_tasks_uses_default_demo_courses(self) -> None:
+        session = FakeSession()
+        client = AioMcpClient(base_url="http://aio.test", session=session)
+
+        result = client.list_tasks()
+
+        self.assertEqual("ok", result["status"])
+        call = session.calls[0]
+        self.assertEqual("http://aio.test/api/tasks", call["url"])
+        self.assertEqual(
+            [
+                ("course_code", "COT101"),
+                ("course_code", "SEM101"),
+                ("course_code", "COT105"),
+            ],
+            call["params"],
+        )
+
+    def test_search_local_resources_tool_passes_query_limit_and_mode(self) -> None:
+        session = FakeSession()
+        client = AioMcpClient(base_url="http://aio.test", session=session)
+
+        call_aio_tool(
+            client,
+            "search_local_resources",
+            {"query": "security", "limit": 3, "mode": "hybrid"},
+        )
+
+        call = session.calls[0]
+        self.assertEqual("http://aio.test/api/local/resources/search", call["url"])
+        self.assertEqual(
+            {"q": "security", "limit": 3, "mode": "hybrid"},
+            call["params"],
+        )
+
+    def test_get_resource_and_task_ids_are_path_encoded(self) -> None:
+        session = FakeSession()
+        client = AioMcpClient(base_url="http://aio.test", session=session)
+
+        client.get_task_evidence("course-rule:COT101")
+        client.get_local_resource("local-resource:test-1")
+
+        task_path = urlparse(session.calls[0]["url"]).path
+        resource_path = urlparse(session.calls[1]["url"]).path
+        self.assertEqual("/api/tasks/course-rule%3ACOT101/evidence", task_path)
+        self.assertEqual("/api/local/resources/local-resource%3Atest-1", resource_path)
+
+    def test_json_rpc_tool_call_returns_structured_content(self) -> None:
+        session = FakeSession()
+        server = MinimalMcpServer(
+            AioMcpClient(base_url="http://aio.test", session=session)
+        )
+
+        response = server.handle_request(
+            {
+                "jsonrpc": "2.0",
+                "id": 1,
+                "method": "tools/call",
+                "params": {
+                    "name": "list_tasks",
+                    "arguments": {"course_codes": ["COT101"]},
+                },
+            }
+        )
+
+        self.assertIsNotNone(response)
+        result = response["result"]
+        self.assertEqual("ok", result["structuredContent"]["status"])
+        self.assertEqual([("course_code", "COT101")], session.calls[0]["params"])
+
+
+if __name__ == "__main__":
+    unittest.main()

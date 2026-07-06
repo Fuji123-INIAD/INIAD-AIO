@@ -10,6 +10,13 @@ from dataclasses import asdict, dataclass, replace
 from pathlib import Path
 from typing import Any, Callable
 
+from backend.app.core.context_cards import build_local_resource_card
+from backend.app.core.ontology import (
+    ENTITY_TYPE_RESOURCE,
+    infer_resource_kind,
+    normalize_source_kind,
+)
+
 
 RESOURCE_TYPE_PDF = "pdf"
 DISCOVERED_FROM_FILESYSTEM = "filesystem"
@@ -40,6 +47,10 @@ class LocalResource:
     text_available: bool
     text_cache_path: str | None
     discovered_from: str
+    resource_kind: str
+    entity_type: str
+    source_kind: str
+    card_text: str
     warnings: list[dict[str, str]]
 
 
@@ -147,7 +158,7 @@ def create_pdf_resource(pdf_path: Path, root: Path | None = None) -> LocalResour
     resolved_pdf_path = pdf_path.expanduser().resolve()
     context = infer_path_context(root, resolved_pdf_path)
     local_path = str(resolved_pdf_path)
-    return LocalResource(
+    resource = LocalResource(
         resource_id=stable_resource_id(local_path),
         course_code=infer_course_code(resolved_pdf_path),
         course_title=context.course_title,
@@ -164,8 +175,13 @@ def create_pdf_resource(pdf_path: Path, root: Path | None = None) -> LocalResour
         text_available=False,
         text_cache_path=None,
         discovered_from=DISCOVERED_FROM_FILESYSTEM,
+        resource_kind=infer_resource_kind(resolved_pdf_path.name),
+        entity_type=ENTITY_TYPE_RESOURCE,
+        source_kind=normalize_source_kind(DISCOVERED_FROM_FILESYSTEM),
+        card_text="",
         warnings=[],
     )
+    return resource_with_context_card(resource)
 
 
 def cache_pdf_text_for_resources(
@@ -250,12 +266,13 @@ def cache_pdf_text_for_resource(
                 for attempt in warning_attempts
             ],
         ]
-        return replace(
+        updated_resource = replace(
             resource,
             text_available=True,
             text_cache_path=display_text_cache_path(cache_path, text_cache_path_base),
             warnings=warnings,
         )
+        return resource_with_context_card(updated_resource)
 
     return resource_with_text_warning(
         resource,
@@ -301,12 +318,18 @@ def normalize_pdf_text_pages(pages: list[PdfTextPage]) -> list[PdfTextPage]:
 
 
 def resource_with_text_warning(resource: LocalResource, message: str) -> LocalResource:
-    return replace(
-        resource,
-        text_available=False,
-        text_cache_path=None,
-        warnings=[*resource.warnings, {"message": message}],
+    return resource_with_context_card(
+        replace(
+            resource,
+            text_available=False,
+            text_cache_path=None,
+            warnings=[*resource.warnings, {"message": message}],
+        )
     )
+
+
+def resource_with_context_card(resource: LocalResource) -> LocalResource:
+    return replace(resource, card_text=build_local_resource_card(asdict(resource)))
 
 
 def extract_pdf_text_layer_with_pypdf(pdf_path: Path) -> list[PdfTextPage]:

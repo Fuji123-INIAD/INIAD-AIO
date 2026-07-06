@@ -43,6 +43,11 @@
         <label class="section-title" for="searchQuery">ローカルPDF検索</label>
         <div class="search-row">
           <input id="searchQuery" type="search" placeholder="セキュリティ / COT101 / 回帰">
+          <select id="searchMode" class="search-mode-select" aria-label="search mode">
+            <option value="keyword">keyword</option>
+            <option value="semantic">semantic</option>
+            <option value="hybrid">hybrid</option>
+          </select>
           <button id="searchButton" onclick="searchMoocs()">検索</button>
         </div>
         <div id="searchStatus" class="status-line"></div>
@@ -69,6 +74,7 @@
     const sourcesArea = document.getElementById("sources");
     const searchButton = document.getElementById("searchButton");
     const searchQueryInput = document.getElementById("searchQuery");
+    const searchModeSelect = document.getElementById("searchMode");
     const searchStatus = document.getElementById("searchStatus");
     const searchResultsArea = document.getElementById("searchResults");
     const taskSummary = document.getElementById("taskSummary");
@@ -134,7 +140,11 @@
       searchButton.disabled = true;
 
       try {
-        const params = new URLSearchParams({ q: query, limit: "12" });
+        const params = new URLSearchParams({
+          q: query,
+          limit: "12",
+          mode: searchModeSelect.value || "keyword"
+        });
         const response = await fetch("/api/local/resources/search?" + params.toString());
         const data = await response.json();
 
@@ -150,7 +160,7 @@
           return;
         }
 
-        searchStatus.textContent = data.results.length + "件";
+        searchStatus.textContent = data.results.length + " results / " + (data.mode || "keyword");
         renderLocalPdfResults(data.results);
       } catch (error) {
         searchStatus.textContent = "通信エラー: " + error.message;
@@ -550,7 +560,7 @@
 
         const badge = document.createElement("span");
         badge.className = "type-badge local-resource-badge";
-        badge.textContent = "PDF";
+        badge.textContent = result.resource_kind || "pdf";
 
         const heading = document.createElement("p");
         heading.className = "source-heading";
@@ -562,6 +572,8 @@
         appendMeta(meta, "講義回", result.lecture_key || "未設定");
         appendMeta(meta, "講義タイトル", result.lecture_title || "未設定");
         appendMeta(meta, "ページ", result.page_number ? String(result.page_number) : "未設定");
+        appendMeta(meta, "kind", result.resource_kind || "unknown");
+        appendMeta(meta, "mode", result.search_mode || "keyword");
 
         item.appendChild(badge);
         item.appendChild(heading);
@@ -572,6 +584,13 @@
           snippet.className = "source-snippet";
           snippet.textContent = result.snippet;
           item.appendChild(snippet);
+        }
+
+        if (result.card_text) {
+          const cardText = document.createElement("p");
+          cardText.className = "context-card-text";
+          cardText.textContent = result.card_text;
+          item.appendChild(cardText);
         }
 
         if (result.open_url) {

@@ -91,3 +91,16 @@ README は入口のみを担当します。
 - CEL（Concrete Edit Log）
 
 大規模変更時は README を肥大化させるのではなく、対応する Overview または CEL を更新してください。
+
+## v1.1 experimental
+
+`feature/v1.1-adventure-mcp-ontology` adds an experimental AI handoff layer without changing the v1.0 stable demo path:
+
+- Minimal MCP server: `python -m backend.app.mcp.aio_server --base-url http://127.0.0.1:8000`
+- MCP tools for tasks and local resources.
+- Lightweight ontology fields on tasks/resources.
+- Template-generated `card_text` Context Cards.
+- Offline semantic/hybrid search fallback using `local-hashed-bow-v1`.
+- Optional vector cache script: `python scripts/build_local_resource_vector_cache.py`
+
+Design note: `docs/design/20260706_v11_mcp_ontology_embedding_experiment.md`

@@ -77,6 +77,13 @@ class ListRuleTasksTests(unittest.TestCase):
                 "display_course_name",
                 "short_name",
                 "track",
+                "resource_kind",
+                "entity_type",
+                "source_kind",
+                "course_title",
+                "lecture_key",
+                "lecture_title",
+                "card_text",
                 "evidence",
                 "evidence_omitted_count",
                 "primary_action_label",
@@ -94,6 +101,10 @@ class ListRuleTasksTests(unittest.TestCase):
         self.assertEqual("CS概論Ⅰ・基礎演習Ⅰ", item["display_course_name"])
         self.assertEqual("CS概論Ⅰ・基礎演習Ⅰ", item["short_name"])
         self.assertEqual("COT", item["track"])
+        self.assertEqual("task", item["entity_type"])
+        self.assertEqual("assignment", item["resource_kind"])
+        self.assertEqual("course_rule", item["source_kind"])
+        self.assertIn("COT101", item["card_text"])
         self.assertIn("確認", item["description"])
         self.assertIn("締切", item["deadline_note"])
         self.assertIn("提出", item["submission_note"])

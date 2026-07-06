@@ -24,7 +24,18 @@ if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 
 from ai_module import generate_answer
+from backend.app.core.context_cards import build_local_resource_card
 from backend.app.core.course_rules import normalize_course_code
+from backend.app.core.embeddings import (
+    HashedBagOfWordsEmbeddingProvider,
+    cosine_similarity,
+)
+from backend.app.core.ontology import (
+    ENTITY_TYPE_RESOURCE,
+    infer_resource_kind,
+    normalize_resource_kind,
+    normalize_source_kind,
+)
 from backend.app.core.task_html_evidence import load_html_evidence_by_course
 from backend.app.core.task_slides_evidence import load_slides_evidence_by_course
 from backend.app.core.task_generator import generate_course_rule_tasks
@@ -51,6 +62,8 @@ USER_TASK_STATUS_LOADED = False
 USER_TASK_STATUS_PATH = PROJECT_ROOT / "data" / "local" / "user_task_status.json"
 HTML_EVIDENCE_PATH = PROJECT_ROOT / "data" / "probe" / "moocs_course_details.json"
 LOCAL_RESOURCE_INDEX_PATH = PROJECT_ROOT / "data" / "local" / "resource_index.json"
+LOCAL_RESOURCE_SEARCH_MODES = frozenset({"keyword", "semantic", "hybrid"})
+LOCAL_EMBEDDING_PROVIDER = HashedBagOfWordsEmbeddingProvider()
 MOOCS_COLLECT_DB_PATH = (
     Path(os.environ["MOOCS_COLLECT_DB_PATH"]).expanduser()
     if os.environ.get("MOOCS_COLLECT_DB_PATH")
@@ -2106,7 +2119,18 @@ def load_local_resource_index(index_path: Path | None = None):
 
 
 def local_resource_summary(resource):
-    return {
+    resource_kind = normalize_resource_kind(
+        resource.get("resource_kind"),
+        fallback=infer_resource_kind(
+            resource.get("title"),
+            resource.get("course_title"),
+            resource.get("lecture_title"),
+        ),
+    )
+    source_kind = normalize_source_kind(
+        resource.get("source_kind") or resource.get("discovered_from")
+    )
+    summary = {
         "resource_id": resource.get("resource_id"),
         "title": resource.get("title"),
         "course_code": resource.get("course_code"),
@@ -2117,8 +2141,16 @@ def local_resource_summary(resource):
         "local_path": resource.get("local_path"),
         "text_available": bool(resource.get("text_available")),
         "text_cache_path": resource.get("text_cache_path"),
+        "discovered_from": resource.get("discovered_from"),
+        "resource_kind": resource_kind,
+        "entity_type": resource.get("entity_type") or ENTITY_TYPE_RESOURCE,
+        "source_kind": source_kind,
         "warnings": resource.get("warnings") or [],
     }
+    summary["card_text"] = str(
+        resource.get("card_text") or build_local_resource_card(summary)
+    )
+    return summary
 
 
 def local_resource_open_url(resource):
@@ -2231,12 +2263,16 @@ def make_local_search_snippet(text: str, query: str, radius: int = 70) -> str:
 
 
 def match_local_resource_metadata(resource, normalized_query: str) -> str | None:
+    summary = local_resource_summary(resource)
     fields = [
-        resource.get("title"),
-        resource.get("course_code"),
-        resource.get("course_title"),
-        resource.get("lecture_key"),
-        resource.get("lecture_title"),
+        summary.get("title"),
+        summary.get("course_code"),
+        summary.get("course_title"),
+        summary.get("lecture_key"),
+        summary.get("lecture_title"),
+        summary.get("resource_kind"),
+        summary.get("source_kind"),
+        summary.get("card_text"),
     ]
     for value in fields:
         text = str(value or "")
@@ -2247,15 +2283,17 @@ def match_local_resource_metadata(resource, normalized_query: str) -> str | None
 
 def search_local_resource(resource, query: str, index_path: Path):
     normalized_query = local_search_text(query)
+    summary = local_resource_summary(resource)
     text_pages = load_local_text_cache_pages(resource, index_path)
     for page in text_pages:
         text = page.get("text") or ""
         if normalized_query in local_search_text(text):
             return {
-                **local_resource_summary(resource),
+                **summary,
                 "snippet": make_local_search_snippet(text, query),
                 "page_number": page.get("page_number"),
                 "open_url": local_resource_open_url(resource),
+                "search_mode": "keyword",
             }
 
     metadata_match = match_local_resource_metadata(resource, normalized_query)
@@ -2265,19 +2303,116 @@ def search_local_resource(resource, query: str, index_path: Path):
     metadata_text = " / ".join(
         str(value)
         for value in (
-            resource.get("course_title"),
-            resource.get("lecture_key"),
-            resource.get("lecture_title"),
-            resource.get("title"),
+            summary.get("course_title"),
+            summary.get("lecture_key"),
+            summary.get("lecture_title"),
+            summary.get("title"),
+            summary.get("card_text"),
         )
         if value
     )
     return {
-        **local_resource_summary(resource),
+        **summary,
         "snippet": make_local_search_snippet(metadata_text or metadata_match, query),
         "page_number": None,
         "open_url": local_resource_open_url(resource),
+        "search_mode": "keyword",
     }
+
+
+def search_local_resources_keyword(resources, query: str, index_path: Path):
+    results = []
+    for resource in resources:
+        result = search_local_resource(resource, query, index_path)
+        if result is not None:
+            results.append(result)
+    return results
+
+
+def search_local_resources_semantic(resources, query: str, index_path: Path):
+    query_vector = LOCAL_EMBEDDING_PROVIDER.embed(query)
+    results = []
+    for resource in resources:
+        summary = local_resource_summary(resource)
+        document_text = local_resource_semantic_document(summary, index_path)
+        score = cosine_similarity(
+            query_vector,
+            LOCAL_EMBEDDING_PROVIDER.embed(document_text),
+        )
+        if score <= 0:
+            continue
+        results.append(
+            {
+                **summary,
+                "snippet": make_local_search_snippet(
+                    summary.get("card_text") or document_text,
+                    query,
+                ),
+                "page_number": None,
+                "open_url": local_resource_open_url(resource),
+                "search_mode": "semantic",
+                "search_score": round(score, 4),
+            }
+        )
+    results.sort(key=lambda item: item.get("search_score", 0), reverse=True)
+    return results
+
+
+def search_local_resources_hybrid(resources, query: str, index_path: Path):
+    merged = {}
+    resource_to_key = {}
+    for rank, result in enumerate(
+        search_local_resources_keyword(resources, query, index_path)
+    ):
+        key = f"{result.get('resource_id')}:{result.get('page_number')}"
+        merged[key] = {
+            **result,
+            "search_mode": "hybrid",
+            "search_score": round(2.0 + max(0.0, 1.0 - (rank * 0.01)), 4),
+        }
+        resource_to_key.setdefault(result.get("resource_id"), key)
+
+    for result in search_local_resources_semantic(resources, query, index_path):
+        resource_id = result.get("resource_id")
+        if resource_id in resource_to_key:
+            key = resource_to_key[resource_id]
+            merged[key]["search_score"] = round(
+                merged[key].get("search_score", 0) + result.get("search_score", 0),
+                4,
+            )
+            continue
+
+        key = f"{resource_id}:semantic"
+        merged[key] = {
+            **result,
+            "search_mode": "hybrid",
+        }
+
+    results = list(merged.values())
+    results.sort(key=lambda item: item.get("search_score", 0), reverse=True)
+    return results
+
+
+def local_resource_semantic_document(summary, index_path: Path):
+    return " ".join(
+        str(value or "")
+        for value in (
+            summary.get("card_text"),
+            summary.get("title"),
+            summary.get("course_code"),
+            summary.get("course_title"),
+            summary.get("lecture_key"),
+            summary.get("lecture_title"),
+            summary.get("resource_kind"),
+            summary.get("source_kind"),
+            summary.get("entity_type"),
+        )
+    )
+
+
+def normalize_local_resource_search_mode(mode: str):
+    normalized = str(mode or "keyword").strip().casefold()
+    return normalized if normalized in LOCAL_RESOURCE_SEARCH_MODES else None
 
 
 @app.get("/api/local/resources")
@@ -2298,27 +2433,40 @@ def list_local_resources():
 
 
 @app.get("/api/local/resources/search")
-def search_local_resources(q: str = "", limit: int = 20):
+def search_local_resources(q: str = "", limit: int = 20, mode: str = "keyword"):
     query = q.strip()
     if not query:
         return {
             "status": "error",
             "detail": "query parameter q is required",
             "query": query,
+            "mode": mode,
+            "results": [],
+        }
+
+    search_mode = normalize_local_resource_search_mode(mode)
+    if search_mode is None:
+        return {
+            "status": "error",
+            "detail": "mode must be one of: keyword, semantic, hybrid",
+            "query": query,
+            "mode": mode,
             "results": [],
         }
 
     normalized_limit = max(1, min(limit, 50))
     resources, warnings, index_path = load_local_resource_index()
-    results = []
-    for resource in resources:
-        result = search_local_resource(resource, query, index_path)
-        if result is not None:
-            results.append(result)
+    if search_mode == "semantic":
+        results = search_local_resources_semantic(resources, query, index_path)
+    elif search_mode == "hybrid":
+        results = search_local_resources_hybrid(resources, query, index_path)
+    else:
+        results = search_local_resources_keyword(resources, query, index_path)
 
     return {
         "status": "ok",
         "query": query,
+        "mode": search_mode,
         "result_count": len(results[:normalized_limit]),
         "warnings": warnings,
         "results": results[:normalized_limit],

@@ -47,7 +47,12 @@ class LocalResourceApiTests(unittest.TestCase):
         backend_main.USER_TASK_STATUS_WARNINGS.clear()
         backend_main.USER_TASK_STATUS_LOADED = False
 
-    def write_index(self, *, cache_text: str | None = None) -> dict[str, object]:
+    def write_index(
+        self,
+        *,
+        cache_text: str | None = None,
+        card_text: str | None = None,
+    ) -> dict[str, object]:
         pdf_path = self.root / "pdfs" / "security.pdf"
         pdf_path.parent.mkdir(parents=True)
         pdf_path.write_bytes(b"%PDF-1.4\n% demo pdf\n")
@@ -65,6 +70,7 @@ class LocalResourceApiTests(unittest.TestCase):
             "text_available": cache_text is not None,
             "text_cache_path": "text_cache/test-1.json" if cache_text else None,
             "discovered_from": "filesystem",
+            "card_text": card_text,
             "warnings": [],
         }
         self.index_path.parent.mkdir(parents=True)
@@ -106,6 +112,10 @@ class LocalResourceApiTests(unittest.TestCase):
         self.assertEqual("情報連携学概論 I", resource["course_title"])
         self.assertEqual("08", resource["lecture_key"])
         self.assertTrue(resource["text_available"])
+        self.assertEqual("unknown", resource["resource_kind"])
+        self.assertEqual("resource", resource["entity_type"])
+        self.assertEqual("filesystem", resource["source_kind"])
+        self.assertIn("security.pdf", resource["card_text"])
         self.assertEqual(
             "/api/local/resources/local-resource%3Atest-1/file",
             resource["open_url"],
@@ -123,6 +133,7 @@ class LocalResourceApiTests(unittest.TestCase):
         data = response.json()
         self.assertEqual("ok", data["status"])
         self.assertEqual(1, data["result_count"])
+        self.assertEqual("keyword", data["mode"])
         result = data["results"][0]
         self.assertEqual("local-resource:test-1", result["resource_id"])
         self.assertEqual(2, result["page_number"])
@@ -143,6 +154,51 @@ class LocalResourceApiTests(unittest.TestCase):
         self.assertEqual(1, data["result_count"])
         self.assertIsNone(data["results"][0]["page_number"])
         self.assertIn("情報連携学概論", data["results"][0]["snippet"])
+
+    def test_search_local_resources_matches_context_card_text(self) -> None:
+        self.write_index(cache_text=None, card_text="CardOnlyToken context card")
+
+        response = self.client.get(
+            "/api/local/resources/search",
+            params={"q": "CardOnlyToken", "limit": 5},
+        )
+
+        self.assertEqual(200, response.status_code)
+        data = response.json()
+        self.assertEqual("ok", data["status"])
+        self.assertEqual(1, data["result_count"])
+        self.assertIn("CardOnlyToken", data["results"][0]["snippet"])
+        self.assertEqual("CardOnlyToken context card", data["results"][0]["card_text"])
+
+    def test_search_local_resources_supports_semantic_mode(self) -> None:
+        self.write_index(cache_text=None, card_text="security privacy access control")
+
+        response = self.client.get(
+            "/api/local/resources/search",
+            params={"q": "privacy", "mode": "semantic", "limit": 5},
+        )
+
+        self.assertEqual(200, response.status_code)
+        data = response.json()
+        self.assertEqual("ok", data["status"])
+        self.assertEqual("semantic", data["mode"])
+        self.assertEqual(1, data["result_count"])
+        result = data["results"][0]
+        self.assertEqual("semantic", result["search_mode"])
+        self.assertGreater(result["search_score"], 0)
+
+    def test_search_local_resources_rejects_unknown_mode(self) -> None:
+        self.write_index(cache_text=None)
+
+        response = self.client.get(
+            "/api/local/resources/search",
+            params={"q": "security", "mode": "surprise"},
+        )
+
+        self.assertEqual(200, response.status_code)
+        data = response.json()
+        self.assertEqual("error", data["status"])
+        self.assertIn("mode", data["detail"])
 
     def test_get_local_resource_returns_cache_summary_without_full_text(self) -> None:
         long_text = "セキュリティ " + ("details " * 80)

@@ -2,9 +2,15 @@
 
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import asdict, dataclass, replace
 from urllib.parse import urlparse
 
+from backend.app.core.context_cards import build_task_context_card
+from backend.app.core.ontology import (
+    ENTITY_TYPE_TASK,
+    infer_task_resource_kind,
+    normalize_source_kind,
+)
 from backend.app.core.task_generator import TaskPrototype
 from backend.app.core.user_task_status import (
     UserTaskStatus,
@@ -61,6 +67,13 @@ class TaskListItem:
     display_course_name: str
     short_name: str
     track: str
+    resource_kind: str
+    entity_type: str
+    source_kind: str
+    course_title: str | None
+    lecture_key: str | None
+    lecture_title: str | None
+    card_text: str
     evidence: list[TaskEvidence]
     evidence_omitted_count: int
     primary_action_label: str | None
@@ -82,34 +95,44 @@ def compose_task_list_items(
             course_rule_evidence(task) + evidence_for_task(task, extra_evidence)
         )
         primary_action = select_primary_action(evidence)
-        items.append(
-            TaskListItem(
-                task_id=task.task_id,
-                course_code=task.course_code,
-                title=task.title,
-                source=task.source,
-                status=status.status,
-                active=is_active(status),
-                deadline_rule=task.deadline_rule,
-                submission_channel=task.submission_channel,
-                confidence=task.confidence,
-                description=task.description,
-                deadline_note=task.deadline_note,
-                submission_note=task.submission_note,
-                caution_note=task.caution_note,
-                display_course_name=display_course_name(task.course_code),
-                short_name=short_name(task.course_code),
-                track=track(task.course_code),
-                evidence=evidence,
-                evidence_omitted_count=evidence_omitted_count,
-                primary_action_label=(
-                    primary_action.label if primary_action is not None else None
-                ),
-                primary_action_url=(
-                    primary_action.source if primary_action is not None else None
-                ),
-            )
+        item = TaskListItem(
+            task_id=task.task_id,
+            course_code=task.course_code,
+            title=task.title,
+            source=task.source,
+            status=status.status,
+            active=is_active(status),
+            deadline_rule=task.deadline_rule,
+            submission_channel=task.submission_channel,
+            confidence=task.confidence,
+            description=task.description,
+            deadline_note=task.deadline_note,
+            submission_note=task.submission_note,
+            caution_note=task.caution_note,
+            display_course_name=display_course_name(task.course_code),
+            short_name=short_name(task.course_code),
+            track=track(task.course_code),
+            resource_kind=infer_task_resource_kind(
+                task.title,
+                task.description,
+                task.submission_note,
+            ),
+            entity_type=ENTITY_TYPE_TASK,
+            source_kind=normalize_source_kind(task.source),
+            course_title=display_course_name(task.course_code),
+            lecture_key=None,
+            lecture_title=None,
+            card_text="",
+            evidence=evidence,
+            evidence_omitted_count=evidence_omitted_count,
+            primary_action_label=(
+                primary_action.label if primary_action is not None else None
+            ),
+            primary_action_url=(
+                primary_action.source if primary_action is not None else None
+            ),
         )
+        items.append(replace(item, card_text=build_task_context_card(asdict(item))))
     return items
 
 
