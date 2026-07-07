@@ -338,7 +338,7 @@ class MinimalMcpServer:
                 result = {
                     "protocolVersion": "2024-11-05",
                     "capabilities": {"tools": {}},
-                    "serverInfo": {"name": "iniad-aio", "version": "1.1-experimental"},
+                    "serverInfo": {"name": "iniad-aio", "version": "1.2-experimental"},
                 }
             elif method == "tools/list":
                 result = {"tools": TOOL_DEFINITIONS}

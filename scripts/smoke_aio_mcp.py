@@ -48,6 +48,8 @@ def run_smoke(
     session: Any | None = None,
     require_local_resources: bool = True,
     require_search_results: bool = True,
+    require_material_context: bool = True,
+    require_text_snippets: bool = True,
 ) -> dict[str, Any]:
     client = AioMcpClient(
         base_url=base_url,
@@ -94,14 +96,24 @@ def run_smoke(
     if task_count <= 0:
         raise SmokeFailure("list_tasks returned no tasks")
 
-    pending_payload = _tool_payload(
+    pending_tasks_payload = _tool_payload(
+        server,
+        30,
+        "list_pending_tasks",
+        {},
+    )
+    pending_items = pending_tasks_payload.get("items")
+    if not isinstance(pending_items, list):
+        raise SmokeFailure("list_pending_tasks did not return an items array")
+    _assert_caution(pending_tasks_payload, "list_pending_tasks")
+
+    backlog_payload = _tool_payload(
         server,
         31,
         "summarize_task_backlog",
         {},
     )
-    if not pending_payload.get("caution"):
-        raise SmokeFailure("summarize_task_backlog returned no caution")
+    _assert_caution(backlog_payload, "summarize_task_backlog")
 
     resources_payload = _tool_payload(
         server,
@@ -139,11 +151,55 @@ def run_smoke(
         "search_material_context",
         {"query": query, "limit": limit, "mode": mode},
     )
-    material_items = material_payload.get("items")
-    if not isinstance(material_items, list):
-        raise SmokeFailure("search_material_context did not return an items array")
+    material_items = _assert_material_context_payload(
+        material_payload,
+        "search_material_context",
+    )
+    if require_material_context and not material_items:
+        raise SmokeFailure(
+            f"search_material_context({query!r}) returned 0 items. "
+            "Build data/local/material_chunk_index.json before the live smoke test."
+        )
+    material_counts = _material_item_counts(material_items)
+    if require_text_snippets and material_items and material_counts["text"] <= 0:
+        raise SmokeFailure(
+            "search_material_context returned only metadata-only results. "
+            "Use --allow-metadata-only-material-context for metadata fallback checks."
+        )
+
+    lecture_payload = _tool_payload(
+        server,
+        52,
+        "search_lecture_materials",
+        {"query": query, "limit": limit, "mode": mode},
+    )
+    lecture_items = _assert_material_context_payload(
+        lecture_payload,
+        "search_lecture_materials",
+    )
+    if require_material_context and not lecture_items:
+        raise SmokeFailure(
+            f"search_lecture_materials({query!r}) returned 0 items. "
+            "Build data/local/material_chunk_index.json before the live smoke test."
+        )
+
+    material_detail_payload = None
+    detail_material_id = _first_material_id(material_items)
+    if detail_material_id is not None:
+        material_detail_payload = _tool_payload(
+            server,
+            53,
+            "get_material_context",
+            {"material_id": detail_material_id},
+        )
+        if not isinstance(material_detail_payload.get("material"), dict):
+            raise SmokeFailure("get_material_context did not return a material object")
+        if not isinstance(material_detail_payload.get("chunks"), list):
+            raise SmokeFailure("get_material_context did not return a chunks array")
+        _assert_caution(material_detail_payload, "get_material_context")
 
     detail_payload = None
+    resource_summary_payload = None
     detail_resource_id = _first_resource_id(resources)
     if detail_resource_id is not None:
         detail_payload = _tool_payload(
@@ -154,6 +210,15 @@ def run_smoke(
         )
         if not isinstance(detail_payload.get("resource"), dict):
             raise SmokeFailure("get_local_resource did not return a resource object")
+        resource_summary_payload = _tool_payload(
+            server,
+            7,
+            "summarize_local_resource",
+            {"resource_id": detail_resource_id},
+        )
+        if not isinstance(resource_summary_payload.get("material"), dict):
+            raise SmokeFailure("summarize_local_resource did not return a material object")
+        _assert_caution(resource_summary_payload, "summarize_local_resource")
 
     return {
         "status": "ok",
@@ -161,13 +226,21 @@ def run_smoke(
         "server_info": initialize.get("serverInfo"),
         "tools": tool_names,
         "task_count": task_count,
+        "pending_task_count": _count_items(pending_tasks_payload, "count", "items"),
+        "task_backlog_count": _count_items(backlog_payload, "count", "items"),
         "resource_count": len(resources),
         "search_query": query,
         "search_mode": mode,
         "search_result_count": len(search_results),
         "material_context_count": len(material_items),
+        "material_text_snippet_count": material_counts["text"],
+        "material_metadata_only_count": material_counts["metadata"],
+        "lecture_material_count": len(lecture_items),
+        "material_detail_id": detail_material_id,
+        "material_detail_checked": material_detail_payload is not None,
         "detail_resource_id": detail_resource_id,
         "detail_checked": detail_payload is not None,
+        "resource_summary_checked": resource_summary_payload is not None,
     }
 
 
@@ -216,6 +289,16 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
         action="store_true",
         help="Do not fail when the search query has no results.",
     )
+    parser.add_argument(
+        "--allow-empty-material-context",
+        action="store_true",
+        help="Do not fail when material context search has no items.",
+    )
+    parser.add_argument(
+        "--allow-metadata-only-material-context",
+        action="store_true",
+        help="Do not fail when material context results are metadata-only fallback rows.",
+    )
     return parser.parse_args(argv)
 
 
@@ -230,6 +313,8 @@ def main(argv: list[str] | None = None) -> int:
             timeout_seconds=args.timeout_seconds,
             require_local_resources=not args.allow_empty_local_resources,
             require_search_results=not args.allow_empty_search,
+            require_material_context=not args.allow_empty_material_context,
+            require_text_snippets=not args.allow_metadata_only_material_context,
         )
     except Exception as exc:
         print(
@@ -307,6 +392,63 @@ def _count_items(payload: dict[str, Any], count_key: str, *array_keys: str) -> i
         if isinstance(value, list):
             return len(value)
     return 0
+
+
+def _assert_caution(payload: dict[str, Any], tool_name: str) -> None:
+    if not str(payload.get("caution") or "").strip():
+        raise SmokeFailure(f"{tool_name} returned no caution")
+
+
+def _assert_material_context_payload(
+    payload: dict[str, Any],
+    tool_name: str,
+) -> list[dict[str, Any]]:
+    _assert_caution(payload, tool_name)
+    items = payload.get("items")
+    if not isinstance(items, list):
+        raise SmokeFailure(f"{tool_name} did not return an items array")
+    typed_items = [item for item in items if isinstance(item, dict)]
+    if len(typed_items) != len(items):
+        raise SmokeFailure(f"{tool_name} returned a non-object item")
+    for item in typed_items:
+        _assert_material_item_metadata(item, tool_name)
+    return typed_items
+
+
+def _assert_material_item_metadata(item: dict[str, Any], tool_name: str) -> None:
+    for key in ("provider", "source_type", "extraction_method"):
+        if not str(item.get(key) or "").strip():
+            raise SmokeFailure(f"{tool_name} item is missing {key}")
+    if not isinstance(item.get("text_available"), bool) and not str(item.get("chunk_type") or ""):
+        raise SmokeFailure(
+            f"{tool_name} item is missing text_available/chunk_type metadata-only indicator"
+        )
+
+
+def _material_item_counts(items: list[dict[str, Any]]) -> dict[str, int]:
+    counts = {"text": 0, "metadata": 0}
+    for item in items:
+        if _is_metadata_only_item(item):
+            counts["metadata"] += 1
+        else:
+            counts["text"] += 1
+    return counts
+
+
+def _is_metadata_only_item(item: dict[str, Any]) -> bool:
+    return (
+        item.get("chunk_type") == "metadata"
+        or item.get("text_available") is False
+        or item.get("extraction_method") == "metadata_only"
+    )
+
+
+def _first_material_id(items: list[dict[str, Any]]) -> str | None:
+    for item in items:
+        material_id = str(item.get("material_id") or "").strip()
+        if material_id:
+            return material_id
+    return None
 
 
 def _first_resource_id(resources: list[Any]) -> str | None:

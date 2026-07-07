@@ -129,9 +129,13 @@ class RoutedFakeSession:
                     "items": [
                         {
                             "material_id": "material:test-1",
+                            "chunk_id": "chunk:test-1",
                             "source_label": "情報連携学概論 I / 第08回 セキュリティ / security.pdf",
                             "source_type": "moocs_collect_slide_text",
                             "provider": "moocs_collect",
+                            "extraction_method": "search_index",
+                            "chunk_type": "slide",
+                            "text_available": True,
                             "excerpt": "暗号とセキュリティ",
                             "open_url": "/api/local/resources/local-resource%3Atest-1/file",
                         }
@@ -149,7 +153,19 @@ class RoutedFakeSession:
                         "title": "security.pdf",
                         "text_available": True,
                     },
-                    "chunks": [],
+                    "chunks": [
+                        {
+                            "material_id": "material:test-1",
+                            "chunk_id": "chunk:test-1",
+                            "source_label": "情報連携学概論 I / 第08回 セキュリティ / security.pdf",
+                            "source_type": "moocs_collect_slide_text",
+                            "provider": "moocs_collect",
+                            "extraction_method": "search_index",
+                            "chunk_type": "slide",
+                            "text_available": True,
+                            "text": "暗号とセキュリティ",
+                        }
+                    ],
                     "caution": "検索対象にはMOOCs-Collect由来テキストが含まれます。",
                 }
             )
@@ -297,11 +313,19 @@ class AioMcpSmokeTests(unittest.TestCase):
         self.assertIn("search_local_resources", report["tools"])
         self.assertIn("search_material_context", report["tools"])
         self.assertEqual(3, report["task_count"])
+        self.assertEqual(1, report["pending_task_count"])
+        self.assertEqual(1, report["task_backlog_count"])
         self.assertEqual(1, report["resource_count"])
         self.assertEqual(1, report["search_result_count"])
         self.assertEqual(1, report["material_context_count"])
+        self.assertEqual(1, report["material_text_snippet_count"])
+        self.assertEqual(0, report["material_metadata_only_count"])
+        self.assertEqual(1, report["lecture_material_count"])
+        self.assertEqual("material:test-1", report["material_detail_id"])
+        self.assertTrue(report["material_detail_checked"])
         self.assertEqual("local-resource:test-1", report["detail_resource_id"])
         self.assertTrue(report["detail_checked"])
+        self.assertTrue(report["resource_summary_checked"])
 
     def test_smoke_fails_when_required_search_is_empty(self) -> None:
         session = RoutedFakeSession(empty_search=True)

@@ -118,6 +118,7 @@ Design note: `docs/design/20260706_v11_mcp_ontology_embedding_experiment.md`
 - MOOCs-Collect AppData/search probes: `python scripts/probe_moocs_collect_files.py`, `python scripts/probe_moocs_collect_search_index.py`, `python scripts/probe_moocs_collect_slide_urls.py`
 - OCR availability probe: `python scripts/probe_pdf_text_extractors.py`
 - Demo fallback: `python scripts/demo_aio_mcp_chat_flow.py`
+- Presentation runbook: `docs/demo/20260707_v12_mcp_demo_runbook.md`
 
 `data/local/`, MOOCs-Collect `db.sqlite`, PDFs, OCR outputs, storage state, cookies, browser profiles, Claude Desktop config, and credentials must not be committed.
 
@@ -128,3 +129,4 @@ Design notes:
 - `docs/design/20260706_v12_chat_ai_mcp_materials_experiment.md`
 - `docs/design/material_text_pipeline.md`
 - `docs/setup/claude_desktop_mcp.md`
+- `docs/demo/20260707_v12_mcp_demo_runbook.md`
