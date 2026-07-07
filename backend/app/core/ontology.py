@@ -18,6 +18,7 @@ ENTITY_TYPE_LECTURE = "lecture"
 
 SOURCE_KIND_FILESYSTEM = "filesystem"
 SOURCE_KIND_MOOCS_COLLECT = "moocs_collect"
+SOURCE_KIND_MOOCS = "moocs"
 SOURCE_KIND_COURSE_RULE = "course_rule"
 SOURCE_KIND_HTML = "html"
 SOURCE_KIND_SLIDES = "slides"
@@ -34,6 +35,7 @@ RESOURCE_KINDS = frozenset(
 SOURCE_KINDS = frozenset(
     {
         SOURCE_KIND_FILESYSTEM,
+        SOURCE_KIND_MOOCS,
         SOURCE_KIND_MOOCS_COLLECT,
         SOURCE_KIND_COURSE_RULE,
         SOURCE_KIND_HTML,
@@ -74,6 +76,8 @@ def normalize_source_kind(value: object, *, fallback: str = SOURCE_KIND_FILESYST
     aliases = {
         "moocs-collect": SOURCE_KIND_MOOCS_COLLECT,
         "moocs_collect": SOURCE_KIND_MOOCS_COLLECT,
+        "moocs": SOURCE_KIND_MOOCS,
+        "moocs_html": SOURCE_KIND_MOOCS,
         "course-rule": SOURCE_KIND_COURSE_RULE,
         "course_rule": SOURCE_KIND_COURSE_RULE,
         "filesystem": SOURCE_KIND_FILESYSTEM,

@@ -1,0 +1,32 @@
+[
+  {
+    "course_title": "情報連携学概論 I",
+    "course_url": "https://moocs.iniad.org/courses/2026/COT105",
+    "fetched_at": "2026-07-07T00:00:00+00:00",
+    "lessons": [
+      {
+        "lesson_title": "第08回 セキュリティ",
+        "lesson_url": "https://moocs.iniad.org/courses/2026/COT105/08",
+        "pages": [
+          {
+            "page_title": "第8回課題 セキュリティ Part1",
+            "page_url": "https://moocs.iniad.org/courses/2026/COT105/08/report-part1",
+            "description": "セキュリティに関するレポート課題です。提出条件はMOOCsページの表示を確認してください。",
+            "submit_button_present": true,
+            "deadline_text_candidates": [
+              "提出期限: 2026-07-14 23:59"
+            ],
+            "keyword_contexts": [
+              "第8回課題 セキュリティ Part1 レポートを提出してください。"
+            ],
+            "submission_format": "pptx or pdf",
+            "content_retrieval_method": "sanitized_fixture",
+            "content_fetched_at": "2026-07-07T00:00:00+00:00",
+            "signin_redirect": false,
+            "materials": []
+          }
+        ]
+      }
+    ]
+  }
+]

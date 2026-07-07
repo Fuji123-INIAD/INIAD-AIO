@@ -15,6 +15,7 @@ RESOURCE_KIND_LABELS = {
 
 SOURCE_KIND_LABELS = {
     "filesystem": "ローカルファイルシステム",
+    "moocs": "MOOCs",
     "moocs_collect": "MOOCs-Collect",
     "course_rule": "授業ルール",
     "html": "MOOCs HTML",

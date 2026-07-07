@@ -20,6 +20,17 @@ class TaskPrototype:
     deadline_note: str
     submission_note: str
     caution_note: str
+    kind: str = "rule_based_candidate"
+    course_title: str | None = None
+    lecture_key: str | None = None
+    lecture_title: str | None = None
+    deadline_confidence: str | None = None
+    submission_confidence: str | None = None
+    submission_format_text: str | None = None
+    submission_format_confidence: str | None = None
+    evidence_type: str | None = None
+    evidence_label: str | None = None
+    evidence_source: str | None = None
 
 
 def generate_course_rule_tasks(course_code: str) -> list[TaskPrototype]:

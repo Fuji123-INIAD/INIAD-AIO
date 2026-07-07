@@ -22,12 +22,14 @@ from backend.app.core.user_task_status import (
 MAX_EVIDENCE_PER_ITEM = 5
 EVIDENCE_TYPE_ORDER = {
     "course_rule": 0,
-    "html": 1,
-    "slides": 2,
+    "moocs": 1,
+    "html": 2,
+    "slides": 3,
 }
 PRIMARY_ACTION_TYPE_ORDER = {
-    "html": 0,
-    "slides": 1,
+    "moocs": 0,
+    "html": 1,
+    "slides": 2,
 }
 EVIDENCE_CONFIDENCE_ORDER = {
     "high": 0,
@@ -70,9 +72,14 @@ class TaskListItem:
     resource_kind: str
     entity_type: str
     source_kind: str
+    kind: str
     course_title: str | None
     lecture_key: str | None
     lecture_title: str | None
+    deadline_confidence: str | None
+    submission_confidence: str | None
+    submission_format_text: str | None
+    submission_format_confidence: str | None
     card_text: str
     evidence: list[TaskEvidence]
     evidence_omitted_count: int
@@ -92,7 +99,7 @@ def compose_task_list_items(
     for task in tasks:
         status = statuses.get(task.task_id) or create_default_status(task.task_id)
         evidence, evidence_omitted_count = prepare_evidence(
-            course_rule_evidence(task) + evidence_for_task(task, extra_evidence)
+            task_source_evidence(task) + evidence_for_task(task, extra_evidence)
         )
         primary_action = select_primary_action(evidence)
         item = TaskListItem(
@@ -119,9 +126,14 @@ def compose_task_list_items(
             ),
             entity_type=ENTITY_TYPE_TASK,
             source_kind=normalize_source_kind(task.source),
-            course_title=display_course_name(task.course_code),
-            lecture_key=None,
-            lecture_title=None,
+            kind=task.kind,
+            course_title=task.course_title or display_course_name(task.course_code),
+            lecture_key=task.lecture_key,
+            lecture_title=task.lecture_title,
+            deadline_confidence=task.deadline_confidence,
+            submission_confidence=task.submission_confidence,
+            submission_format_text=task.submission_format_text,
+            submission_format_confidence=task.submission_format_confidence,
             card_text="",
             evidence=evidence,
             evidence_omitted_count=evidence_omitted_count,
@@ -137,11 +149,22 @@ def compose_task_list_items(
 
 
 def course_rule_evidence(task: TaskPrototype) -> list[TaskEvidence]:
+    return task_source_evidence(task)
+
+
+def task_source_evidence(task: TaskPrototype) -> list[TaskEvidence]:
+    evidence_type = task.evidence_type or normalize_source_kind(task.source)
+    if evidence_type == "course_rule":
+        label = task.evidence_label or f"{task.course_code} course rule"
+        source = task.evidence_source or task.source
+    else:
+        label = task.evidence_label or f"{task.course_code} {evidence_type} task evidence"
+        source = task.evidence_source or task.source
     return [
         TaskEvidence(
-            type="course_rule",
-            label=f"{task.course_code} course rule",
-            source=task.source,
+            type=evidence_type,
+            label=label,
+            source=source,
             confidence=task.confidence,
         )
     ]

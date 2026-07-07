@@ -40,6 +40,7 @@ from backend.app.core.material_search import (
     search_material_chunks,
 )
 from backend.app.core.material_text import material_texts_from_local_resources
+from backend.app.core.moocs_task_candidates import load_moocs_derived_task_prototypes
 from backend.app.core.ontology import (
     ENTITY_TYPE_RESOURCE,
     infer_resource_kind,
@@ -75,6 +76,7 @@ USER_TASK_STATUS_WARNINGS: list[dict[str, str]] = []
 USER_TASK_STATUS_LOADED = False
 USER_TASK_STATUS_PATH = PROJECT_ROOT / "data" / "local" / "user_task_status.json"
 HTML_EVIDENCE_PATH = PROJECT_ROOT / "data" / "probe" / "moocs_course_details.json"
+MOOCS_TASK_CANDIDATES_PATH = PROJECT_ROOT / "data" / "local" / "moocs_task_candidates.json"
 LOCAL_RESOURCE_INDEX_PATH = PROJECT_ROOT / "data" / "local" / "resource_index.json"
 MATERIAL_TEXT_INDEX_PATH = PROJECT_ROOT / "data" / "local" / "material_text_index.json"
 MATERIAL_CHUNK_INDEX_PATH = PROJECT_ROOT / "data" / "local" / "material_chunk_index.json"
@@ -1935,6 +1937,13 @@ def build_rule_task_items(course_codes):
             )
         tasks.extend(course_tasks)
 
+    moocs_tasks, moocs_warnings = load_moocs_derived_task_prototypes(
+        normalized_course_codes,
+        MOOCS_TASK_CANDIDATES_PATH,
+    )
+    tasks.extend(moocs_tasks)
+    warnings.extend(moocs_warnings)
+
     html_evidence, html_warnings = load_html_evidence_by_course(
         normalized_course_codes,
         HTML_EVIDENCE_PATH,
@@ -2074,6 +2083,10 @@ def infer_course_codes_for_task(task_id: str):
         course_code = task_id.split(":", 1)[1].strip()
         if course_code:
             return [course_code]
+    if task_id.startswith("moocs-task:"):
+        parts = task_id.split(":", 2)
+        if len(parts) >= 2 and parts[1].strip():
+            return [parts[1].strip()]
     return []
 
 

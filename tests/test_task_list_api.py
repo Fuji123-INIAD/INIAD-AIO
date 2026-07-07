@@ -24,6 +24,9 @@ class TaskListApiTests(unittest.TestCase):
             Path(self.temp_dir.name) / "user_task_status.json"
         )
         backend_main.HTML_EVIDENCE_PATH = Path(self.temp_dir.name) / "missing.json"
+        backend_main.MOOCS_TASK_CANDIDATES_PATH = (
+            Path(self.temp_dir.name) / "missing_moocs_task_candidates.json"
+        )
         backend_main.MOOCS_COLLECT_DB_PATH = None
         backend_main.USER_TASK_STATUSES.clear()
         backend_main.USER_TASK_STATUS_WARNINGS.clear()
@@ -243,6 +246,78 @@ class TaskListApiTests(unittest.TestCase):
         data = response.json()
         self.assertEqual("todo", data["items"][0]["status"])
         self.assertTrue(data["warnings"])
+
+    def test_cot105_can_include_moocs_derived_task_candidates(self) -> None:
+        backend_main.MOOCS_TASK_CANDIDATES_PATH = (
+            Path(__file__).parent / "fixtures" / "moocs_cot105_task_candidates_sanitized.json"
+        )
+
+        response = self.client.get("/api/tasks", params=[("course_code", "COT105")])
+
+        self.assertEqual(200, response.status_code)
+        data = response.json()
+        self.assertEqual(2, data["task_count"])
+        sources = {item["source"] for item in data["items"]}
+        self.assertEqual({"course_rule", "moocs"}, sources)
+        moocs_item = next(item for item in data["items"] if item["source"] == "moocs")
+        self.assertTrue(moocs_item["task_id"].startswith("moocs-task:COT105:"))
+        self.assertEqual("moocs", moocs_item["source_kind"])
+        self.assertEqual("moocs_submission", moocs_item["kind"])
+        self.assertEqual("high", moocs_item["confidence"])
+        self.assertEqual("unknown", moocs_item["deadline_rule"])
+        self.assertEqual("low", moocs_item["deadline_confidence"])
+        self.assertEqual("moocs", moocs_item["submission_channel"])
+        self.assertEqual("medium", moocs_item["submission_confidence"])
+        self.assertEqual("pptx or pdf", moocs_item["submission_format_text"])
+        self.assertEqual("medium", moocs_item["submission_format_confidence"])
+        self.assertEqual("第8回課題 セキュリティ Part1", moocs_item["primary_action_label"])
+        self.assertEqual(
+            "https://moocs.iniad.org/courses/2026/COT105/08/report-part1",
+            moocs_item["primary_action_url"],
+        )
+        evidence = moocs_item["evidence"]
+        self.assertEqual("moocs", evidence[0]["type"])
+        self.assertEqual("high", evidence[0]["confidence"])
+        self.assertNotIn("source", evidence[0])
+
+    def test_pending_tasks_preserves_moocs_source_fields(self) -> None:
+        backend_main.MOOCS_TASK_CANDIDATES_PATH = (
+            Path(__file__).parent / "fixtures" / "moocs_cot105_task_candidates_sanitized.json"
+        )
+
+        response = self.client.get("/api/tasks/pending", params=[("course_code", "COT105")])
+
+        self.assertEqual(200, response.status_code)
+        data = response.json()
+        moocs_item = next(item for item in data["items"] if item["source"] == "moocs")
+        self.assertEqual("moocs", moocs_item["source_kind"])
+        self.assertEqual("moocs_submission", moocs_item["kind"])
+        self.assertEqual("high", moocs_item["confidence"])
+        self.assertIn("MOOCs deadline text candidate", moocs_item["deadline_text"])
+        self.assertEqual("low", moocs_item["deadline_confidence"])
+        self.assertEqual("pptx or pdf", moocs_item["submission_format_text"])
+        self.assertEqual("medium", moocs_item["submission_format_confidence"])
+        self.assertTrue(moocs_item["primary_action_url"])
+        self.assertTrue(moocs_item["evidence_url"].startswith("/api/tasks/moocs-task:COT105:"))
+
+    def test_moocs_task_evidence_detail_includes_full_source(self) -> None:
+        backend_main.MOOCS_TASK_CANDIDATES_PATH = (
+            Path(__file__).parent / "fixtures" / "moocs_cot105_task_candidates_sanitized.json"
+        )
+        list_response = self.client.get("/api/tasks", params=[("course_code", "COT105")])
+        moocs_item = next(
+            item for item in list_response.json()["items"] if item["source"] == "moocs"
+        )
+
+        response = self.client.get(f"/api/tasks/{moocs_item['task_id']}/evidence")
+
+        self.assertEqual(200, response.status_code)
+        evidence = response.json()["evidence"]
+        self.assertEqual("moocs", evidence[0]["type"])
+        self.assertEqual(
+            "https://moocs.iniad.org/courses/2026/COT105/08/report-part1",
+            evidence[0]["source"],
+        )
 
 
 if __name__ == "__main__":
