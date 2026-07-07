@@ -158,6 +158,38 @@ class AioMcpClient:
     def summarize_local_resource(self, resource_id: str) -> dict[str, Any]:
         return self.get_material_context(resource_id, include_full_text=False)
 
+    def prepare_course_context(
+        self,
+        query: str,
+        *,
+        course_code: str | None = None,
+        course_title: str | None = None,
+        lecture_key: str | None = None,
+        lecture_title: str | None = None,
+        source_type: str | None = None,
+        mode: str = "hybrid",
+        material_limit: int = 8,
+        task_limit: int = 8,
+        snippet_chars: int = 360,
+    ) -> dict[str, Any]:
+        return self._get_json(
+            "/api/context/ai-pack",
+            params=_compact_params(
+                {
+                    "q": query,
+                    "course_code": course_code,
+                    "course_title": course_title,
+                    "lecture_key": lecture_key,
+                    "lecture_title": lecture_title,
+                    "source_type": source_type,
+                    "mode": mode,
+                    "material_limit": material_limit,
+                    "task_limit": task_limit,
+                    "snippet_chars": snippet_chars,
+                }
+            ),
+        )
+
 
 TOOL_DEFINITIONS: list[dict[str, Any]] = [
     {
@@ -321,6 +353,33 @@ TOOL_DEFINITIONS: list[dict[str, Any]] = [
             "properties": {"resource_id": {"type": "string"}},
         },
     },
+    {
+        "name": "prepare_course_context",
+        "description": (
+            "Return an AI-ready context pack combining pending task candidates "
+            "and lecture-material snippets with provenance, confidence, and cautions."
+        ),
+        "inputSchema": {
+            "type": "object",
+            "required": ["query"],
+            "properties": {
+                "query": {"type": "string"},
+                "course_code": {"type": "string"},
+                "course_title": {"type": "string"},
+                "lecture_key": {"type": "string"},
+                "lecture_title": {"type": "string"},
+                "source_type": {"type": "string"},
+                "mode": {
+                    "type": "string",
+                    "enum": ["keyword", "semantic", "hybrid"],
+                    "default": "hybrid",
+                },
+                "material_limit": {"type": "integer", "minimum": 1, "maximum": 50, "default": 8},
+                "task_limit": {"type": "integer", "minimum": 1, "maximum": 20, "default": 8},
+                "snippet_chars": {"type": "integer", "minimum": 120, "maximum": 1200, "default": 360},
+            },
+        },
+    },
 ]
 
 
@@ -338,7 +397,7 @@ class MinimalMcpServer:
                 result = {
                     "protocolVersion": "2024-11-05",
                     "capabilities": {"tools": {}},
-                    "serverInfo": {"name": "iniad-aio", "version": "1.2-experimental"},
+                    "serverInfo": {"name": "iniad-aio", "version": "1.4-experimental"},
                 }
             elif method == "tools/list":
                 result = {"tools": TOOL_DEFINITIONS}
@@ -441,6 +500,20 @@ def call_aio_tool(
     if name == "summarize_local_resource":
         resource_id = _required_string(arguments, "resource_id")
         return client.summarize_local_resource(resource_id)
+    if name == "prepare_course_context":
+        query = _required_string(arguments, "query")
+        return client.prepare_course_context(
+            query=query,
+            course_code=_optional_string(arguments.get("course_code")),
+            course_title=_optional_string(arguments.get("course_title")),
+            lecture_key=_optional_string(arguments.get("lecture_key")),
+            lecture_title=_optional_string(arguments.get("lecture_title")),
+            source_type=_optional_string(arguments.get("source_type")),
+            mode=str(arguments.get("mode") or "hybrid"),
+            material_limit=int(arguments.get("material_limit") or 8),
+            task_limit=int(arguments.get("task_limit") or 8),
+            snippet_chars=int(arguments.get("snippet_chars") or 360),
+        )
     raise ValueError(f"Unknown tool: {name}")
 
 

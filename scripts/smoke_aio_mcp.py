@@ -31,6 +31,7 @@ REQUIRED_TOOLS = {
     "get_material_context",
     "search_lecture_materials",
     "summarize_local_resource",
+    "prepare_course_context",
 }
 
 
@@ -167,6 +168,28 @@ def run_smoke(
             "Use --allow-metadata-only-material-context for metadata fallback checks."
         )
 
+    ai_context_payload = _tool_payload(
+        server,
+        54,
+        "prepare_course_context",
+        {
+            "query": query,
+            "course_title": "情報連携学概論 I",
+            "lecture_key": "08",
+            "mode": mode,
+            "material_limit": limit,
+            "task_limit": 8,
+        },
+    )
+    ai_context_counts = _assert_ai_context_pack(ai_context_payload)
+    if require_material_context and ai_context_counts["material_total"] <= 0:
+        raise SmokeFailure("prepare_course_context returned no material context")
+    if require_text_snippets and ai_context_counts["material_text"] <= 0:
+        raise SmokeFailure(
+            "prepare_course_context returned no text snippets. "
+            "Use --allow-metadata-only-material-context for metadata fallback checks."
+        )
+
     lecture_payload = _tool_payload(
         server,
         52,
@@ -235,6 +258,10 @@ def run_smoke(
         "material_context_count": len(material_items),
         "material_text_snippet_count": material_counts["text"],
         "material_metadata_only_count": material_counts["metadata"],
+        "ai_context_task_count": ai_context_counts["tasks"],
+        "ai_context_material_count": ai_context_counts["material_total"],
+        "ai_context_text_snippet_count": ai_context_counts["material_text"],
+        "ai_context_metadata_only_count": ai_context_counts["material_metadata"],
         "lecture_material_count": len(lecture_items),
         "material_detail_id": detail_material_id,
         "material_detail_checked": material_detail_payload is not None,
@@ -423,6 +450,52 @@ def _assert_material_item_metadata(item: dict[str, Any], tool_name: str) -> None
         raise SmokeFailure(
             f"{tool_name} item is missing text_available/chunk_type metadata-only indicator"
         )
+
+
+def _assert_ai_context_pack(payload: dict[str, Any]) -> dict[str, int]:
+    if payload.get("pack_type") != "ai_ready_task_material_context":
+        raise SmokeFailure("prepare_course_context returned an unexpected pack_type")
+    if not str(payload.get("instructions") or "").strip():
+        raise SmokeFailure("prepare_course_context returned no AI instructions")
+    cautions = payload.get("cautions")
+    if not isinstance(cautions, list) or not cautions:
+        raise SmokeFailure("prepare_course_context returned no cautions")
+    tasks = payload.get("tasks")
+    materials = payload.get("materials")
+    if not isinstance(tasks, dict):
+        raise SmokeFailure("prepare_course_context returned no tasks object")
+    if not isinstance(materials, dict):
+        raise SmokeFailure("prepare_course_context returned no materials object")
+    rule_tasks = _object_list(tasks.get("rule_based"), "tasks.rule_based")
+    moocs_tasks = _object_list(tasks.get("moocs_derived"), "tasks.moocs_derived")
+    other_tasks = _object_list(tasks.get("other"), "tasks.other")
+    text_snippets = _object_list(materials.get("text_snippets"), "materials.text_snippets")
+    metadata_only = _object_list(materials.get("metadata_only"), "materials.metadata_only")
+    for item in [*rule_tasks, *moocs_tasks, *other_tasks]:
+        for key in ("source", "source_kind", "kind", "confidence"):
+            if not str(item.get(key) or "").strip():
+                raise SmokeFailure(f"prepare_course_context task is missing {key}")
+    for item in [*text_snippets, *metadata_only]:
+        for key in ("provider", "source_type", "extraction_method", "confidence"):
+            if not str(item.get(key) or "").strip():
+                raise SmokeFailure(f"prepare_course_context material is missing {key}")
+        if item in metadata_only and item.get("metadata_only") is not True:
+            raise SmokeFailure("prepare_course_context metadata fallback is not marked")
+    return {
+        "tasks": len(rule_tasks) + len(moocs_tasks) + len(other_tasks),
+        "material_total": len(text_snippets) + len(metadata_only),
+        "material_text": len(text_snippets),
+        "material_metadata": len(metadata_only),
+    }
+
+
+def _object_list(value: Any, label: str) -> list[dict[str, Any]]:
+    if not isinstance(value, list):
+        raise SmokeFailure(f"prepare_course_context returned no {label} array")
+    items = [item for item in value if isinstance(item, dict)]
+    if len(items) != len(value):
+        raise SmokeFailure(f"prepare_course_context returned a non-object in {label}")
+    return items
 
 
 def _material_item_counts(items: list[dict[str, Any]]) -> dict[str, int]:

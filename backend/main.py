@@ -24,6 +24,7 @@ if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 
 from ai_module import generate_answer
+from backend.app.core.ai_context_pack import build_ai_ready_context_pack
 from backend.app.core.context_cards import build_local_resource_card
 from backend.app.core.context_pack import MATERIAL_SEARCH_CAUTION
 from backend.app.core.course_rules import normalize_course_code
@@ -2753,6 +2754,72 @@ def search_context(
         }
     pack["warnings"] = warnings
     return pack
+
+
+@app.get("/api/context/ai-pack")
+def get_ai_context_pack(
+    q: str = "",
+    mode: str = "hybrid",
+    material_limit: int = 8,
+    task_limit: int = 8,
+    snippet_chars: int = 360,
+    course_code: str | None = None,
+    course_title: str | None = None,
+    lecture_key: str | None = None,
+    lecture_title: str | None = None,
+    source_type: str | None = None,
+):
+    query = q.strip()
+    if not query:
+        return {
+            "status": "error",
+            "detail": "query parameter q is required",
+            "query": query,
+            "caution": MATERIAL_SEARCH_CAUTION,
+        }
+
+    course_codes = [course_code] if course_code else ["COT101", "SEM101", "COT105"]
+    task_payload = build_pending_tasks_payload(build_rule_task_list_response(course_codes))
+    chunks, warnings = load_chunks_for_api()
+    try:
+        material_payload = search_context_pack(
+            chunks,
+            query=query,
+            mode=mode,
+            limit=max(1, min(material_limit, 50)),
+            filters=material_search_filters(
+                course_code,
+                course_title,
+                lecture_key,
+                lecture_title,
+                source_type,
+                None,
+                None,
+            ),
+        )
+    except ValueError as exc:
+        return {
+            "status": "error",
+            "detail": str(exc),
+            "query": query,
+            "caution": MATERIAL_SEARCH_CAUTION,
+        }
+    material_payload["warnings"] = warnings
+    return build_ai_ready_context_pack(
+        query=query,
+        task_payload=task_payload,
+        material_payload=material_payload,
+        filters={
+            "course_code": course_code,
+            "course_title": course_title,
+            "lecture_key": lecture_key,
+            "lecture_title": lecture_title,
+            "source_type": source_type,
+            "mode": mode,
+        },
+        task_limit=task_limit,
+        snippet_chars=snippet_chars,
+    )
 
 
 @app.get("/api/materials/{material_id}/chunks")

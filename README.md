@@ -130,3 +130,14 @@ Design notes:
 - `docs/design/material_text_pipeline.md`
 - `docs/setup/claude_desktop_mcp.md`
 - `docs/demo/20260707_v12_mcp_demo_runbook.md`
+
+## v1.4 experimental
+
+`feature/v1.4-ai-ready-mcp-context` adds an AI-ready MCP context pack that combines pending task candidates and lecture-material snippets.
+
+- New API: `/api/context/ai-pack`
+- New MCP tool: `prepare_course_context`
+- The pack separates `tasks.rule_based`, `tasks.moocs_derived`, `materials.text_snippets`, and `materials.metadata_only`.
+- Source, source kind, provider, source type, extraction method, confidence, cautions, and open URLs are preserved for downstream chat AI use.
+
+Design note: `docs/design/20260708_v14_ai_ready_mcp_context.md`

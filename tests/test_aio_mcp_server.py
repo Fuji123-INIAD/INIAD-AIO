@@ -143,6 +143,78 @@ class RoutedFakeSession:
                     "caution": "検索対象にはMOOCs-Collect由来テキストが含まれます。",
                 }
             )
+        if path == "/api/context/ai-pack":
+            return FakeResponse(
+                {
+                    "status": "ok",
+                    "pack_type": "ai_ready_task_material_context",
+                    "query": params["q"],
+                    "summary": "AI-ready context for security.",
+                    "instructions": "Use only facts present in this tool result.",
+                    "tasks": {
+                        "summary": "1 pending task",
+                        "count": 1,
+                        "rule_based": [
+                            {
+                                "task_id": "course-rule:COT105",
+                                "course_code": "COT105",
+                                "course_title": "情報連携学概論 I",
+                                "title": "COT105 課題",
+                                "source": "course_rule",
+                                "source_kind": "course_rule",
+                                "kind": "rule_based_candidate",
+                                "confidence": "medium",
+                                "deadline_text": "unknown",
+                                "deadline_confidence": "unknown",
+                                "submission_text": "MOOCs",
+                                "submission_confidence": "medium",
+                                "open_url": None,
+                                "evidence_summary": "COT105 course rule (medium)",
+                                "evidence_url": "/api/tasks/course-rule:COT105/evidence",
+                                "caution": TASK_BACKLOG_CAUTION,
+                            }
+                        ],
+                        "moocs_derived": [],
+                        "other": [],
+                        "caution": TASK_BACKLOG_CAUTION,
+                    },
+                    "materials": {
+                        "summary": "1 material snippet",
+                        "query": params["q"],
+                        "mode": params["mode"],
+                        "text_snippets": [
+                            {
+                                "material_id": "material:test-1",
+                                "chunk_id": "chunk:test-1",
+                                "source_label": "情報連携学概論 I / 第08回 セキュリティ / security.pdf",
+                                "source_kind": "moocs_collect",
+                                "provider": "moocs_collect",
+                                "source_type": "moocs_collect_slide_text",
+                                "extraction_method": "search_index",
+                                "chunk_type": "slide",
+                                "metadata_only": False,
+                                "text_available": True,
+                                "confidence": "medium",
+                                "open_url": "/api/local/resources/local-resource%3Atest-1/file",
+                                "snippet": "暗号とセキュリティ",
+                            }
+                        ],
+                        "metadata_only": [],
+                        "counts": {
+                            "total": 1,
+                            "text_snippets": 1,
+                            "metadata_only": 0,
+                        },
+                        "caution": "検索対象にはMOOCs-Collect由来テキストが含まれます。",
+                    },
+                    "cautions": [
+                        "AIO is a local context provider.",
+                        TASK_BACKLOG_CAUTION,
+                        "検索対象にはMOOCs-Collect由来テキストが含まれます。",
+                    ],
+                    "warnings": [],
+                }
+            )
         if path == "/api/materials/material%3Atest-1":
             return FakeResponse(
                 {
@@ -296,6 +368,31 @@ class AioMcpServerTests(unittest.TestCase):
         self.assertEqual(1, len(search["items"]))
         self.assertEqual("security.pdf", detail["material"]["title"])
 
+    def test_prepare_course_context_tool_calls_ai_pack_endpoint(self) -> None:
+        session = RoutedFakeSession()
+        client = AioMcpClient(base_url="http://aio.test", session=session)
+
+        pack = call_aio_tool(
+            client,
+            "prepare_course_context",
+            {
+                "query": "セキュリティ",
+                "course_title": "情報連携学概論 I",
+                "lecture_key": "08",
+                "mode": "hybrid",
+                "material_limit": 3,
+            },
+        )
+
+        self.assertEqual("ok", pack["status"])
+        self.assertEqual("ai_ready_task_material_context", pack["pack_type"])
+        self.assertEqual(1, len(pack["tasks"]["rule_based"]))
+        self.assertEqual(1, len(pack["materials"]["text_snippets"]))
+        call = session.calls[0]
+        self.assertEqual("http://aio.test/api/context/ai-pack", call["url"])
+        self.assertEqual("セキュリティ", call["params"]["q"])
+        self.assertEqual("情報連携学概論 I", call["params"]["course_title"])
+
 
 class AioMcpSmokeTests(unittest.TestCase):
     def test_smoke_runs_initialize_tools_and_demo_tool_calls(self) -> None:
@@ -312,6 +409,7 @@ class AioMcpSmokeTests(unittest.TestCase):
         self.assertIn("list_pending_tasks", report["tools"])
         self.assertIn("search_local_resources", report["tools"])
         self.assertIn("search_material_context", report["tools"])
+        self.assertIn("prepare_course_context", report["tools"])
         self.assertEqual(3, report["task_count"])
         self.assertEqual(1, report["pending_task_count"])
         self.assertEqual(1, report["task_backlog_count"])
@@ -320,6 +418,10 @@ class AioMcpSmokeTests(unittest.TestCase):
         self.assertEqual(1, report["material_context_count"])
         self.assertEqual(1, report["material_text_snippet_count"])
         self.assertEqual(0, report["material_metadata_only_count"])
+        self.assertEqual(1, report["ai_context_task_count"])
+        self.assertEqual(1, report["ai_context_material_count"])
+        self.assertEqual(1, report["ai_context_text_snippet_count"])
+        self.assertEqual(0, report["ai_context_metadata_only_count"])
         self.assertEqual(1, report["lecture_material_count"])
         self.assertEqual("material:test-1", report["material_detail_id"])
         self.assertTrue(report["material_detail_checked"])
