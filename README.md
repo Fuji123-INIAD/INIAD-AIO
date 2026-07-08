@@ -137,6 +137,7 @@ Design notes:
 
 - New API: `/api/context/ai-pack`
 - New MCP tool: `prepare_course_context`
+- The API returns the full JSON pack; Claude Desktop MCP calls receive a short sanitized Markdown summary.
 - The pack separates `tasks.rule_based`, `tasks.moocs_derived`, `materials.text_snippets`, and `materials.metadata_only`.
 - Source, source kind, provider, source type, extraction method, confidence, cautions, and open URLs are preserved for downstream chat AI use.
 

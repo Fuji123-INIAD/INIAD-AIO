@@ -187,6 +187,9 @@ class RoutedFakeSession:
                                 "material_id": "material:test-1",
                                 "chunk_id": "chunk:test-1",
                                 "source_label": "情報連携学概論 I / 第08回 セキュリティ / security.pdf",
+                                "course_title": "情報連携学概論 I",
+                                "lecture_title": "第08回 セキュリティ",
+                                "title": "security.pdf",
                                 "source_kind": "moocs_collect",
                                 "provider": "moocs_collect",
                                 "source_type": "moocs_collect_slide_text",
@@ -199,11 +202,27 @@ class RoutedFakeSession:
                                 "snippet": "暗号とセキュリティ",
                             }
                         ],
-                        "metadata_only": [],
+                        "metadata_only": [
+                            {
+                                "material_id": "material:metadata-1",
+                                "chunk_id": "chunk:metadata-1",
+                                "source_label": "情報連携学概論 I / 第08回 セキュリティ / metadata",
+                                "title": "metadata row",
+                                "source_kind": "moocs_collect",
+                                "provider": "moocs_collect_db_metadata",
+                                "source_type": "pdf_metadata",
+                                "extraction_method": "metadata_only",
+                                "chunk_type": "metadata",
+                                "metadata_only": True,
+                                "text_available": False,
+                                "confidence": "low",
+                                "warnings": [{"message": "本文は未取得です。"}],
+                            }
+                        ],
                         "counts": {
-                            "total": 1,
+                            "total": 2,
                             "text_snippets": 1,
-                            "metadata_only": 0,
+                            "metadata_only": 1,
                         },
                         "caution": "検索対象にはMOOCs-Collect由来テキストが含まれます。",
                     },
@@ -388,10 +407,55 @@ class AioMcpServerTests(unittest.TestCase):
         self.assertEqual("ai_ready_task_material_context", pack["pack_type"])
         self.assertEqual(1, len(pack["tasks"]["rule_based"]))
         self.assertEqual(1, len(pack["materials"]["text_snippets"]))
+        self.assertEqual(1, len(pack["materials"]["metadata_only"]))
         call = session.calls[0]
         self.assertEqual("http://aio.test/api/context/ai-pack", call["url"])
         self.assertEqual("セキュリティ", call["params"]["q"])
         self.assertEqual("情報連携学概論 I", call["params"]["course_title"])
+
+    def test_json_rpc_prepare_course_context_returns_compact_text(self) -> None:
+        session = RoutedFakeSession()
+        server = MinimalMcpServer(
+            AioMcpClient(base_url="http://aio.test", session=session)
+        )
+
+        response = server.handle_request(
+            {
+                "jsonrpc": "2.0",
+                "id": 1,
+                "method": "tools/call",
+                "params": {
+                    "name": "prepare_course_context",
+                    "arguments": {"query": "セキュリティ", "mode": "hybrid"},
+                },
+            }
+        )
+
+        self.assertIsNotNone(response)
+        result = response["result"]
+        content = result["content"]
+        self.assertIsInstance(content, list)
+        text = content[0]["text"]
+        self.assertIsInstance(text, str)
+        for fragment in (
+            "AI-ready context pack",
+            "課題候補",
+            "講義資料snippet",
+            "metadata-only",
+            "caution",
+            "provider",
+            "extraction_method",
+        ):
+            self.assertIn(fragment, text)
+        self.assertLessEqual(len(text), 10000)
+        for character in text:
+            self.assertFalse(ord(character) < 32 and character not in "\n\r\t")
+        structured = result["structuredContent"]
+        self.assertEqual("compact_markdown", structured["format"])
+        self.assertEqual(1, structured["counts"]["tasks"])
+        self.assertEqual(1, structured["counts"]["text_snippets"])
+        self.assertEqual(1, structured["counts"]["metadata_only"])
+        self.assertNotIn("tasks", structured)
 
 
 class AioMcpSmokeTests(unittest.TestCase):
@@ -419,9 +483,9 @@ class AioMcpSmokeTests(unittest.TestCase):
         self.assertEqual(1, report["material_text_snippet_count"])
         self.assertEqual(0, report["material_metadata_only_count"])
         self.assertEqual(1, report["ai_context_task_count"])
-        self.assertEqual(1, report["ai_context_material_count"])
+        self.assertEqual(2, report["ai_context_material_count"])
         self.assertEqual(1, report["ai_context_text_snippet_count"])
-        self.assertEqual(0, report["ai_context_metadata_only_count"])
+        self.assertEqual(1, report["ai_context_metadata_only_count"])
         self.assertEqual(1, report["lecture_material_count"])
         self.assertEqual("material:test-1", report["material_detail_id"])
         self.assertTrue(report["material_detail_checked"])

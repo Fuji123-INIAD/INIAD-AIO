@@ -15,6 +15,10 @@ The backing API is:
 
 - `GET /api/context/ai-pack`
 
+The API keeps returning the full JSON pack. The MCP `tools/call` response for
+`prepare_course_context` formats that pack into short sanitized Markdown for
+Claude Desktop, with only compact count metadata in `structuredContent`.
+
 Existing tools remain compatible:
 
 - `list_tasks`
@@ -67,6 +71,12 @@ Top-level fields:
 - `materials.metadata_only`: metadata-only fallback entries
 - `cautions`: task, material, and overall caution strings
 - `warnings`: loader/index warnings
+
+This is the API shape, not the Claude Desktop text shape. For MCP clients,
+`prepare_course_context` returns Markdown sections named `AI-ready context pack`,
+`課題候補`, `講義資料snippet`, `metadata-only fallback`, and `cautions`. Snippets
+are capped to about 240 characters, control characters are stripped, and the
+overall text is bounded so stdio JSON-RPC is not flooded with the full pack.
 
 Task entries preserve:
 

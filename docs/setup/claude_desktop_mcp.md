@@ -39,27 +39,34 @@ raw lecture text dumps.
 ## MCP Server Command
 
 Use the absolute repo path in Claude Desktop config. Do not commit your real config file.
+On Windows, the `cmd.exe` wrapper below keeps the code page and Python stdio on
+UTF-8 before the MCP server starts. The MCP server writes only JSON-RPC protocol
+messages to stdout.
 
 ```json
 {
   "mcpServers": {
     "iniad-aio": {
-      "command": "C:\\path\\to\\INIAD-AIO\\.venv\\Scripts\\python.exe",
+      "command": "C:\\Windows\\System32\\cmd.exe",
       "args": [
-        "-m",
-        "backend.app.mcp.aio_server",
-        "--base-url",
-        "http://127.0.0.1:8000"
+        "/d",
+        "/c",
+        "chcp 65001 >NUL && cd /d C:\\path\\to\\INIAD-AIO && set PYTHONPATH=C:\\path\\to\\INIAD-AIO&& set PYTHONUTF8=1&& set PYTHONIOENCODING=utf-8&& set PYTHONUNBUFFERED=1&& .venv\\Scripts\\python.exe -X utf8 -m backend.app.mcp.aio_server --base-url http://127.0.0.1:8000"
       ],
       "env": {
         "PYTHONPATH": "C:\\path\\to\\INIAD-AIO",
         "PYTHONUTF8": "1",
-        "PYTHONIOENCODING": "utf-8"
+        "PYTHONIOENCODING": "utf-8",
+        "PYTHONUNBUFFERED": "1"
       }
     }
   }
 }
 ```
+
+`prepare_course_context` calls `GET /api/context/ai-pack` internally, but Claude
+Desktop receives a short sanitized Markdown result instead of the full JSON
+pack. The API endpoint still returns the full JSON pack for scripts and tests.
 
 ## Smoke
 

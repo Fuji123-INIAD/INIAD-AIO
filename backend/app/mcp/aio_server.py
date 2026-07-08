@@ -11,6 +11,11 @@ from urllib.parse import quote, urljoin
 
 import requests
 
+from backend.app.core.ai_context_pack import (
+    format_ai_context_pack_for_mcp,
+    summarize_ai_context_pack_for_mcp,
+)
+
 
 DEFAULT_BASE_URL = "http://127.0.0.1:8000"
 DEFAULT_TASK_COURSE_CODES = ("COT101", "SEM101", "COT105")
@@ -420,6 +425,20 @@ class MinimalMcpServer:
             raise ValueError("tool arguments must be an object")
 
         data = call_aio_tool(self.client, name, arguments)
+        if name == "prepare_course_context":
+            rendered_text = format_ai_context_pack_for_mcp(data)
+            return {
+                "content": [
+                    {
+                        "type": "text",
+                        "text": rendered_text,
+                    }
+                ],
+                "structuredContent": summarize_ai_context_pack_for_mcp(
+                    data,
+                    rendered_text,
+                ),
+            }
         return {
             "content": [
                 {
@@ -544,8 +563,15 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
 
 
 def main(argv: list[str] | None = None) -> None:
+    configure_stdio_for_utf8()
     args = parse_args(argv)
     run_stdio_server(MinimalMcpServer(AioMcpClient(base_url=args.base_url)))
+
+
+def configure_stdio_for_utf8() -> None:
+    for stream in (sys.stdin, sys.stdout, sys.stderr):
+        if hasattr(stream, "reconfigure"):
+            stream.reconfigure(encoding="utf-8", errors="replace")
 
 
 def _required_string(arguments: dict[str, Any], key: str) -> str:

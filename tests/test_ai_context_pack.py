@@ -8,7 +8,11 @@ from pathlib import Path
 
 from fastapi.testclient import TestClient
 
-from backend.app.core.ai_context_pack import build_ai_ready_context_pack
+from backend.app.core.ai_context_pack import (
+    build_ai_ready_context_pack,
+    format_ai_context_pack_for_mcp,
+    summarize_ai_context_pack_for_mcp,
+)
 from scripts.evaluate_material_search import build_fixture_chunks
 
 
@@ -128,6 +132,81 @@ class AiContextPackCoreTests(unittest.TestCase):
         self.assertLessEqual(len(pack["materials"]["text_snippets"][0]["snippet"]), 120)
         self.assertTrue(pack["materials"]["metadata_only"][0]["metadata_only"])
         self.assertEqual(3, len(pack["cautions"]))
+
+    def test_format_ai_context_pack_for_mcp_returns_sanitized_markdown(self) -> None:
+        pack = {
+            "status": "ok",
+            "pack_type": "ai_ready_task_material_context",
+            "query": "セキュリティ\x00",
+            "summary": "AI-ready context for security.\x01",
+            "tasks": {
+                "count": 1,
+                "rule_based": [
+                    {
+                        "title": "COT105 課題\x00",
+                        "course_title": "情報連携学概論 I",
+                        "confidence": "medium",
+                        "caution": "公式締切はMOOCsで確認すること。\x02",
+                    }
+                ],
+                "moocs_derived": [],
+                "other": [],
+                "caution": "task caution",
+            },
+            "materials": {
+                "text_snippets": [
+                    {
+                        "title": "security.pdf",
+                        "course_title": "情報連携学概論 I",
+                        "lecture_title": "第08回 セキュリティ",
+                        "provider": "moocs_collect",
+                        "source_type": "moocs_collect_slide_text",
+                        "extraction_method": "search_index",
+                        "confidence": "medium",
+                        "snippet": "暗号とセキュリティ\x00 " + ("長い本文 " * 80),
+                    }
+                ],
+                "metadata_only": [
+                    {
+                        "title": "metadata-only row",
+                        "provider": "moocs_collect_db_metadata",
+                        "extraction_method": "metadata_only",
+                        "text_available": False,
+                        "warnings": [{"message": "本文は未取得\x03"}],
+                    }
+                ],
+                "counts": {
+                    "total": 2,
+                    "text_snippets": 1,
+                    "metadata_only": 1,
+                },
+                "caution": "material caution",
+            },
+            "cautions": ["AIO is a local context provider.", "material caution"],
+            "warnings": [],
+        }
+
+        text = format_ai_context_pack_for_mcp(pack)
+        summary = summarize_ai_context_pack_for_mcp(pack, text)
+
+        self.assertIsInstance(text, str)
+        for fragment in (
+            "AI-ready context pack",
+            "課題候補",
+            "講義資料snippet",
+            "metadata-only",
+            "caution",
+            "provider",
+            "extraction_method",
+        ):
+            self.assertIn(fragment, text)
+        self.assertLessEqual(len(text), 10000)
+        for character in text:
+            self.assertFalse(ord(character) < 32 and character not in "\n\r\t")
+        self.assertEqual("compact_markdown", summary["format"])
+        self.assertEqual(1, summary["counts"]["tasks"])
+        self.assertEqual(1, summary["counts"]["text_snippets"])
+        self.assertEqual(1, summary["counts"]["metadata_only"])
 
 
 class AiContextPackApiTests(unittest.TestCase):

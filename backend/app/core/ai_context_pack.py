@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import re
 from typing import Any
 
 from backend.app.core.context_pack import MATERIAL_SEARCH_CAUTION
@@ -19,6 +20,13 @@ AI_CONTEXT_CAUTION = (
 )
 DEFAULT_SNIPPET_CHARS = 360
 MAX_SNIPPET_CHARS = 1200
+MCP_FORMAT_MAX_CHARS = 10000
+MCP_TASK_LIMIT = 8
+MCP_TEXT_SNIPPET_LIMIT = 5
+MCP_METADATA_ONLY_LIMIT = 3
+MCP_CAUTION_LIMIT = 5
+MCP_FIELD_TEXT_CHARS = 160
+MCP_SNIPPET_CHARS = 240
 
 
 def build_ai_ready_context_pack(
@@ -90,6 +98,220 @@ def build_ai_ready_context_pack(
             *safe_warning_list(material_payload.get("warnings")),
         ],
     }
+
+
+def format_ai_context_pack_for_mcp(
+    pack: dict[str, Any],
+    *,
+    max_chars: int = MCP_FORMAT_MAX_CHARS,
+) -> str:
+    """Return a short, sanitized Markdown summary safe for MCP stdio clients."""
+    tasks = pack.get("tasks") if isinstance(pack.get("tasks"), dict) else {}
+    materials = pack.get("materials") if isinstance(pack.get("materials"), dict) else {}
+    task_candidates = [
+        *_object_items(tasks.get("rule_based")),
+        *_object_items(tasks.get("moocs_derived")),
+        *_object_items(tasks.get("other")),
+    ]
+    text_snippets = _object_items(materials.get("text_snippets"))
+    metadata_only = _object_items(materials.get("metadata_only"))
+    material_counts = materials.get("counts") if isinstance(materials.get("counts"), dict) else {}
+
+    task_count = _int_or_len(tasks.get("count"), task_candidates)
+    text_count = _int_or_len(_material_count_value(material_counts, "text_snippets"), text_snippets)
+    metadata_count = _int_or_len(_material_count_value(material_counts, "metadata_only"), metadata_only)
+
+    lines = [
+        "# AI-ready context pack",
+        f"- query: {_clean_text(pack.get('query'), MCP_FIELD_TEXT_CHARS)}",
+        f"- task candidates count: {task_count}",
+        f"- text snippets count: {text_count}",
+        f"- metadata-only fallback count: {metadata_count}",
+    ]
+
+    summary = _clean_text(pack.get("summary"), 280)
+    if summary:
+        lines.append(f"- summary: {summary}")
+
+    lines.extend(["", "## 課題候補"])
+    if not task_candidates:
+        lines.append("- none")
+    for index, item in enumerate(task_candidates[:MCP_TASK_LIMIT], start=1):
+        lines.extend(
+            [
+                f"{index}. title: {_clean_text(item.get('title'), MCP_FIELD_TEXT_CHARS)}",
+                f"   course_title: {_clean_text(item.get('course_title'), MCP_FIELD_TEXT_CHARS)}",
+                f"   confidence: {_clean_text(item.get('confidence'), 80)}",
+                f"   caution: {_clean_text(item.get('caution') or tasks.get('caution'), 220)}",
+            ]
+        )
+
+    lines.extend(["", "## 講義資料snippet"])
+    if not text_snippets:
+        lines.append("- none")
+    for index, item in enumerate(text_snippets[:MCP_TEXT_SNIPPET_LIMIT], start=1):
+        lines.extend(
+            [
+                f"{index}. title: {_clean_text(item.get('title') or item.get('source_label'), MCP_FIELD_TEXT_CHARS)}",
+                f"   course_title: {_clean_text(item.get('course_title'), MCP_FIELD_TEXT_CHARS)}",
+                f"   lecture_title: {_clean_text(item.get('lecture_title'), MCP_FIELD_TEXT_CHARS)}",
+                f"   provider: {_clean_text(item.get('provider'), 120)}",
+                f"   source_type: {_clean_text(item.get('source_type'), 120)}",
+                f"   extraction_method: {_clean_text(item.get('extraction_method'), 120)}",
+                f"   confidence: {_clean_text(item.get('confidence'), 80)}",
+                f"   snippet: {_clean_text(item.get('snippet'), MCP_SNIPPET_CHARS)}",
+            ]
+        )
+
+    lines.extend(["", "## metadata-only fallback"])
+    if not metadata_only:
+        lines.append("- none")
+    for index, item in enumerate(metadata_only[:MCP_METADATA_ONLY_LIMIT], start=1):
+        warning = _warning_or_caution(item, materials.get("caution"))
+        lines.extend(
+            [
+                f"{index}. title: {_clean_text(item.get('title') or item.get('source_label'), MCP_FIELD_TEXT_CHARS)}",
+                f"   provider: {_clean_text(item.get('provider'), 120)}",
+                f"   extraction_method: {_clean_text(item.get('extraction_method'), 120)}",
+                f"   text_available: {_clean_text(item.get('text_available'), 40)}",
+                f"   warning/caution: {warning}",
+            ]
+        )
+
+    lines.extend(["", "## cautions"])
+    cautions = _pack_cautions(pack, tasks, materials)
+    if not cautions:
+        lines.append("- caution: none")
+    for caution in cautions[:MCP_CAUTION_LIMIT]:
+        lines.append(f"- caution: {caution}")
+
+    return _limit_mcp_output("\n".join(lines), max_chars)
+
+
+def summarize_ai_context_pack_for_mcp(
+    pack: dict[str, Any],
+    rendered_text: str,
+) -> dict[str, Any]:
+    """Return small structured metadata for MCP without embedding the full pack."""
+    tasks = pack.get("tasks") if isinstance(pack.get("tasks"), dict) else {}
+    materials = pack.get("materials") if isinstance(pack.get("materials"), dict) else {}
+    task_candidates = [
+        *_object_items(tasks.get("rule_based")),
+        *_object_items(tasks.get("moocs_derived")),
+        *_object_items(tasks.get("other")),
+    ]
+    text_snippets = _object_items(materials.get("text_snippets"))
+    metadata_only = _object_items(materials.get("metadata_only"))
+    material_counts = materials.get("counts") if isinstance(materials.get("counts"), dict) else {}
+
+    return {
+        "status": pack.get("status") or "ok",
+        "pack_type": pack.get("pack_type"),
+        "query": pack.get("query"),
+        "format": "compact_markdown",
+        "text_length": len(rendered_text),
+        "counts": {
+            "tasks": _int_or_len(tasks.get("count"), task_candidates),
+            "text_snippets": _int_or_len(_material_count_value(material_counts, "text_snippets"), text_snippets),
+            "metadata_only": _int_or_len(_material_count_value(material_counts, "metadata_only"), metadata_only),
+        },
+        "caution": AI_CONTEXT_CAUTION,
+    }
+
+
+def _material_count_value(counts: dict[str, Any], key: str) -> Any:
+    return counts.get(key)
+
+
+def _object_items(value: Any) -> list[dict[str, Any]]:
+    if not isinstance(value, list):
+        return []
+    return [item for item in value if isinstance(item, dict)]
+
+
+def _int_or_len(value: Any, fallback_items: list[dict[str, Any]]) -> int:
+    if isinstance(value, int):
+        return value
+    return len(fallback_items)
+
+
+def _clean_text(value: object, limit: int = MCP_SNIPPET_CHARS) -> str:
+    if value is None:
+        return ""
+    text_value = str(value).replace("\x00", "")
+    text_value = re.sub(r"[\x00-\x08\x0b\x0c\x0e-\x1f\x7f]", " ", text_value)
+    text_value = re.sub(r"\s+", " ", text_value).strip()
+    normalized_limit = max(1, int(limit))
+    if len(text_value) > normalized_limit:
+        if normalized_limit <= 3:
+            return text_value[:normalized_limit]
+        return text_value[: normalized_limit - 3].rstrip() + "..."
+    return text_value
+
+
+def _warning_or_caution(item: dict[str, Any], fallback_caution: Any) -> str:
+    values: list[str] = []
+    for key in ("warning", "caution"):
+        value = _clean_text(item.get(key), 220)
+        if value:
+            values.append(value)
+    warnings = item.get("warnings")
+    if isinstance(warnings, list):
+        for warning in warnings[:2]:
+            values.append(_warning_text(warning))
+    if not values:
+        fallback = _clean_text(fallback_caution, 220)
+        if fallback:
+            values.append(fallback)
+    return _clean_text("; ".join(value for value in values if value), 260)
+
+
+def _warning_text(value: Any) -> str:
+    if isinstance(value, dict):
+        for key in ("message", "warning", "detail", "caution", "reason"):
+            text_value = _clean_text(value.get(key), 180)
+            if text_value:
+                return text_value
+    return _clean_text(value, 180)
+
+
+def _pack_cautions(
+    pack: dict[str, Any],
+    tasks: dict[str, Any],
+    materials: dict[str, Any],
+) -> list[str]:
+    values: list[str] = []
+    raw_cautions = pack.get("cautions")
+    if isinstance(raw_cautions, list):
+        values.extend(_clean_text(item, 260) for item in raw_cautions)
+    values.extend(
+        [
+            _clean_text(tasks.get("caution"), 260),
+            _clean_text(materials.get("caution"), 260),
+        ]
+    )
+    warnings = pack.get("warnings")
+    if isinstance(warnings, list):
+        values.extend(_warning_text(item) for item in warnings)
+
+    seen: set[str] = set()
+    unique_values: list[str] = []
+    for value in values:
+        if not value or value in seen:
+            continue
+        seen.add(value)
+        unique_values.append(value)
+    return unique_values
+
+
+def _limit_mcp_output(text_value: str, max_chars: int) -> str:
+    text_value = text_value.replace("\x00", "")
+    text_value = re.sub(r"[\x00-\x08\x0b\x0c\x0e-\x1f\x7f]", " ", text_value)
+    normalized_limit = max(2000, int(max_chars))
+    if len(text_value) <= normalized_limit:
+        return text_value
+    suffix = "\n\n[truncated: MCP response length limit]"
+    return text_value[: normalized_limit - len(suffix)].rstrip() + suffix
 
 
 def split_tasks(items: list[dict[str, Any]]) -> tuple[list[dict[str, Any]], list[dict[str, Any]], list[dict[str, Any]]]:
