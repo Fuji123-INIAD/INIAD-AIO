@@ -1,10 +1,10 @@
-# INIAD-AIO v1.1 MCP / Ontology / Embedding Experiment
+# INIAD-AIO v0.5 MCP / Ontology / Embedding Experiment
 
 Date: 2026-07-06
 
 ## Purpose
 
-v1.1 experimental evolves INIAD-AIO from a v1.0 local task/PDF demo into a local lecture context handoff base for AI agents. The branch keeps v1.0 UI and API behavior stable while adding MCP tools, lightweight ontology fields, deterministic Context Cards, and an API-key-free semantic search fallback.
+v0.5 experimental evolves INIAD-AIO from a v0.4 local task/PDF demo into a local lecture context handoff base for AI agents. The branch keeps v0.4 UI and API behavior stable while adding MCP tools, lightweight ontology fields, deterministic Context Cards, and an API-key-free semantic search fallback.
 
 ## Added MCP Tools
 
@@ -48,7 +48,7 @@ Inference is intentionally small:
 - title contains `guide` / `利用ガイド` / `ガイド` -> `guide`
 - otherwise `unknown`
 
-Old `resource_index.json` remains readable because the API fills missing v1.1 fields from metadata at response time.
+Old `resource_index.json` remains readable because the API fills missing v0.5 fields from metadata at response time.
 
 ## Context Card
 
@@ -118,7 +118,7 @@ Response additions:
 
 ## What Works
 
-- v1.0 task list and local PDF search still work.
+- v0.4 task list and local PDF search still work.
 - MCP can call the existing task/resource APIs.
 - Local resources and task outputs expose lightweight ontology fields.
 - Context Cards are searchable.
@@ -134,9 +134,9 @@ Response additions:
 - No full ontology graph or reasoning layer.
 - MCP server is intentionally minimal JSON-RPC over stdio and does not replace the Web UI.
 
-## v1.0 Impact
+## v0.4 Impact
 
-v1.0 remains safe because:
+v0.4 remains safe because:
 
 - default search mode is still keyword.
 - existing `/api/local/resources`, `/api/local/resources/search`, resource detail, PDF open, and task APIs keep their previous fields.

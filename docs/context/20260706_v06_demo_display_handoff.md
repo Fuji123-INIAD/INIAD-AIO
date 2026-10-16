@@ -1,4 +1,6 @@
-# v1.2 Demo Display Handoff
+# v0.6 Demo Display Handoff
+
+> Version labels and document references were updated on 2026-10-16. Original commit-message quotes, branch pointers, dates, and validation results remain historical. See [version mapping](../versioning.md).
 
 Date: 2026-07-06
 Branch: feature/v1.2-mcp-chat-materials-experiment
