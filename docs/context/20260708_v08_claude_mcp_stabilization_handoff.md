@@ -1,10 +1,12 @@
-# 2026-07-08 v1.4 Claude MCP Stabilization Handoff
+# 2026-07-08 v0.8 Claude MCP Stabilization Handoff
+
+> Version labels and document references were updated on 2026-10-16. Original commit-message quotes, branch pointers, dates, and validation results remain historical. See [version mapping](../versioning.md).
 
 - Current branch: `feature/v1.4-ai-ready-mcp-context`
 - Latest implementation commit before this handoff: `4c09023 Stabilize Claude MCP context output`
 - Pushed: not yet
 - Git status before writing this handoff: clean, branch ahead of origin by 1 commit
-- Changed implementation files: `README.md`, `backend/app/core/ai_context_pack.py`, `backend/app/mcp/aio_server.py`, `docs/design/20260708_v14_ai_ready_mcp_context.md`, `docs/setup/claude_desktop_mcp.md`, `scripts/smoke_aio_mcp.py`, `tests/test_ai_context_pack.py`, `tests/test_aio_mcp_server.py`
+- Changed implementation files: `README.md`, `backend/app/core/ai_context_pack.py`, `backend/app/mcp/aio_server.py`, `docs/design/20260708_v08_ai_ready_mcp_context.md`, `docs/setup/claude_desktop_mcp.md`, `scripts/smoke_aio_mcp.py`, `tests/test_ai_context_pack.py`, `tests/test_aio_mcp_server.py`
 - Completed: `prepare_course_context` still fetches the full `/api/context/ai-pack` JSON internally, but MCP `tools/call` now returns short sanitized Markdown in `content[0].text` and only compact counts in `structuredContent`.
 - Completed: MCP formatter includes query, task count, text snippet count, metadata-only count, task candidates, up to 5 snippets, up to 3 metadata-only fallbacks, provider/source/extraction fields, and caution lines.
 - Completed: MCP stdio setup now reconfigures stdin/stdout/stderr for UTF-8 without emitting non-protocol output. Search for stdout/debug output found only the JSON-RPC response print in `aio_server.py`.

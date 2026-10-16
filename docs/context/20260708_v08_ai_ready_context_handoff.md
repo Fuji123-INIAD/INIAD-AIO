@@ -1,11 +1,13 @@
-# 2026-07-08 v1.4 AI-Ready MCP Context Handoff
+# 2026-07-08 v0.8 AI-Ready MCP Context Handoff
+
+> Version labels and document references were updated on 2026-10-16. Original commit-message quotes, branch pointers, dates, and validation results remain historical. See [version mapping](../versioning.md).
 
 - Current branch: `feature/v1.4-ai-ready-mcp-context`
 - Latest implementation commit before this handoff: `c1d1b33 Add AI-ready MCP context pack`
 - Presentation branch: `demo/v1.2-presentation-20260708` remains at `939544d77c1e5d08470f0f7fd6b76e34ae6707f0`; origin matches.
 - Pushed: not yet at the time this handoff was written.
 - Git status before this handoff file: clean except this new handoff file.
-- Changed files in implementation: `README.md`, `backend/app/core/ai_context_pack.py`, `backend/app/mcp/aio_server.py`, `backend/main.py`, `scripts/smoke_aio_mcp.py`, `tests/test_ai_context_pack.py`, `tests/test_aio_mcp_server.py`, `docs/design/20260708_v14_ai_ready_mcp_context.md`
+- Changed files in implementation: `README.md`, `backend/app/core/ai_context_pack.py`, `backend/app/mcp/aio_server.py`, `backend/main.py`, `scripts/smoke_aio_mcp.py`, `tests/test_ai_context_pack.py`, `tests/test_aio_mcp_server.py`, `docs/design/20260708_v08_ai_ready_mcp_context.md`
 - Tests run: `.\.venv\Scripts\python.exe -m unittest discover -s tests` -> 171 tests OK
 - MCP smoke run: required command against `127.0.0.1:8000` initially hit an older existing backend and returned 404 for `/api/context/ai-pack`; current-code backend was then run on a temporary port and `scripts\smoke_aio_mcp.py --base-url http://127.0.0.1:8014 --query "セキュリティ" --mode hybrid --limit 5` -> OK. Later 8000 was found occupied by another process, so it was not stopped.
 - Completed: added API `GET /api/context/ai-pack` and MCP tool `prepare_course_context`; smoke now verifies the new tool. The pack separates `tasks.rule_based`, `tasks.moocs_derived`, `materials.text_snippets`, and `materials.metadata_only`, preserving source/provenance/confidence/caution/open URL fields.

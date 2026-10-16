@@ -19,9 +19,9 @@ AIO should mainly provide grounded context. It should not pretend to be the fina
 
 The current active work is around:
 
-- `feature/v1.2-mcp-chat-materials-experiment`
+- `feature/v0.6-mcp-chat-materials-experiment`
 
-The current v1.2 focus is:
+The current v0.6 focus is:
 
 - MCP tools for task backlog and lecture materials
 - MOOCs-Collect integration
@@ -31,7 +31,7 @@ The current v1.2 focus is:
 
 ## Current demo target
 
-Prepare a v1.2 demo-ready implementation for the upcoming presentation.
+Prepare a v0.6 demo-ready implementation for the upcoming presentation.
 
 The demo-ready target is:
 
@@ -180,7 +180,7 @@ Do not commit generated local indexes, real databases, PDFs, credentials, or ext
 
 ## Demo priority
 
-For the v1.2 presentation, prioritize:
+For the v0.6 presentation, prioritize:
 
 1. MCP smoke test.
 2. Claude Desktop or MCP client connection instructions.
@@ -284,12 +284,12 @@ Keep handoff docs concise. Do not paste long extracted lecture text.
 
 The presentation may say:
 
-- AIO v1.2 can expose pending task candidates through MCP.
-- AIO v1.2 can search lecture material metadata and snippets.
-- AIO v1.2 can use MOOCs-Collect `search_index` as a text-like snippet provider.
-- AIO v1.2 can return context with source/provenance metadata.
-- AIO v1.2 separates text snippets from metadata-only fallback.
-- AIO v1.2 is a local context provider, not the official source of course truth.
+- AIO v0.6 can expose pending task candidates through MCP.
+- AIO v0.6 can search lecture material metadata and snippets.
+- AIO v0.6 can use MOOCs-Collect `search_index` as a text-like snippet provider.
+- AIO v0.6 can return context with source/provenance metadata.
+- AIO v0.6 separates text snippets from metadata-only fallback.
+- AIO v0.6 is a local context provider, not the official source of course truth.
 
 The presentation should not say:
 

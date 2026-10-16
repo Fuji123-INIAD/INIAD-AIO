@@ -1,4 +1,6 @@
-# 2026-07-07 v1.3 MOOCs Task Sync Handoff
+# 2026-07-07 v0.7 MOOCs Task Sync Handoff
+
+> Version labels and document references were updated on 2026-10-16. Original commit-message quotes, branch pointers, dates, and validation results remain historical. See [version mapping](../versioning.md).
 
 - Current branch: `feature/v1.3-moocs-real-task-sync`
 - Presentation branch: `demo/v1.2-presentation-20260708` remains at `939544d77c1e5d08470f0f7fd6b76e34ae6707f0`; origin matches.

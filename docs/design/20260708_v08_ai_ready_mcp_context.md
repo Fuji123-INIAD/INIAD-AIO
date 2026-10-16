@@ -1,10 +1,10 @@
-# INIAD-AIO v1.4 AI-Ready MCP Context
+# INIAD-AIO v0.8 AI-Ready MCP Context
 
 Date: 2026-07-08
 
 ## Goal
 
-v1.4 adds one MCP path that returns task candidates and lecture-material snippets
+v0.8 adds one MCP path that returns task candidates and lecture-material snippets
 together as a compact context pack for chat AI use.
 
 The new MCP tool is:
