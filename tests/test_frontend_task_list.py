@@ -15,7 +15,7 @@ class FrontendTaskListTests(unittest.TestCase):
         self.assertIn('id="taskWarnings"', html)
         self.assertIn('id="taskError"', html)
         self.assertIn("INIAD-AIO", html)
-        self.assertIn("v1.0 Demo", html)
+        self.assertIn("v0.4 Demo", html)
         self.assertIn(
             "この課題一覧は授業ルールに基づく課題候補です。",
             html,

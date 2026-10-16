@@ -17,7 +17,7 @@ $env:PYTHONIOENCODING = "utf-8"
 
 ## Material Index For Snippets
 
-For the v1.2 material-snippet demo, build the ignored local indexes before
+For the v0.6 material-snippet demo, build the ignored local indexes before
 starting Claude Desktop. The command reads local MOOCs-Collect data but writes
 only under `data/local/`, which must not be committed.
 
@@ -64,7 +64,7 @@ Use the absolute repo path in Claude Desktop config. Do not commit your real con
 ## Smoke
 
 Run this from a second terminal while FastAPI is running. The smoke script uses
-the in-process JSON-RPC MCP handler and verifies these v1.2 tools are callable:
+the in-process JSON-RPC MCP handler and verifies these v0.6 tools are callable:
 `list_pending_tasks`, `summarize_task_backlog`, `search_material_context`,
 `get_material_context`, `search_lecture_materials`, and
 `summarize_local_resource`.
@@ -80,7 +80,7 @@ the in-process JSON-RPC MCP handler and verifies these v1.2 tools are callable:
 Expected result: JSON with `"status": "ok"`, nonzero material context counts for
 the prepared demo data, and `material_text_snippet_count` above zero. If the
 local material index is intentionally unavailable, use the fallback demo script
-from `docs/demo/20260707_v12_mcp_demo_runbook.md` and say that only metadata
+from `docs/demo/20260707_v06_mcp_demo_runbook.md` and say that only metadata
 fallback was available.
 
 ## Presentation Prompts

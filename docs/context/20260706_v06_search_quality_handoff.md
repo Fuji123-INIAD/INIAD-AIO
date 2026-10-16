@@ -1,4 +1,6 @@
-# v1.2 Material Search Quality Handoff
+# v0.6 Material Search Quality Handoff
+
+> Version labels and document references were updated on 2026-10-16. Original commit-message quotes, branch pointers, dates, and validation results remain historical. See [version mapping](../versioning.md).
 
 Date: 2026-07-06
 Branch: feature/v1.2-mcp-chat-materials-experiment
@@ -16,7 +18,7 @@ Latest base commit before this task: a552129 Tighten v1.2 demo snippet display
 - `backend/app/core/material_search.py`
 - `scripts/evaluate_material_search.py`
 - `tests/test_material_search_quality.py`
-- `docs/context/20260706_v12_search_quality_handoff.md`
+- `docs/context/20260706_v06_search_quality_handoff.md`
 
 ## Completed
 
