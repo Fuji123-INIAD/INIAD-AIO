@@ -1,10 +1,16 @@
 # INIAD-AIO
 
+## 開発版番号について
+
+このブランチは **v0.6（開発版）** です。
+
+2026-10-16に旧v1.0〜v1.4の発表版・実験版を **v0.4〜v0.8** へ改番しました。将来の正式版v1.0の構想と過去のコミット履歴は保持しています。新旧番号・ブランチ・文書名の対応は[開発版番号の対応表](docs/versioning.md)を参照してください。
+
 INIAD-AIO は、INIAD（東洋大学情報連携学部）向けの AI 情報アクセス基盤です。
 
 MOOCs を中心とした講義・課題・資料情報を収集・整理し、自然言語で検索・参照できる環境の構築を目的としています。
 
-現在は **v1.0 発表版** の準備中です。
+発表デモの基礎は **v0.4 発表版** です。このブランチの追加実験は後半に記載しています。
 
 ---
 
@@ -34,7 +40,7 @@ MOOCs を中心とした講義・課題・資料情報を収集・整理し、�
 
 ---
 
-## 現在の状態（v1.0 発表版）
+## v0.4 発表版の基礎機能
 
 現在実装・検証中の主な要素:
 
@@ -92,9 +98,9 @@ README は入口のみを担当します。
 
 大規模変更時は README を肥大化させるのではなく、対応する Overview または CEL を更新してください。
 
-## v1.1 experimental
+## v0.5 experimental
 
-`feature/v1.1-adventure-mcp-ontology` adds an experimental AI handoff layer without changing the v1.0 stable demo path:
+`feature/v0.5-adventure-mcp-ontology` adds an experimental AI handoff layer without changing the v0.4 stable demo path:
 
 - Minimal MCP server: `python -m backend.app.mcp.aio_server --base-url http://127.0.0.1:8000`
 - MCP tools for tasks and local resources.
@@ -103,11 +109,11 @@ README は入口のみを担当します。
 - Offline semantic/hybrid search fallback using `local-hashed-bow-v1`.
 - Optional vector cache script: `python scripts/build_local_resource_vector_cache.py`
 
-Design note: `docs/design/20260706_v11_mcp_ontology_embedding_experiment.md`
+Design note: `docs/design/20260706_v05_mcp_ontology_embedding_experiment.md`
 
-## v1.2 experimental
+## v0.6 experimental
 
-`feature/v1.2-mcp-chat-materials-experiment` extends the MCP path so chat AI clients can retrieve safer task backlog summaries and bounded lecture-material snippets.
+`feature/v0.6-mcp-chat-materials-experiment` extends the MCP path so chat AI clients can retrieve safer task backlog summaries and bounded lecture-material snippets.
 
 - New MCP task tools: `list_pending_tasks`, `summarize_task_backlog`
 - New material model: `MaterialText` / `MaterialChunk`
@@ -118,7 +124,7 @@ Design note: `docs/design/20260706_v11_mcp_ontology_embedding_experiment.md`
 - MOOCs-Collect AppData/search probes: `python scripts/probe_moocs_collect_files.py`, `python scripts/probe_moocs_collect_search_index.py`, `python scripts/probe_moocs_collect_slide_urls.py`
 - OCR availability probe: `python scripts/probe_pdf_text_extractors.py`
 - Demo fallback: `python scripts/demo_aio_mcp_chat_flow.py`
-- Presentation runbook: `docs/demo/20260707_v12_mcp_demo_runbook.md`
+- Presentation runbook: `docs/demo/20260707_v06_mcp_demo_runbook.md`
 
 `data/local/`, MOOCs-Collect `db.sqlite`, PDFs, OCR outputs, storage state, cookies, browser profiles, Claude Desktop config, and credentials must not be committed.
 
@@ -126,7 +132,7 @@ MOOCs-Collect storage note: `db.sqlite` is metadata-only in the checked desktop 
 
 Design notes:
 
-- `docs/design/20260706_v12_chat_ai_mcp_materials_experiment.md`
+- `docs/design/20260706_v06_chat_ai_mcp_materials_experiment.md`
 - `docs/design/material_text_pipeline.md`
 - `docs/setup/claude_desktop_mcp.md`
-- `docs/demo/20260707_v12_mcp_demo_runbook.md`
+- `docs/demo/20260707_v06_mcp_demo_runbook.md`

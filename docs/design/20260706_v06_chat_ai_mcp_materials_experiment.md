@@ -1,10 +1,10 @@
-# INIAD-AIO v1.2 Chat AI MCP Materials Experiment
+# INIAD-AIO v0.6 Chat AI MCP Materials Experiment
 
 Date: 2026-07-06
 
 ## Goal
 
-v1.2 moves AIO closer to a local context substrate for chat AI clients such as Claude Desktop. The important path is not a browser-first PDF search UI, but MCP tools that safely expose:
+v0.6 moves AIO closer to a local context substrate for chat AI clients such as Claude Desktop. The important path is not a browser-first PDF search UI, but MCP tools that safely expose:
 
 - pending task candidates
 - local lecture material metadata
@@ -30,7 +30,7 @@ v1.2 moves AIO closer to a local context substrate for chat AI clients such as C
 - `search_lecture_materials`
 - `summarize_local_resource`
 
-Existing v1.1 tools remain:
+Existing v0.5 tools remain:
 
 - `list_tasks`
 - `get_task_evidence`

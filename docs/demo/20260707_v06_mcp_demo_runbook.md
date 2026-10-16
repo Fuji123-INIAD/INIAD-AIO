@@ -1,8 +1,8 @@
-# INIAD-AIO v1.2 MCP Demo Runbook
+# INIAD-AIO v0.6 MCP Demo Runbook
 
 Date: 2026-07-07
 
-This runbook is for the v1.2 presentation demo. AIO is a local MCP context
+This runbook is for the v0.6 presentation demo. AIO is a local MCP context
 provider for task candidates and lecture-material snippets. It is not the
 official source of course truth.
 
@@ -155,11 +155,11 @@ but it is not an MCP client.
 
 Say:
 
-- AIO v1.2 can expose pending task candidates through MCP.
-- AIO v1.2 can search lecture material metadata and snippets.
-- AIO v1.2 can use MOOCs-Collect `search_index` as one text-like snippet provider.
-- AIO v1.2 returns provider, source type, extraction method, and caution fields.
-- AIO v1.2 separates text snippets from metadata-only fallback.
+- AIO v0.6 can expose pending task candidates through MCP.
+- AIO v0.6 can search lecture material metadata and snippets.
+- AIO v0.6 can use MOOCs-Collect `search_index` as one text-like snippet provider.
+- AIO v0.6 returns provider, source type, extraction method, and caution fields.
+- AIO v0.6 separates text snippets from metadata-only fallback.
 - AIO is a local context provider, not the official course source.
 
 Do not say:

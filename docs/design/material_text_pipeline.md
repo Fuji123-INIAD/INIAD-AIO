@@ -46,7 +46,7 @@ This means the MCP demo can still explain a resource even when PDF text extracti
 
 The semantic path uses the existing deterministic hashed embedding fallback, so no API key is required. Context packs return `summary + items + caution`, not full raw text dumps.
 
-## v1.2 MOOCs-Collect Providers
+## v0.6 MOOCs-Collect Providers
 
 The real MOOCs-Collect `db.sqlite` is metadata-only. `slides` stores `url`, `pdf_path`, and timestamps, but not body text.
 
